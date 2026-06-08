@@ -64,9 +64,9 @@ import { HealthApi, HealthStatus } from '../../data-access/system/health.api';
       }
 
       @if (loading()) {
-        <section class="alerts-grid" aria-hidden="true">
+        <section class="alerts-list" aria-hidden="true">
           @for (i of skeletons; track i) {
-            <div class="alert-card panel skeleton"></div>
+            <div class="alert-row panel skeleton"></div>
           }
         </section>
       } @else if (alerts().length === 0) {
@@ -76,57 +76,61 @@ import { HealthApi, HealthStatus } from '../../data-access/system/health.api';
           <span class="muted">New alerts appear here as influencers move.</span>
         </section>
       } @else {
-        <section class="alerts-grid" aria-label="Live alert feed">
-          @for (alert of alerts(); track alert.id) {
-            <a class="alert-card panel" [class.new]="isNewAlert(alert.id)" [routerLink]="['/app/alerts', alert.id]">
+        <section class="alerts-list" aria-label="Live alert feed">
+          @for (alert of alerts(); track alert.id; let index = $index) {
+            <a class="alert-row panel" [class.new]="isNewAlert(alert.id)" [routerLink]="['/app/alerts', alert.id]">
               <span class="card-accent" aria-hidden="true"></span>
 
-              <div class="card-head">
+              <span class="row-index">{{ index + 1 | number: '2.0-0' }}</span>
+
+              <div class="token-cell">
                 <span class="token-avatar">{{ alert.tokenSymbol.slice(0, 3) }}</span>
                 <span class="token-meta">
                   <strong class="token-sym">{{ alert.tokenSymbol }}</strong>
                   <small class="muted ellipsis">{{ alert.tokenName }}</small>
                 </span>
-                <span
-                  class="verdict"
-                  [class.super]="alert.verdict === 'SUPER TRADE'"
-                  [class.good]="alert.verdict === 'GOOD TRADE'"
-                  [class.avoid]="alert.verdict === 'AVOID'"
-                  >{{ alert.verdict }}</span
-                >
-                @if (isNewAlert(alert.id)) {
-                  <span class="new-badge">New</span>
-                }
               </div>
+
+              <div class="caller-cell">
+                <span class="field-label">Caller</span>
+                <strong class="ellipsis">{{ alert.callerHandle }}</strong>
+                <small class="muted ellipsis">{{ alert.summary }}</small>
+              </div>
+
+              <span
+                class="verdict"
+                [class.super]="alert.verdict === 'SUPER TRADE'"
+                [class.good]="alert.verdict === 'GOOD TRADE'"
+                [class.avoid]="alert.verdict === 'AVOID'"
+                >{{ alert.verdict }}</span
+              >
 
               <div class="perf" [class.negative]="alert.performancePercent < 0">
                 <span class="perf-value"
                   >{{ alert.performancePercent >= 0 ? '+' : ''
                   }}{{ alert.performancePercent | number: '1.1-1' }}%</span
                 >
-                <span class="perf-label">TIMEX move</span>
+                <span class="perf-label">TIMEX</span>
               </div>
 
-              <dl class="stats">
-                <div>
-                  <dt>Caller</dt>
-                  <dd class="ellipsis">{{ alert.callerHandle }}</dd>
-                </div>
+              <dl class="stats compact">
                 <div>
                   <dt>Rank</dt>
                   <dd>#{{ alert.rank }}</dd>
                 </div>
                 <div>
-                  <dt>Win rate</dt>
-                  <dd>{{ alert.winRate | number: '1.0-0' }}%</dd>
+                  <dt>Mentions</dt>
+                  <dd>{{ alert.mentionCount }}</dd>
                 </div>
               </dl>
 
-              <footer>
-                <span>{{ alert.mentionCount }} mentions</span>
+              <footer class="row-time">
                 <time [dateTime]="alert.createdAt" [title]="(alert.createdAt | date: 'medium') ?? ''">
                   {{ relativeTime(alert.createdAt) }}
                 </time>
+                @if (isNewAlert(alert.id)) {
+                  <span class="new-badge">New</span>
+                }
               </footer>
             </a>
           }
@@ -226,18 +230,19 @@ import { HealthApi, HealthStatus } from '../../data-access/system/health.api';
       filter: drop-shadow(0 0 12px rgba(255, 176, 32, 0.5));
     }
 
-    .alerts-grid {
+    .alerts-list {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(18.5rem, 1fr));
-      gap: 1.1rem;
+      gap: 0.72rem;
     }
 
-    .alert-card {
+    .alert-row {
       position: relative;
       display: grid;
-      align-content: start;
-      gap: 1rem;
-      padding: 1.25rem;
+      grid-template-columns: 2.6rem minmax(12rem, 1.1fr) minmax(14rem, 1.35fr) auto minmax(7rem, 0.55fr) minmax(8rem, 0.55fr) minmax(5rem, auto);
+      align-items: center;
+      gap: 0.9rem;
+      min-height: 5.85rem;
+      padding: 0.95rem 1rem;
       overflow: hidden;
     }
 
@@ -249,22 +254,22 @@ import { HealthApi, HealthStatus } from '../../data-access/system/health.api';
       opacity: 0;
     }
 
-    .alert-card:hover {
-      transform: translateY(-3px);
+    .alert-row:hover {
+      transform: translateX(3px);
       border-color: var(--glass-border-strong);
       box-shadow: 0 0 0 1px rgba(255, 176, 32, 0.18);
     }
 
-    .alert-card:hover .card-accent {
+    .alert-row:hover .card-accent {
       opacity: 1;
     }
 
-    .alert-card.new {
+    .alert-row.new {
       border-color: rgba(255, 176, 32, 0.34);
       animation: arrive 520ms ease both;
     }
 
-    .alert-card.new .card-accent {
+    .alert-row.new .card-accent {
       opacity: 1;
     }
 
@@ -279,11 +284,18 @@ import { HealthApi, HealthStatus } from '../../data-access/system/health.api';
       }
     }
 
-    .card-head {
+    .row-index {
+      color: var(--ink-dim);
+      font-size: 0.75rem;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .token-cell {
       display: grid;
-      grid-template-columns: auto 1fr auto auto;
+      grid-template-columns: auto minmax(0, 1fr);
       align-items: center;
       gap: 0.75rem;
+      min-width: 0;
     }
 
     .token-avatar {
@@ -310,7 +322,27 @@ import { HealthApi, HealthStatus } from '../../data-access/system/health.api';
       font-weight: 500;
     }
 
+    .caller-cell {
+      display: grid;
+      gap: 0.16rem;
+      min-width: 0;
+      line-height: 1.25;
+    }
+
+    .caller-cell strong {
+      font-size: 0.95rem;
+      font-weight: 500;
+    }
+
+    .field-label {
+      color: var(--ink-dim);
+      font-size: 0.66rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
     .verdict {
+      justify-self: start;
       border-radius: 999px;
       padding: 0.28rem 0.6rem;
       font-size: 0.64rem;
@@ -357,7 +389,8 @@ import { HealthApi, HealthStatus } from '../../data-access/system/health.api';
       display: flex;
       align-items: baseline;
       gap: 0.6rem;
-      padding: 0.65rem 0.85rem;
+      justify-content: flex-end;
+      padding: 0.52rem 0.72rem;
       border-radius: var(--radius-sm);
       background: rgba(52, 211, 158, 0.08);
       border: 1px solid rgba(52, 211, 158, 0.16);
@@ -369,11 +402,11 @@ import { HealthApi, HealthStatus } from '../../data-access/system/health.api';
     }
 
     .perf-value {
-      font-size: 1.5rem;
+      font-size: 1.05rem;
       font-weight: 500;
       font-variant-numeric: tabular-nums;
       color: var(--good);
-      letter-spacing: -0.01em;
+      letter-spacing: 0;
     }
 
     .perf.negative .perf-value {
@@ -392,6 +425,10 @@ import { HealthApi, HealthStatus } from '../../data-access/system/health.api';
       grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 0.6rem;
       margin: 0;
+    }
+
+    .stats.compact {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .stats dt {
@@ -417,14 +454,18 @@ import { HealthApi, HealthStatus } from '../../data-access/system/health.api';
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding-top: 0.85rem;
-      border-top: 1px solid rgba(255, 255, 255, 0.06);
       color: var(--ink-muted);
       font-size: 0.82rem;
     }
 
+    .row-time {
+      justify-content: flex-end;
+      gap: 0.5rem;
+      white-space: nowrap;
+    }
+
     .skeleton {
-      min-height: 15rem;
+      min-height: 5.85rem;
     }
 
     @media (max-width: 760px) {
@@ -434,6 +475,33 @@ import { HealthApi, HealthStatus } from '../../data-access/system/health.api';
 
       h1 {
         font-size: 2rem;
+      }
+
+      .alert-row {
+        grid-template-columns: auto 1fr;
+        align-items: start;
+      }
+
+      .row-index {
+        grid-row: span 5;
+        padding-top: 0.85rem;
+      }
+
+      .token-cell,
+      .caller-cell,
+      .verdict,
+      .perf,
+      .stats.compact,
+      .row-time {
+        grid-column: 2;
+      }
+
+      .perf {
+        justify-content: flex-start;
+      }
+
+      .row-time {
+        justify-content: flex-start;
       }
     }
   `
