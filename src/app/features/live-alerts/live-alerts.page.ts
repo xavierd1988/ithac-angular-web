@@ -522,6 +522,7 @@ export class LiveAlertsPage implements OnInit, OnDestroy {
   readonly newAlertCount = computed(() => this.newAlertIds().size);
   readonly skeletons = [0, 1, 2, 3, 4, 5];
   private tickerId: ReturnType<typeof window.setInterval> | null = null;
+  private pollingId: ReturnType<typeof window.setInterval> | null = null;
 
   private readonly liveMessageEffect = effect(() => {
     const sequence = this.realtime.messageSequence();
@@ -542,12 +543,18 @@ export class LiveAlertsPage implements OnInit, OnDestroy {
     this.loadHealth();
     this.loadAlerts();
     this.tickerId = window.setInterval(() => this.now.set(Date.now()), 30_000);
+    this.pollingId = window.setInterval(() => {
+      this.loadAlerts({ forceRefresh: true, background: true });
+    }, 45_000);
   }
 
   ngOnDestroy(): void {
     this.liveMessageEffect.destroy();
     if (this.tickerId) {
       window.clearInterval(this.tickerId);
+    }
+    if (this.pollingId) {
+      window.clearInterval(this.pollingId);
     }
   }
 
@@ -596,14 +603,24 @@ export class LiveAlertsPage implements OnInit, OnDestroy {
     return `${Math.round(hours / 24)}d ago`;
   }
 
-  private loadAlerts(options: { forceRefresh?: boolean } = {}): void {
+  private loadAlerts(options: { forceRefresh?: boolean; background?: boolean } = {}): void {
     const hasExistingAlerts = this.alerts().length > 0;
     this.loading.set(!hasExistingAlerts);
-    this.refreshing.set(hasExistingAlerts);
+    this.refreshing.set(hasExistingAlerts && !options.background);
     this.error.set(null);
 
     this.alertsApi.listAlerts(options).subscribe({
       next: (alerts) => {
+        if (hasExistingAlerts && options.forceRefresh) {
+          const existingIds = new Set(this.alerts().map((alert) => alert.id));
+          const incomingIds = alerts
+            .filter((alert) => !existingIds.has(alert.id))
+            .map((alert) => alert.id);
+          if (incomingIds.length > 0) {
+            this.newAlertIds.update((ids) => new Set([...incomingIds, ...ids]));
+          }
+        }
+
         this.alerts.set(alerts);
         this.lastUpdatedAt.set(new Date().toISOString());
         this.loading.set(false);

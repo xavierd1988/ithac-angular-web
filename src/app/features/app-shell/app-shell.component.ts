@@ -9,7 +9,7 @@ import { AuthService } from '../../core/auth/auth.service';
   template: `
     <main class="shell">
       <aside class="sidebar">
-        <a class="brand" routerLink="/app/live" aria-label="ITHAC Live">
+        <a class="brand" routerLink="/app/influencers" aria-label="ITHAC Reputation">
           <span class="brand-mark">◆</span>
           <span class="brand-text">
             <strong>ITHAC</strong>
@@ -18,11 +18,11 @@ import { AuthService } from '../../core/auth/auth.service';
         </a>
 
         <nav aria-label="Primary">
+          <a routerLink="/app/influencers" routerLinkActive="active"
+            ><span class="nav-dot"></span>Reputation</a
+          >
           <a routerLink="/app/live" routerLinkActive="active"><span class="nav-dot"></span>Live</a>
           <a routerLink="/app/coins" routerLinkActive="active"><span class="nav-dot"></span>Coins</a>
-          <a routerLink="/app/influencers" routerLinkActive="active"
-            ><span class="nav-dot"></span>Influencers</a
-          >
           <a routerLink="/app/settings" routerLinkActive="active"
             ><span class="nav-dot"></span>Settings</a
           >

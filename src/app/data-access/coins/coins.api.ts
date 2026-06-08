@@ -10,7 +10,7 @@ export class CoinsApi {
   private readonly alertsApi = inject(AlertsApi);
 
   listCoins(): Observable<CoinSignalSummary[]> {
-    return this.alertsApi.listAlerts().pipe(map(buildCoinSignalSummaries));
+    return this.alertsApi.listAlerts({ pageSize: 100 }).pipe(map(buildCoinSignalSummaries));
   }
 }
 

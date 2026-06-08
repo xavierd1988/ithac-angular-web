@@ -8,6 +8,12 @@ export interface InfluencerSummaryResponseDto {
   winRate: number;
   averagePerformancePercent: number;
   callsTracked: number;
+  profileImageUrl?: string;
+  totalScore: number;
+  positiveCalls: number;
+  negativeCalls: number;
+  neutralCalls: number;
+  lastUpdated?: string;
 }
 
 export interface InfluencerProfileResponseDto extends InfluencerSummaryResponseDto {

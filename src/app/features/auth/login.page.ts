@@ -298,6 +298,6 @@ export class LoginPage {
   }
 
   private navigateAfterSignIn(): void {
-    void this.router.navigateByUrl(this.route.snapshot.queryParamMap.get('redirectTo') ?? '/app/live');
+    void this.router.navigateByUrl(this.route.snapshot.queryParamMap.get('redirectTo') ?? '/app/influencers');
   }
 }

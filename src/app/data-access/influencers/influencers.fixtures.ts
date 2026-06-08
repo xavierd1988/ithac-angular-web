@@ -9,6 +9,11 @@ export const MOCK_INFLUENCERS: InfluencerProfile[] = [
     winRate: 68,
     averagePerformancePercent: 24.6,
     callsTracked: 143,
+    totalScore: 3517.8,
+    positiveCalls: 97,
+    negativeCalls: 24,
+    neutralCalls: 22,
+    lastUpdated: new Date(Date.now() - 1000 * 60 * 20).toISOString(),
     specialties: ['Meme rotation', 'early social clusters', 'volume confirmation'],
     latestSignals: [
       {
@@ -33,6 +38,11 @@ export const MOCK_INFLUENCERS: InfluencerProfile[] = [
     winRate: 74,
     averagePerformancePercent: 41.3,
     callsTracked: 211,
+    totalScore: 8714.3,
+    positiveCalls: 156,
+    negativeCalls: 31,
+    neutralCalls: 24,
+    lastUpdated: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
     specialties: ['Momentum', 'high-volume breakouts', 'short-window timing'],
     latestSignals: [
       {

@@ -1,28 +1,30 @@
-import { DecimalPipe } from '@angular/common';
-import { Component, inject, OnInit, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { DatePipe, DecimalPipe } from '@angular/common';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 
 import { InfluencersApi } from '../../data-access/influencers/influencers.api';
 import { InfluencerProfile } from '../../data-access/influencers/influencers.types';
 
 @Component({
   selector: 'ithac-influencer-list-page',
-  imports: [DecimalPipe, RouterLink],
+  imports: [DatePipe, DecimalPipe],
   template: `
     <main class="page influencers">
       <header>
         <div class="title">
-          <span class="eyebrow">Reputation</span>
-          <h1>Influencers</h1>
-          <p class="muted sub">Ranked by ITHAC reputation — win rate × performance.</p>
+          <span class="eyebrow">Influencer reputation</span>
+          <h1>Reputation ranking</h1>
+          <p class="muted sub">The accounts with the strongest measured signal history.</p>
         </div>
-        <span class="status-pill brand">{{ profiles().length }} tracked</span>
+        <div class="header-metrics">
+          <span class="status-pill brand">{{ profiles().length }} ranked</span>
+          <span class="status-pill dot ok">{{ totalCalls() }} calls evaluated</span>
+        </div>
       </header>
 
       @if (loading()) {
-        <section class="grid" aria-hidden="true">
+        <section class="ranking-list" aria-hidden="true">
           @for (i of skeletons; track i) {
-            <div class="panel profile-card skeleton"></div>
+            <div class="panel ranking-row skeleton"></div>
           }
         </section>
       } @else if (error()) {
@@ -33,39 +35,62 @@ import { InfluencerProfile } from '../../data-access/influencers/influencers.typ
           <strong>No influencers tracked yet</strong>
         </section>
       } @else {
-        <section class="grid" aria-label="Influencer leaderboard">
+        <section class="ranking-list" aria-label="Influencer reputation ranking">
           @for (profile of profiles(); track profile.id) {
-            <a class="panel profile-card" [routerLink]="['/app/influencers', profile.id]">
+            <article class="panel ranking-row" [class.top]="profile.rank <= 3">
               <span class="card-accent" aria-hidden="true"></span>
 
-              <div class="topline">
-                <span class="avatar">{{ profile.displayName.slice(0, 2) }}</span>
+              <span class="rank" [class.medal]="profile.rank <= 3">#{{ profile.rank }}</span>
+
+              <div class="identity">
+                @if (profile.profileImageUrl) {
+                  <img class="avatar" [src]="profile.profileImageUrl" [alt]="profile.displayName" />
+                } @else {
+                  <span class="avatar fallback">{{ profile.displayName.slice(0, 2) }}</span>
+                }
                 <span class="who">
                   <strong class="ellipsis">{{ profile.displayName }}</strong>
                   <small class="muted ellipsis">{{ profile.handle }}</small>
                 </span>
-                <span class="rank" [class.top]="profile.rank <= 3">#{{ profile.rank }}</span>
               </div>
 
-              <div class="winrate">
-                <span class="big">{{ profile.winRate | number: '1.0-0' }}%</span>
-                <span class="lbl">win rate</span>
+              <div class="score">
+                <strong [class.negative]="profile.totalScore < 0">
+                  {{ profile.totalScore | number: '1.0-2' }}
+                </strong>
+                <span>score</span>
               </div>
 
-              <dl>
+              <div class="score avg" [class.negative]="profile.averagePerformancePercent < 0">
+                <strong>
+                  {{ profile.averagePerformancePercent >= 0 ? '+' : ''
+                  }}{{ profile.averagePerformancePercent | number: '1.2-2' }}%
+                </strong>
+                <span>avg TIMEX</span>
+              </div>
+
+              <dl class="call-mix">
                 <div>
-                  <dt>Avg TIMEX</dt>
-                  <dd [class.negative]="profile.averagePerformancePercent < 0">
-                    {{ profile.averagePerformancePercent >= 0 ? '+' : ''
-                    }}{{ profile.averagePerformancePercent | number: '1.1-1' }}%
-                  </dd>
-                </div>
-                <div>
-                  <dt>Calls</dt>
+                  <dt>Evaluated</dt>
                   <dd>{{ profile.callsTracked }}</dd>
                 </div>
+                <div>
+                  <dt>Positive</dt>
+                  <dd>{{ profile.positiveCalls }}</dd>
+                </div>
+                <div>
+                  <dt>Neutral</dt>
+                  <dd>{{ profile.neutralCalls }}</dd>
+                </div>
               </dl>
-            </a>
+
+              <div class="updated">
+                <span>Updated</span>
+                <time [dateTime]="profile.lastUpdated ?? ''">
+                  {{ profile.lastUpdated ? (profile.lastUpdated | date: 'MMM d, h:mm a') : 'Pending' }}
+                </time>
+              </div>
+            </article>
           }
         </section>
       }
@@ -83,6 +108,13 @@ import { InfluencerProfile } from '../../data-access/influencers/influencers.typ
       justify-content: space-between;
       gap: 1rem;
       flex-wrap: wrap;
+    }
+
+    .header-metrics {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.55rem;
+      justify-content: flex-end;
     }
 
     .eyebrow {
@@ -104,18 +136,21 @@ import { InfluencerProfile } from '../../data-access/influencers/influencers.typ
       font-size: 0.95rem;
     }
 
-    .grid {
+    .ranking-list {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
-      gap: 1rem;
+      gap: 0.72rem;
     }
 
-    .profile-card {
+    .ranking-row {
       position: relative;
       display: grid;
-      align-content: start;
+      grid-template-columns:
+        4.2rem minmax(15rem, 1.45fr) minmax(7rem, 0.55fr) minmax(7rem, 0.55fr)
+        minmax(14rem, 1fr) minmax(8rem, 0.65fr);
+      align-items: center;
       gap: 1rem;
-      padding: 1.25rem;
+      min-height: 5.9rem;
+      padding: 0.95rem 1rem;
       overflow: hidden;
       transition:
         transform 180ms ease,
@@ -132,36 +167,56 @@ import { InfluencerProfile } from '../../data-access/influencers/influencers.typ
       transition: opacity 180ms ease;
     }
 
-    .profile-card:hover {
-      transform: translateY(-3px);
+    .ranking-row:hover {
+      transform: translateX(3px);
       border-color: var(--glass-border-strong);
       box-shadow:
         0 28px 50px -28px rgba(0, 0, 0, 0.95),
         0 0 0 1px rgba(255, 176, 32, 0.18);
     }
 
-    .profile-card:hover .card-accent {
+    .ranking-row:hover .card-accent,
+    .ranking-row.top .card-accent {
       opacity: 1;
     }
 
-    .topline {
+    .rank {
+      justify-self: start;
+      border: 1px solid var(--glass-border);
+      border-radius: 999px;
+      padding: 0.28rem 0.62rem;
+      color: var(--ink-muted);
+      font-size: 0.88rem;
+      font-weight: 500;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .rank.medal {
+      border-color: rgba(255, 176, 32, 0.4);
+      background: rgba(255, 176, 32, 0.1);
+      color: var(--gold-bright);
+    }
+
+    .identity {
       display: grid;
-      grid-template-columns: auto 1fr auto;
+      grid-template-columns: auto minmax(0, 1fr);
       align-items: center;
       gap: 0.75rem;
+      min-width: 0;
     }
 
     .avatar {
       display: grid;
+      width: 2.7rem;
+      height: 2.7rem;
       place-items: center;
-      width: 2.6rem;
-      height: 2.6rem;
+      border: 1px solid var(--glass-border);
       border-radius: 0.8rem;
       background: linear-gradient(150deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.03));
-      border: 1px solid var(--glass-border);
       color: var(--gold-bright);
-      font-weight: 500;
       font-size: 0.8rem;
+      font-weight: 500;
+      object-fit: cover;
       text-transform: uppercase;
     }
 
@@ -176,46 +231,33 @@ import { InfluencerProfile } from '../../data-access/influencers/influencers.typ
       font-weight: 500;
     }
 
-    .rank {
-      font-size: 0.78rem;
-      font-weight: 500;
-      color: var(--ink-muted);
+    .score {
+      display: grid;
+      gap: 0.12rem;
       font-variant-numeric: tabular-nums;
-      padding: 0.2rem 0.5rem;
-      border-radius: 999px;
-      border: 1px solid var(--glass-border);
     }
 
-    .rank.top {
+    .score strong {
       color: var(--gold-bright);
-      border-color: rgba(255, 176, 32, 0.4);
-      background: rgba(255, 176, 32, 0.1);
-    }
-
-    .winrate {
-      display: flex;
-      align-items: baseline;
-      gap: 0.5rem;
-    }
-
-    .winrate .big {
-      font-size: 2rem;
+      font-size: 1.05rem;
       font-weight: 500;
-      font-variant-numeric: tabular-nums;
-      color: var(--gold-bright);
-      letter-spacing: -0.01em;
     }
 
-    .winrate .lbl {
+    .score.avg strong {
+      color: var(--good);
+    }
+
+    .score span,
+    .updated span {
+      color: var(--ink-dim);
       font-size: 0.72rem;
-      text-transform: uppercase;
       letter-spacing: 0.08em;
-      color: var(--ink-muted);
+      text-transform: uppercase;
     }
 
     dl {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 0.6rem;
       margin: 0;
     }
@@ -223,8 +265,8 @@ import { InfluencerProfile } from '../../data-access/influencers/influencers.typ
     dt {
       color: var(--ink-dim);
       font-size: 0.68rem;
-      text-transform: uppercase;
       letter-spacing: 0.05em;
+      text-transform: uppercase;
     }
 
     dd {
@@ -234,7 +276,16 @@ import { InfluencerProfile } from '../../data-access/influencers/influencers.typ
     }
 
     .negative {
-      color: var(--avoid);
+      color: var(--avoid) !important;
+    }
+
+    .updated {
+      display: grid;
+      gap: 0.12rem;
+      justify-items: end;
+      color: var(--ink-muted);
+      font-size: 0.82rem;
+      white-space: nowrap;
     }
 
     .ellipsis {
@@ -244,10 +295,10 @@ import { InfluencerProfile } from '../../data-access/influencers/influencers.typ
     }
 
     .message {
-      padding: 2.5rem 1.5rem;
       display: grid;
       justify-items: center;
       gap: 0.5rem;
+      padding: 2.5rem 1.5rem;
       text-align: center;
     }
 
@@ -256,14 +307,14 @@ import { InfluencerProfile } from '../../data-access/influencers/influencers.typ
     }
 
     .empty-mark {
-      font-size: 1.5rem;
       color: var(--gold);
+      font-size: 1.5rem;
       filter: drop-shadow(0 0 12px rgba(255, 176, 32, 0.5));
     }
 
     .skeleton {
-      min-height: 12rem;
       position: relative;
+      min-height: 5.9rem;
       overflow: hidden;
     }
 
@@ -286,6 +337,34 @@ import { InfluencerProfile } from '../../data-access/influencers/influencers.typ
         transform: translateX(100%);
       }
     }
+
+    @media (max-width: 980px) {
+      .ranking-row {
+        grid-template-columns: auto 1fr;
+        align-items: start;
+      }
+
+      .rank {
+        grid-row: span 5;
+      }
+
+      .identity,
+      .score,
+      .call-mix,
+      .updated {
+        grid-column: 2;
+      }
+
+      .updated {
+        justify-items: start;
+      }
+    }
+
+    @media (max-width: 760px) {
+      h1 {
+        font-size: 2rem;
+      }
+    }
   `
 })
 export class InfluencerListPage implements OnInit {
@@ -294,7 +373,10 @@ export class InfluencerListPage implements OnInit {
   readonly profiles = signal<InfluencerProfile[]>([]);
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
-  readonly skeletons = [0, 1, 2, 3, 4, 5];
+  readonly skeletons = [0, 1, 2, 3, 4, 5, 6, 7];
+  readonly totalCalls = computed(() =>
+    this.profiles().reduce((sum, profile) => sum + profile.callsTracked, 0)
+  );
 
   ngOnInit(): void {
     this.influencersApi.listInfluencers().subscribe({

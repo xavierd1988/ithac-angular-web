@@ -23,25 +23,27 @@ export class AlertsApi {
 
   private readonly http = inject(HttpClient);
   private readonly apiUrl = inject(ApiUrlService);
-  private listCache: AlertSignal[] | null = null;
+  private listCache = new Map<number, AlertSignal[]>();
 
-  listAlerts(options: { forceRefresh?: boolean } = {}): Observable<AlertSignal[]> {
+  listAlerts(options: { forceRefresh?: boolean; pageSize?: number } = {}): Observable<AlertSignal[]> {
     if (appEnvironment.useMockData) {
       return of(MOCK_ALERTS).pipe(delay(180));
     }
 
-    if (this.listCache && !options.forceRefresh) {
-      return of(this.listCache);
+    const pageSize = Math.max(1, Math.min(options.pageSize ?? AlertsApi.liveFeedPageSize, 100));
+    const cached = this.listCache.get(pageSize);
+    if (cached && !options.forceRefresh) {
+      return of(cached);
     }
 
     return this.http
       .get<BackendAlertsEnvelope>(
-        this.apiUrl.endpoint(`/api/Alerts?page=1&pageSize=${AlertsApi.liveFeedPageSize}`)
+        this.apiUrl.endpoint(`/api/Alerts?page=1&pageSize=${pageSize}`)
       )
       .pipe(
         map((response) => (response.data?.data ?? []).map(mapBackendAlert)),
         tap((alerts) => {
-          this.listCache = alerts;
+          this.listCache.set(pageSize, alerts);
         })
       );
   }
@@ -52,7 +54,7 @@ export class AlertsApi {
       return alert ? of(alert).pipe(delay(120)) : throwError(() => new Error('Alert not found'));
     }
 
-    const cached = this.listCache?.find((item) => item.id === alertId);
+    const cached = [...this.listCache.values()].flat().find((item) => item.id === alertId);
     if (cached) {
       return of(cached);
     }
@@ -63,17 +65,18 @@ export class AlertsApi {
   }
 
   clearCache(): void {
-    this.listCache = null;
+    this.listCache.clear();
   }
 
   prependCachedAlert(alert: AlertSignal): void {
-    if (!this.listCache) {
+    const cached = this.listCache.get(AlertsApi.liveFeedPageSize);
+    if (!cached) {
       return;
     }
 
-    this.listCache = [alert, ...this.listCache.filter((item) => item.id !== alert.id)].slice(
-      0,
-      AlertsApi.liveFeedPageSize
+    this.listCache.set(
+      AlertsApi.liveFeedPageSize,
+      [alert, ...cached.filter((item) => item.id !== alert.id)].slice(0, AlertsApi.liveFeedPageSize)
     );
   }
 }
