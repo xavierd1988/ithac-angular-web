@@ -81,11 +81,15 @@ import { HealthApi, HealthStatus } from '../../data-access/system/health.api';
             <h2>Realtime</h2>
             <span
               class="status-pill dot"
-              [class.ok]="realtime.status() === 'connected' || realtime.status() === 'mock'"
+              [class.ok]="
+                realtime.status() === 'connected' ||
+                realtime.status() === 'mock' ||
+                realtime.status() === 'disabled'
+              "
               [class.warn]="realtime.status() === 'connecting' || realtime.status() === 'reconnecting'"
               [class.bad]="realtime.status() === 'error' || realtime.status() === 'disconnected'"
             >
-              {{ realtime.status() }}
+              {{ realtime.status() === 'disabled' ? 'standby' : realtime.status() }}
             </span>
           </div>
 
@@ -104,7 +108,14 @@ import { HealthApi, HealthStatus } from '../../data-access/system/health.api';
             </div>
           </dl>
 
-          <button class="button secondary" type="button" (click)="reconnectRealtime()">Reconnect</button>
+          <button
+            class="button secondary"
+            type="button"
+            [disabled]="!enableRealtime"
+            (click)="reconnectRealtime()"
+          >
+            Reconnect
+          </button>
         </article>
 
         <article class="panel block">

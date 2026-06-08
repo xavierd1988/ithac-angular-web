@@ -27,12 +27,16 @@ import { HealthApi, HealthStatus } from '../../data-access/system/health.api';
           >
           <span
             class="status-pill dot"
-            [class.ok]="realtime.status() === 'connected' || realtime.status() === 'mock'"
+            [class.ok]="
+              realtime.status() === 'connected' ||
+              realtime.status() === 'mock' ||
+              realtime.status() === 'disabled'
+            "
             [class.warn]="
               realtime.status() === 'connecting' || realtime.status() === 'reconnecting'
             "
             [class.bad]="realtime.status() === 'error' || realtime.status() === 'disconnected'"
-            >Realtime {{ realtime.status() }}</span
+            >Realtime {{ realtime.status() === 'disabled' ? 'standby' : realtime.status() }}</span
           >
           <button class="button secondary refresh" type="button" [disabled]="refreshing()" (click)="refreshAlerts()">
             {{ refreshing() ? 'Refreshing' : 'Refresh' }}

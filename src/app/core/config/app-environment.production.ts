@@ -21,5 +21,5 @@ export const appEnvironment: AppEnvironment = {
     webApiKey: ''
   },
   useMockData: false,
-  enableRealtime: true
+  enableRealtime: false
 };
