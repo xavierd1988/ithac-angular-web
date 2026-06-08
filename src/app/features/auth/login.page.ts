@@ -68,7 +68,7 @@ interface DevTokenResponse {
 
         <footer>
           <span class="status-pill dot" [class.ok]="!isFirebasePasswordAuth" [class.warn]="isFirebasePasswordAuth">
-            {{ isFirebasePasswordAuth ? 'Firebase password' : 'Local dev token' }}
+            {{ authModeLabel }}
           </span>
           <a routerLink="/onboarding">Onboarding</a>
         </footer>
@@ -224,7 +224,14 @@ export class LoginPage {
   readonly isFirebasePasswordAuth = appEnvironment.authProvider === 'firebase-password';
   readonly subtitle = this.isFirebasePasswordAuth
     ? 'Use your ITHAC account credentials.'
-    : 'Local build mode signs in with a development token from the backend.';
+    : appEnvironment.production
+      ? 'Preview access signs in through the ITHAC API.'
+      : 'Local build mode signs in with a development token from the backend.';
+  readonly authModeLabel = this.isFirebasePasswordAuth
+    ? 'Firebase password'
+    : appEnvironment.production
+      ? 'Preview access'
+      : 'Local dev token';
 
   email = '';
   password = '';

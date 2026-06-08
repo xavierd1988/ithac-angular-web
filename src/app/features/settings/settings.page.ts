@@ -302,7 +302,11 @@ export class SettingsPage implements OnInit {
 
   readonly firebaseReady = computed(() => appEnvironment.firebase.webApiKey.trim().length > 0);
   readonly authProviderLabel = computed(() =>
-    appEnvironment.authProvider === 'firebase-password' ? 'Firebase password' : 'Local dev token'
+    appEnvironment.authProvider === 'firebase-password'
+      ? 'Firebase password'
+      : appEnvironment.production
+        ? 'Preview access'
+        : 'Local dev token'
   );
   readonly initials = computed(() =>
     (this.auth.user()?.displayName ?? this.auth.user()?.email ?? 'IT')

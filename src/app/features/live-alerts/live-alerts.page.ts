@@ -46,8 +46,8 @@ import { HealthApi, HealthStatus } from '../../data-access/system/health.api';
 
       <section class="live-strip panel">
         <span>
-          <strong>{{ alerts().length }}</strong>
-          active signals
+          <strong>{{ loading() && alerts().length === 0 ? '...' : alerts().length }}</strong>
+          {{ loading() && alerts().length === 0 ? 'loading signals' : 'active signals' }}
         </span>
         <span>
           <strong>{{ newAlertCount() }}</strong>
