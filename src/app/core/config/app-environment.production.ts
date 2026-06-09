@@ -14,8 +14,8 @@ interface AppEnvironment {
 
 export const appEnvironment: AppEnvironment = {
   production: true,
-  apiBaseUrl: 'http://146.190.69.111',
-  signalrHubUrl: 'http://146.190.69.111/cryptomentionhub',
+  apiBaseUrl: 'https://api.ithacapp.com',
+  signalrHubUrl: 'https://api.ithacapp.com/cryptomentionhub',
   authProvider: 'local-dev',
   firebase: {
     webApiKey: ''
