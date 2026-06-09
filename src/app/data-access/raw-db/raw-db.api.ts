@@ -3,7 +3,7 @@ import { inject, Injectable } from '@angular/core';
 import { map } from 'rxjs';
 
 import { appEnvironment } from '../../core/config/app-environment';
-import { RawDbInfluencersResponse, RawDbMention } from './raw-db.types';
+import { RawDbInfluencersResponse, RawDbMention, RawDbScrapeHealth } from './raw-db.types';
 
 interface RawDbLiveResponse {
   data?: RawDbAlert[];
@@ -54,6 +54,10 @@ export class RawDbApi {
     return this.http.get<RawDbInfluencersResponse>(
       `${this.baseUrl}/api/raw/influencers?limit=${safeLimit}`
     );
+  }
+
+  getScrapeHealth() {
+    return this.http.get<RawDbScrapeHealth>(`${this.baseUrl}/api/raw/scrape-health`);
   }
 }
 

@@ -5,12 +5,13 @@ import { AuthService } from '../../core/auth/auth.service';
 import { appEnvironment } from '../../core/config/app-environment';
 import { SignalrService } from '../../core/realtime/signalr.service';
 import { RawDbApi } from '../../data-access/raw-db/raw-db.api';
-import { RawDbInfluencer, RawDbMention } from '../../data-access/raw-db/raw-db.types';
+import { RawDbInfluencer, RawDbMention, RawDbScrapeHealth } from '../../data-access/raw-db/raw-db.types';
 import { HealthApi, HealthStatus } from '../../data-access/system/health.api';
 
 type SortDirection = 'asc' | 'desc';
 type RawMentionSortKey = 'token' | 'post' | 'influencer' | 'time' | 'age';
 type RawInfluencerSortKey = 'influencer' | 'followers' | 'mentions' | 'posts' | 'tokens' | 'latest';
+type RawDbSection = 'database' | 'influencers' | 'scraper';
 
 @Component({
   selector: 'ithac-settings-page',
@@ -204,6 +205,13 @@ type RawInfluencerSortKey = 'influencer' | 'followers' | 'mentions' | 'posts' | 
             >
               Influenceurs
             </button>
+            <button
+              type="button"
+              [class.active]="rawDbSection() === 'scraper'"
+              (click)="selectRawDbSection('scraper')"
+            >
+              Scraper
+            </button>
           </nav>
 
           @if (activeRawError()) {
@@ -261,7 +269,7 @@ type RawInfluencerSortKey = 'influencer' | 'followers' | 'mentions' | 'posts' | 
                 }
               }
             </div>
-          } @else {
+          } @else if (rawDbSection() === 'influencers') {
             <div class="raw-table" aria-label="Raw database influencer list">
               <div class="raw-head influencers-head">
                 <button class="sort-head" type="button" (click)="toggleInfluencerSort('influencer')">
@@ -319,6 +327,86 @@ type RawInfluencerSortKey = 'influencer' | 'followers' | 'mentions' | 'posts' | 
                     </time>
                   </article>
                 }
+              }
+            </div>
+          } @else {
+            <div class="scraper-monitor" aria-label="Raw database scraper monitor">
+              @if (scrapeHealthLoading() && !scrapeHealth()) {
+                <div class="raw-row skeleton-row"></div>
+                <div class="raw-row skeleton-row"></div>
+              } @else if (scrapeHealth()) {
+                <section class="monitor-grid">
+                  <article class="monitor-card important" [class.bad]="scrapeHealth()?.status === 'stale'">
+                    <span class="label">Scraper status</span>
+                    <strong>{{ scrapeHealth()?.status }}</strong>
+                    <small class="muted">
+                      Last scrape {{ lagLabel(scrapeHealth()?.latest?.scrapeLagMinutes) }}
+                    </small>
+                  </article>
+                  <article class="monitor-card">
+                    <span class="label">Last post scraped</span>
+                    <strong>{{ scrapeHealth()?.latest?.latestScrapedAt | date: 'MMM d, h:mm:ss a' }}</strong>
+                    <small class="muted">When the scraper wrote the latest post into MySQL.</small>
+                  </article>
+                  <article class="monitor-card">
+                    <span class="label">Last mention</span>
+                    <strong>{{ scrapeHealth()?.latest?.latestMentionAt | date: 'MMM d, h:mm:ss a' }}</strong>
+                    <small class="muted">When the latest crypto mention appears in MySQL.</small>
+                  </article>
+                  <article class="monitor-card">
+                    <span class="label">Raw totals</span>
+                    <strong>{{ scrapeHealth()?.totals?.posts | number }} posts</strong>
+                    <small class="muted">{{ scrapeHealth()?.totals?.mentions | number }} mentions</small>
+                  </article>
+                </section>
+
+                <section class="window-grid">
+                  <article>
+                    <span>5 min</span>
+                    <strong>{{ scrapeHealth()?.windows?.posts5m | number }}</strong>
+                    <small>posts</small>
+                    <strong>{{ scrapeHealth()?.windows?.mentions5m | number }}</strong>
+                    <small>mentions</small>
+                  </article>
+                  <article>
+                    <span>15 min</span>
+                    <strong>{{ scrapeHealth()?.windows?.posts15m | number }}</strong>
+                    <small>posts</small>
+                    <strong>{{ scrapeHealth()?.windows?.mentions15m | number }}</strong>
+                    <small>mentions</small>
+                  </article>
+                  <article>
+                    <span>1 hour</span>
+                    <strong>{{ scrapeHealth()?.windows?.posts60m | number }}</strong>
+                    <small>posts</small>
+                    <strong>{{ scrapeHealth()?.windows?.mentions60m | number }}</strong>
+                    <small>mentions</small>
+                  </article>
+                  <article>
+                    <span>24 hours</span>
+                    <strong>{{ scrapeHealth()?.windows?.posts24h | number }}</strong>
+                    <small>posts</small>
+                    <strong>{{ scrapeHealth()?.windows?.mentions24h | number }}</strong>
+                    <small>mentions</small>
+                  </article>
+                </section>
+
+                <div class="raw-table">
+                  <div class="raw-head buckets-head">
+                    <span>5 min bucket</span>
+                    <span>Posts scraped</span>
+                    <span>Crypto mentions</span>
+                  </div>
+                  @for (bucket of scrapeHealth()?.buckets ?? []; track bucket.bucketStart) {
+                    <article class="raw-row buckets-row">
+                      <time [dateTime]="bucket.bucketStart ?? ''">
+                        {{ bucket.bucketStart | date: 'MMM d, h:mm a' }}
+                      </time>
+                      <strong>{{ bucket.postsScraped | number }}</strong>
+                      <strong>{{ bucket.mentions | number }}</strong>
+                    </article>
+                  }
+                </div>
               }
             </div>
           }
@@ -529,6 +617,75 @@ type RawInfluencerSortKey = 'influencer' | 'followers' | 'mentions' | 'posts' | 
       align-items: center;
     }
 
+    .buckets-head,
+    .buckets-row {
+      display: grid;
+      grid-template-columns: minmax(10rem, 1fr) minmax(7rem, 0.45fr) minmax(7rem, 0.45fr);
+      gap: 0.8rem;
+      align-items: center;
+    }
+
+    .scraper-monitor {
+      display: grid;
+      gap: 1rem;
+    }
+
+    .monitor-grid,
+    .window-grid {
+      display: grid;
+      gap: 0.75rem;
+    }
+
+    .monitor-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .window-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .monitor-card,
+    .window-grid article {
+      display: grid;
+      gap: 0.25rem;
+      min-width: 0;
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-sm);
+      padding: 0.9rem;
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .monitor-card.important {
+      border-color: rgba(107, 226, 166, 0.28);
+      background: rgba(107, 226, 166, 0.07);
+    }
+
+    .monitor-card.bad {
+      border-color: rgba(255, 93, 108, 0.32);
+      background: rgba(255, 93, 108, 0.08);
+    }
+
+    .label,
+    .window-grid span,
+    .window-grid small {
+      color: var(--ink-dim);
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .monitor-card strong {
+      font-size: 1.05rem;
+      font-weight: 500;
+      text-transform: capitalize;
+    }
+
+    .window-grid strong {
+      font-size: 1.4rem;
+      font-weight: 500;
+      font-variant-numeric: tabular-nums;
+    }
+
     .raw-head {
       padding: 0 0.85rem;
       color: var(--ink-dim);
@@ -619,7 +776,10 @@ type RawInfluencerSortKey = 'influencer' | 'followers' | 'mentions' | 'posts' | 
       .raw-head,
       .raw-row,
       .mentions-row,
-      .influencers-row {
+      .influencers-row,
+      .buckets-row,
+      .monitor-grid,
+      .window-grid {
         grid-template-columns: 1fr;
       }
 
@@ -640,7 +800,7 @@ export class SettingsPage implements OnInit {
   readonly health = signal<HealthStatus | null>(null);
   readonly lastChecked = signal<string | null>(null);
   readonly activeTab = signal<'overview' | 'raw-db'>('overview');
-  readonly rawDbSection = signal<'database' | 'influencers'>('database');
+  readonly rawDbSection = signal<RawDbSection>('database');
   readonly rawDbMentions = signal<RawDbMention[]>([]);
   readonly rawDbLoading = signal(false);
   readonly rawDbError = signal<string | null>(null);
@@ -648,6 +808,9 @@ export class SettingsPage implements OnInit {
   readonly rawInfluencerTotal = signal(0);
   readonly rawInfluencersLoading = signal(false);
   readonly rawInfluencersError = signal<string | null>(null);
+  readonly scrapeHealth = signal<RawDbScrapeHealth | null>(null);
+  readonly scrapeHealthLoading = signal(false);
+  readonly scrapeHealthError = signal<string | null>(null);
   readonly rawMentionSort = signal<{ key: RawMentionSortKey; direction: SortDirection }>({
     key: 'time',
     direction: 'desc'
@@ -709,13 +872,16 @@ export class SettingsPage implements OnInit {
     }
   }
 
-  selectRawDbSection(section: 'database' | 'influencers'): void {
+  selectRawDbSection(section: RawDbSection): void {
     this.rawDbSection.set(section);
     if (section === 'database' && this.rawDbMentions().length === 0 && !this.rawDbLoading()) {
       this.refreshRawDb();
     }
     if (section === 'influencers' && this.rawInfluencers().length === 0 && !this.rawInfluencersLoading()) {
       this.refreshInfluencers();
+    }
+    if (section === 'scraper' && !this.scrapeHealth() && !this.scrapeHealthLoading()) {
+      this.refreshScrapeHealth();
     }
   }
 
@@ -772,6 +938,24 @@ export class SettingsPage implements OnInit {
     });
   }
 
+  refreshScrapeHealth(): void {
+    this.scrapeHealthLoading.set(true);
+    this.scrapeHealthError.set(null);
+
+    this.rawDbApi.getScrapeHealth().subscribe({
+      next: (health) => {
+        this.scrapeHealth.set(health);
+        this.scrapeHealthLoading.set(false);
+      },
+      error: (error: unknown) => {
+        this.scrapeHealthError.set(
+          error instanceof Error ? error.message : 'Unable to load scraper monitor'
+        );
+        this.scrapeHealthLoading.set(false);
+      }
+    });
+  }
+
   toggleMentionSort(key: RawMentionSortKey): void {
     this.rawMentionSort.update((current) => ({
       key,
@@ -810,18 +994,31 @@ export class SettingsPage implements OnInit {
       return;
     }
 
+    if (this.rawDbSection() === 'scraper') {
+      this.refreshScrapeHealth();
+      return;
+    }
+
     this.refreshInfluencers();
   }
 
   activeRawLoading(): boolean {
-    return this.rawDbSection() === 'database'
-      ? this.rawDbLoading()
+    if (this.rawDbSection() === 'database') {
+      return this.rawDbLoading();
+    }
+
+    return this.rawDbSection() === 'scraper'
+      ? this.scrapeHealthLoading()
       : this.rawInfluencersLoading();
   }
 
   activeRawError(): string | null {
-    return this.rawDbSection() === 'database'
-      ? this.rawDbError()
+    if (this.rawDbSection() === 'database') {
+      return this.rawDbError();
+    }
+
+    return this.rawDbSection() === 'scraper'
+      ? this.scrapeHealthError()
       : this.rawInfluencersError();
   }
 
@@ -841,6 +1038,15 @@ export class SettingsPage implements OnInit {
 
     if (this.rawDbSection() === 'database') {
       return `${this.rawDbMentions().length} rows`;
+    }
+
+    if (this.rawDbSection() === 'scraper') {
+      const health = this.scrapeHealth();
+      if (!health) {
+        return 'not loaded';
+      }
+
+      return `scrape ${health.status}`;
     }
 
     return `${this.rawInfluencers().length}/${this.rawInfluencerTotal()} influenceurs`;
@@ -863,6 +1069,24 @@ export class SettingsPage implements OnInit {
     const hours = Math.floor(minutes / 60);
     if (hours < 24) return `${hours}h`;
     return `${Math.floor(hours / 24)}d`;
+  }
+
+  lagLabel(value: number | null | undefined): string {
+    if (value == null) {
+      return 'unknown';
+    }
+
+    if (value < 1) {
+      return 'now';
+    }
+
+    if (value < 60) {
+      return `${value} min ago`;
+    }
+
+    const hours = Math.floor(value / 60);
+    const minutes = value % 60;
+    return minutes ? `${hours}h ${minutes}m ago` : `${hours}h ago`;
   }
 
   private compareMention(a: RawDbMention, b: RawDbMention, key: RawMentionSortKey): number {

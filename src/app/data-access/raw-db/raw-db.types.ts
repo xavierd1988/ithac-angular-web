@@ -39,3 +39,37 @@ export interface RawDbInfluencersResponse {
   total: number;
   data: RawDbInfluencer[];
 }
+
+export interface RawDbScrapeHealth {
+  checkedAt: string;
+  dbNow: string | null;
+  status: 'fresh' | 'stale' | 'unknown';
+  latest: {
+    latestScrapedAt: string | null;
+    latestPostedAt: string | null;
+    latestMentionAt: string | null;
+    scrapeLagMinutes: number | null;
+    mentionLagMinutes: number | null;
+  };
+  totals: {
+    posts: number;
+    mentions: number;
+  };
+  windows: {
+    posts5m: number;
+    posts15m: number;
+    posts60m: number;
+    posts24h: number;
+    mentions5m: number;
+    mentions15m: number;
+    mentions60m: number;
+    mentions24h: number;
+  };
+  buckets: RawDbScrapeBucket[];
+}
+
+export interface RawDbScrapeBucket {
+  bucketStart: string | null;
+  postsScraped: number;
+  mentions: number;
+}
