@@ -1,0 +1,1 @@
+import {e,ap as L}from'./main-BDAPL6DG.js';var i=class t{baseUrl=e.apiBaseUrl;endpoint(r){return r.startsWith("http")?r:`${this.baseUrl}${r.startsWith("/")?r:`/${r}`}`}static \u0275fac=function(o){return new(o||t)};static \u0275prov=L({token:t,factory:t.\u0275fac,providedIn:"root"})};export{i};
