@@ -10,6 +10,10 @@ import { AlertSignal, AlertVerdict, CryptoMentionAlertEventDto } from './alerts.
 
 type BackendAlertsEnvelope = components['schemas']['CoinTrendsBackend.Models.AlertsListEnvelopeDto'];
 type BackendAlert = components['schemas']['CoinTrendsBackend.Models.AlertItemDto'];
+type BackendLiveEnvelope = {
+  success?: boolean;
+  data?: BackendAlert[] | { data?: BackendAlert[] | null } | null;
+};
 type BackendTopInfluencer = components['schemas']['CoinTrendsBackend.Models.AlertTopInfluencerDto'];
 type BackendRankedInfluencer =
   components['schemas']['CoinTrendsBackend.Models.AlertRankedInfluencerDto'];
@@ -41,11 +45,9 @@ export class AlertsApi {
     }
 
     return this.http
-      .get<BackendAlertsEnvelope>(
-        this.apiUrl.endpoint(`/api/Alerts?page=1&pageSize=${pageSize}`)
-      )
+      .get<BackendLiveEnvelope | BackendAlertsEnvelope>(this.apiUrl.endpoint(`/api/live?limit=${pageSize}`))
       .pipe(
-        map((response) => (response.data?.data ?? []).map(mapBackendAlert)),
+        map((response) => extractAlertList(response).map(mapBackendAlert)),
         tap((alerts) => {
           this.listCache.set(pageSize, alerts);
         })
@@ -159,6 +161,19 @@ function mapBackendAlert(alert: BackendAlert): AlertSignal {
     ],
     pricePoints
   };
+}
+
+function extractAlertList(response: BackendLiveEnvelope | BackendAlertsEnvelope): BackendAlert[] {
+  const data = (response as BackendLiveEnvelope).data;
+  if (Array.isArray(data)) {
+    return data;
+  }
+
+  if (data && typeof data === 'object' && Array.isArray(data.data)) {
+    return data.data;
+  }
+
+  return [];
 }
 
 function isAlertSignal(value: object): value is AlertSignal {

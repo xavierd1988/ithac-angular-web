@@ -4,7 +4,7 @@ import { RouterLink } from '@angular/router';
 
 import { SignalrService } from '../../core/realtime/signalr.service';
 import { AlertsApi, coerceLiveAlertEvent } from '../../data-access/alerts/alerts.api';
-import { AlertSignal } from '../../data-access/alerts/alerts.types';
+import { AlertPost, AlertSignal } from '../../data-access/alerts/alerts.types';
 import { HealthApi, HealthStatus } from '../../data-access/system/health.api';
 
 @Component({
@@ -15,8 +15,8 @@ import { HealthApi, HealthStatus } from '../../data-access/system/health.api';
       <header>
         <div class="title">
           <span class="eyebrow"><span class="live-dot"></span>Live Alerts</span>
-          <h1>Signal feed</h1>
-          <p class="muted sub">Who is calling what — and whether their calls land.</p>
+          <h1>Raw mention feed</h1>
+          <p class="muted sub">Latest MySQL mentions, newest first.</p>
         </div>
         <div class="header-status">
           <span
@@ -47,7 +47,7 @@ import { HealthApi, HealthStatus } from '../../data-access/system/health.api';
       <section class="live-strip panel">
         <span>
           <strong>{{ loading() && alerts().length === 0 ? '...' : alerts().length }}</strong>
-          {{ loading() && alerts().length === 0 ? 'loading signals' : 'active signals' }}
+          {{ loading() && alerts().length === 0 ? 'loading mentions' : 'raw mentions' }}
         </span>
         <span>
           <strong>{{ newAlertCount() }}</strong>
@@ -76,7 +76,7 @@ import { HealthApi, HealthStatus } from '../../data-access/system/health.api';
           <span class="muted">New alerts appear here as influencers move.</span>
         </section>
       } @else {
-        <section class="alerts-list" aria-label="Live alert feed">
+        <section class="alerts-list" aria-label="Live mention feed">
           @for (alert of alerts(); track alert.id; let index = $index) {
             <article class="alert-row panel" [class.new]="isNewAlert(alert.id)">
               <span class="card-accent" aria-hidden="true"></span>
@@ -91,8 +91,14 @@ import { HealthApi, HealthStatus } from '../../data-access/system/health.api';
                 </span>
               </div>
 
+              <div class="mention-cell">
+                <span class="field-label">Post / mention</span>
+                <strong class="mention-title ellipsis">{{ primaryPost(alert)?.text ?? alert.summary }}</strong>
+                <small class="muted ellipsis">DB id {{ alert.id }}</small>
+              </div>
+
               <div class="caller-cell">
-                <span class="field-label">Caller</span>
+                <span class="field-label">Influencer</span>
                 <a
                   class="profile-link ellipsis"
                   [href]="profileUrl(alert)"
@@ -101,7 +107,6 @@ import { HealthApi, HealthStatus } from '../../data-access/system/health.api';
                   [attr.aria-label]="'Open X profile for ' + alert.callerHandle"
                   >{{ alert.callerHandle }}</a
                 >
-                <small class="muted ellipsis">{{ alert.summary }}</small>
                 <div class="quick-links">
                   @if (primaryPostUrl(alert); as postUrl) {
                     <a
@@ -110,43 +115,24 @@ import { HealthApi, HealthStatus } from '../../data-access/system/health.api';
                       target="_blank"
                       rel="noopener noreferrer"
                       aria-label="Open original post on X"
-                      >Post</a
+                      >X post</a
                     >
                   }
                   <a class="quick-link" [routerLink]="['/app/alerts', alert.id]">Details</a>
                 </div>
               </div>
 
-              <span
-                class="verdict"
-                [class.super]="alert.verdict === 'SUPER TRADE'"
-                [class.good]="alert.verdict === 'GOOD TRADE'"
-                [class.avoid]="alert.verdict === 'AVOID'"
-                >{{ alert.verdict }}</span
-              >
-
-              <div class="perf" [class.negative]="alert.performancePercent < 0">
-                <span class="perf-value"
-                  >{{ alert.performancePercent >= 0 ? '+' : ''
-                  }}{{ alert.performancePercent | number: '1.1-1' }}%</span
-                >
-                <span class="perf-label">TIMEX</span>
+              <div class="posted-at">
+                <span class="field-label">Post time</span>
+                <time [dateTime]="postTime(alert)" [title]="(postTime(alert) | date: 'medium') ?? ''">
+                  {{ postTime(alert) | date: 'MMM d, h:mm a' }}
+                </time>
               </div>
 
-              <dl class="stats compact">
-                <div>
-                  <dt>Rank</dt>
-                  <dd>#{{ alert.rank }}</dd>
-                </div>
-                <div>
-                  <dt>Mentions</dt>
-                  <dd>{{ alert.mentionCount }}</dd>
-                </div>
-              </dl>
-
               <footer class="row-time">
-                <time [dateTime]="alert.createdAt" [title]="(alert.createdAt | date: 'medium') ?? ''">
-                  {{ relativeTime(alert.createdAt) }}
+                <span class="field-label">Age</span>
+                <time [dateTime]="postTime(alert)" [title]="(postTime(alert) | date: 'medium') ?? ''">
+                  {{ relativeTime(postTime(alert)) }}
                 </time>
                 @if (isNewAlert(alert.id)) {
                   <span class="new-badge">New</span>
@@ -258,11 +244,11 @@ import { HealthApi, HealthStatus } from '../../data-access/system/health.api';
     .alert-row {
       position: relative;
       display: grid;
-      grid-template-columns: 2.6rem minmax(12rem, 1.1fr) minmax(14rem, 1.35fr) auto minmax(7rem, 0.55fr) minmax(8rem, 0.55fr) minmax(5rem, auto);
+      grid-template-columns: 2.4rem minmax(8rem, 0.7fr) minmax(20rem, 2fr) minmax(10rem, 0.8fr) minmax(8rem, 0.55fr) minmax(5rem, auto);
       align-items: center;
-      gap: 0.9rem;
-      min-height: 5.85rem;
-      padding: 0.95rem 1rem;
+      gap: 0.8rem;
+      min-height: 4.9rem;
+      padding: 0.82rem 1rem;
       overflow: hidden;
     }
 
@@ -349,7 +335,29 @@ import { HealthApi, HealthStatus } from '../../data-access/system/health.api';
       line-height: 1.25;
     }
 
-    .caller-cell strong,
+    .mention-cell {
+      display: grid;
+      gap: 0.16rem;
+      min-width: 0;
+      line-height: 1.28;
+    }
+
+    .mention-title {
+      max-width: 100%;
+      color: var(--ink);
+      font-size: 0.94rem;
+      font-weight: 400;
+    }
+
+    .posted-at {
+      display: grid;
+      gap: 0.2rem;
+      color: var(--ink);
+      font-size: 0.83rem;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
     .profile-link {
       font-size: 0.95rem;
       font-weight: 500;
@@ -539,16 +547,11 @@ import { HealthApi, HealthStatus } from '../../data-access/system/health.api';
       }
 
       .token-cell,
+      .mention-cell,
       .caller-cell,
-      .verdict,
-      .perf,
-      .stats.compact,
+      .posted-at,
       .row-time {
         grid-column: 2;
-      }
-
-      .perf {
-        justify-content: flex-start;
       }
 
       .row-time {
@@ -636,22 +639,31 @@ export class LiveAlertsPage implements OnInit, OnDestroy {
       return 'unknown';
     }
 
-    const seconds = Math.max(0, Math.round((now - timestamp) / 1000));
+    const seconds = Math.max(0, Math.floor((now - timestamp) / 1000));
     if (seconds < 60) {
-      return 'now';
+      return 'maintenant';
     }
 
-    const minutes = Math.round(seconds / 60);
+    const minutes = Math.floor(seconds / 60);
     if (minutes < 60) {
-      return `${minutes}m ago`;
+      return `il y a ${minutes} min`;
     }
 
-    const hours = Math.round(minutes / 60);
+    const hours = Math.floor(minutes / 60);
     if (hours < 24) {
-      return `${hours}h ago`;
+      return `il y a ${hours} h`;
     }
 
-    return `${Math.round(hours / 24)}d ago`;
+    const days = Math.floor(hours / 24);
+    return `il y a ${days} j`;
+  }
+
+  primaryPost(alert: AlertSignal): AlertPost | null {
+    return alert.posts[0] ?? null;
+  }
+
+  postTime(alert: AlertSignal): string {
+    return this.primaryPost(alert)?.postedAt ?? alert.createdAt;
   }
 
   primaryPostUrl(alert: AlertSignal): string | null {
