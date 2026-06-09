@@ -1,16 +1,16 @@
-import { DatePipe } from '@angular/common';
+import { DatePipe, DecimalPipe } from '@angular/common';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 
 import { AuthService } from '../../core/auth/auth.service';
 import { appEnvironment } from '../../core/config/app-environment';
 import { SignalrService } from '../../core/realtime/signalr.service';
 import { RawDbApi } from '../../data-access/raw-db/raw-db.api';
-import { RawDbMention } from '../../data-access/raw-db/raw-db.types';
+import { RawDbInfluencer, RawDbMention } from '../../data-access/raw-db/raw-db.types';
 import { HealthApi, HealthStatus } from '../../data-access/system/health.api';
 
 @Component({
   selector: 'ithac-settings-page',
-  imports: [DatePipe],
+  imports: [DatePipe, DecimalPipe],
   template: `
     <main class="page settings">
       <header>
@@ -172,63 +172,126 @@ import { HealthApi, HealthStatus } from '../../data-access/system/health.api';
             <div>
               <h2>Raw DB</h2>
               <p class="muted sub">
-                Audit-only feed from MySQL. No product filter, no ranking, no AI interpretation.
+                Audit-only views from MySQL. No product filter, no ranking, no AI interpretation.
               </p>
             </div>
             <div class="raw-actions">
-              <span class="status-pill dot" [class.ok]="!rawDbError()" [class.bad]="rawDbError()">
-                {{ rawDbLoading() ? 'loading' : rawDbError() ? 'error' : rawDbMentions().length + ' rows' }}
+              <span class="status-pill dot" [class.ok]="rawStatusOk()" [class.bad]="activeRawError()">
+                {{ activeRawStatus() }}
               </span>
-              <button class="button secondary" type="button" [disabled]="rawDbLoading()" (click)="refreshRawDb()">
-                {{ rawDbLoading() ? 'Refreshing' : 'Refresh raw' }}
+              <button class="button secondary" type="button" [disabled]="activeRawLoading()" (click)="refreshActiveRaw()">
+                {{ activeRawLoading() ? 'Refreshing' : 'Refresh raw' }}
               </button>
             </div>
           </div>
 
-          @if (rawDbError()) {
-            <div class="message error">{{ rawDbError() }}</div>
+          <nav class="settings-tabs sub-tabs" aria-label="Raw DB sections">
+            <button
+              type="button"
+              [class.active]="rawDbSection() === 'database'"
+              (click)="selectRawDbSection('database')"
+            >
+              Database
+            </button>
+            <button
+              type="button"
+              [class.active]="rawDbSection() === 'influencers'"
+              (click)="selectRawDbSection('influencers')"
+            >
+              Influenceurs
+            </button>
+          </nav>
+
+          @if (activeRawError()) {
+            <div class="message error">{{ activeRawError() }}</div>
           }
 
-          <div class="raw-table" aria-label="Raw database mention feed">
-            <div class="raw-head">
-              <span>Token</span>
-              <span>Post</span>
-              <span>Influencer</span>
-              <span>Time</span>
-              <span>Age</span>
-            </div>
+          @if (rawDbSection() === 'database') {
+            <div class="raw-table" aria-label="Raw database mention feed">
+              <div class="raw-head mentions-head">
+                <span>Token</span>
+                <span>Post</span>
+                <span>Influencer</span>
+                <span>Time</span>
+                <span>Age</span>
+              </div>
 
-            @if (rawDbLoading() && rawDbMentions().length === 0) {
-              @for (item of [0, 1, 2, 3, 4, 5]; track item) {
-                <div class="raw-row skeleton-row"></div>
+              @if (rawDbLoading() && rawDbMentions().length === 0) {
+                @for (item of skeletonRows; track item) {
+                  <div class="raw-row mentions-row skeleton-row"></div>
+                }
+              } @else {
+                @for (mention of rawDbMentions(); track mention.id) {
+                  <article class="raw-row mentions-row">
+                    <div class="token">
+                      <strong>{{ mention.tokenSymbol }}</strong>
+                      <small class="muted ellipsis">{{ mention.tokenName }}</small>
+                    </div>
+                    <div class="post">
+                      <strong class="ellipsis" [title]="mention.text">{{ rawSnippet(mention) }}</strong>
+                      <small class="muted ellipsis">DB {{ mention.id }} · post {{ mention.postId }}</small>
+                    </div>
+                    <div class="links">
+                      <a [href]="mention.profileUrl" target="_blank" rel="noopener noreferrer">
+                        {{ mention.influencer }}
+                      </a>
+                      @if (mention.postUrl) {
+                        <a [href]="mention.postUrl" target="_blank" rel="noopener noreferrer">X post</a>
+                      }
+                    </div>
+                    <time [dateTime]="mention.mentionedAt">
+                      {{ mention.mentionedAt | date: 'MMM d, h:mm a' }}
+                    </time>
+                    <time [dateTime]="mention.mentionedAt">{{ relativeTime(mention.mentionedAt) }}</time>
+                  </article>
+                }
               }
-            } @else {
-              @for (mention of rawDbMentions(); track mention.id) {
-                <article class="raw-row">
-                  <div class="token">
-                    <strong>{{ mention.tokenSymbol }}</strong>
-                    <small class="muted ellipsis">{{ mention.tokenName }}</small>
-                  </div>
-                  <div class="post">
-                    <strong class="ellipsis" [title]="mention.text">{{ rawSnippet(mention) }}</strong>
-                    <small class="muted ellipsis">DB {{ mention.id }} · post {{ mention.postId }}</small>
-                  </div>
-                  <div class="links">
-                    <a [href]="mention.profileUrl" target="_blank" rel="noopener noreferrer">
-                      {{ mention.influencer }}
-                    </a>
-                    @if (mention.postUrl) {
-                      <a [href]="mention.postUrl" target="_blank" rel="noopener noreferrer">X post</a>
-                    }
-                  </div>
-                  <time [dateTime]="mention.mentionedAt">
-                    {{ mention.mentionedAt | date: 'MMM d, h:mm a' }}
-                  </time>
-                  <time [dateTime]="mention.mentionedAt">{{ relativeTime(mention.mentionedAt) }}</time>
-                </article>
+            </div>
+          } @else {
+            <div class="raw-table" aria-label="Raw database influencer list">
+              <div class="raw-head influencers-head">
+                <span>Influenceur</span>
+                <span>Followers</span>
+                <span>Mentions</span>
+                <span>Posts</span>
+                <span>Tokens</span>
+                <span>Latest</span>
+              </div>
+
+              @if (rawInfluencersLoading() && rawInfluencers().length === 0) {
+                @for (item of skeletonRows; track item) {
+                  <div class="raw-row influencers-row skeleton-row"></div>
+                }
+              } @else {
+                @for (influencer of rawInfluencers(); track influencer.influencerId) {
+                  <article class="raw-row influencers-row">
+                    <div class="influencer-identity">
+                      @if (influencer.profileImageUrl) {
+                        <img [src]="influencer.profileImageUrl" [alt]="influencer.username" />
+                      }
+                      <span>
+                        <strong class="ellipsis">{{ influencer.name ?? influencer.username }}</strong>
+                        @if (influencer.profileUrl) {
+                          <a [href]="influencer.profileUrl" target="_blank" rel="noopener noreferrer">
+                            @{{ influencer.username }}
+                          </a>
+                        } @else {
+                          <small class="muted">@{{ influencer.username }}</small>
+                        }
+                      </span>
+                    </div>
+                    <strong>{{ influencer.followersCount | number }}</strong>
+                    <strong>{{ influencer.rawMentionCount | number }}</strong>
+                    <strong>{{ influencer.rawPostCount | number }}</strong>
+                    <strong>{{ influencer.rawTokenCount | number }}</strong>
+                    <time [dateTime]="influencer.latestMentionAt ?? ''">
+                      {{ influencer.latestMentionAt ? relativeTime(influencer.latestMentionAt) : 'none' }}
+                    </time>
+                  </article>
+                }
               }
-            }
-          </div>
+            </div>
+          }
         </section>
       }
     </main>
@@ -304,6 +367,10 @@ import { HealthApi, HealthStatus } from '../../data-access/system/health.api';
     .settings-tabs button.active {
       background: rgba(255, 176, 32, 0.14);
       color: var(--gold-bright);
+    }
+
+    .sub-tabs {
+      width: fit-content;
     }
 
     .block {
@@ -416,10 +483,18 @@ import { HealthApi, HealthStatus } from '../../data-access/system/health.api';
       gap: 0.5rem;
     }
 
-    .raw-head,
-    .raw-row {
+    .mentions-head,
+    .mentions-row {
       display: grid;
       grid-template-columns: minmax(7rem, 0.55fr) minmax(20rem, 2fr) minmax(9rem, 0.7fr) minmax(8rem, 0.55fr) minmax(5rem, 0.35fr);
+      gap: 0.8rem;
+      align-items: center;
+    }
+
+    .influencers-head,
+    .influencers-row {
+      display: grid;
+      grid-template-columns: minmax(15rem, 1.4fr) repeat(4, minmax(5.5rem, 0.45fr)) minmax(5rem, 0.35fr);
       gap: 0.8rem;
       align-items: center;
     }
@@ -464,6 +539,29 @@ import { HealthApi, HealthStatus } from '../../data-access/system/health.api';
       white-space: nowrap;
     }
 
+    .influencer-identity {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      align-items: center;
+      gap: 0.65rem;
+      min-width: 0;
+    }
+
+    .influencer-identity img {
+      width: 2.3rem;
+      height: 2.3rem;
+      border-radius: 0.7rem;
+      border: 1px solid var(--glass-border);
+      object-fit: cover;
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .influencer-identity span {
+      display: grid;
+      min-width: 0;
+      gap: 0.12rem;
+    }
+
     .skeleton-row {
       min-height: 4.5rem;
       opacity: 0.5;
@@ -473,7 +571,9 @@ import { HealthApi, HealthStatus } from '../../data-access/system/health.api';
       .grid,
       .stats,
       .raw-head,
-      .raw-row {
+      .raw-row,
+      .mentions-row,
+      .influencers-row {
         grid-template-columns: 1fr;
       }
 
@@ -494,14 +594,20 @@ export class SettingsPage implements OnInit {
   readonly health = signal<HealthStatus | null>(null);
   readonly lastChecked = signal<string | null>(null);
   readonly activeTab = signal<'overview' | 'raw-db'>('overview');
+  readonly rawDbSection = signal<'database' | 'influencers'>('database');
   readonly rawDbMentions = signal<RawDbMention[]>([]);
   readonly rawDbLoading = signal(false);
   readonly rawDbError = signal<string | null>(null);
+  readonly rawInfluencers = signal<RawDbInfluencer[]>([]);
+  readonly rawInfluencerTotal = signal(0);
+  readonly rawInfluencersLoading = signal(false);
+  readonly rawInfluencersError = signal<string | null>(null);
   readonly apiBaseUrl = appEnvironment.apiBaseUrl;
   readonly rawDbApiBaseUrl = appEnvironment.rawDbApiBaseUrl;
   readonly signalrHubUrl = appEnvironment.signalrHubUrl;
   readonly useMockData = appEnvironment.useMockData;
   readonly enableRealtime = appEnvironment.enableRealtime;
+  readonly skeletonRows = [0, 1, 2, 3, 4, 5];
 
   readonly firebaseReady = computed(() => appEnvironment.firebase.webApiKey.trim().length > 0);
   readonly authProviderLabel = computed(() =>
@@ -532,6 +638,16 @@ export class SettingsPage implements OnInit {
     this.activeTab.set(tab);
     if (tab === 'raw-db' && this.rawDbMentions().length === 0 && !this.rawDbLoading()) {
       this.refreshRawDb();
+    }
+  }
+
+  selectRawDbSection(section: 'database' | 'influencers'): void {
+    this.rawDbSection.set(section);
+    if (section === 'database' && this.rawDbMentions().length === 0 && !this.rawDbLoading()) {
+      this.refreshRawDb();
+    }
+    if (section === 'influencers' && this.rawInfluencers().length === 0 && !this.rawInfluencersLoading()) {
+      this.refreshInfluencers();
     }
   }
 
@@ -567,6 +683,67 @@ export class SettingsPage implements OnInit {
         this.rawDbLoading.set(false);
       }
     });
+  }
+
+  refreshInfluencers(): void {
+    this.rawInfluencersLoading.set(true);
+    this.rawInfluencersError.set(null);
+
+    this.rawDbApi.listInfluencers(2500).subscribe({
+      next: (response) => {
+        this.rawInfluencerTotal.set(response.total);
+        this.rawInfluencers.set(response.data);
+        this.rawInfluencersLoading.set(false);
+      },
+      error: (error: unknown) => {
+        this.rawInfluencersError.set(
+          error instanceof Error ? error.message : 'Unable to load raw influencers'
+        );
+        this.rawInfluencersLoading.set(false);
+      }
+    });
+  }
+
+  refreshActiveRaw(): void {
+    if (this.rawDbSection() === 'database') {
+      this.refreshRawDb();
+      return;
+    }
+
+    this.refreshInfluencers();
+  }
+
+  activeRawLoading(): boolean {
+    return this.rawDbSection() === 'database'
+      ? this.rawDbLoading()
+      : this.rawInfluencersLoading();
+  }
+
+  activeRawError(): string | null {
+    return this.rawDbSection() === 'database'
+      ? this.rawDbError()
+      : this.rawInfluencersError();
+  }
+
+  rawStatusOk(): boolean {
+    return !this.activeRawError();
+  }
+
+  activeRawStatus(): string {
+    if (this.activeRawLoading()) {
+      return 'loading';
+    }
+
+    const error = this.activeRawError();
+    if (error) {
+      return 'error';
+    }
+
+    if (this.rawDbSection() === 'database') {
+      return `${this.rawDbMentions().length} rows`;
+    }
+
+    return `${this.rawInfluencers().length}/${this.rawInfluencerTotal()} influenceurs`;
   }
 
   rawSnippet(mention: RawDbMention): string {

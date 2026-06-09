@@ -3,7 +3,7 @@ import { inject, Injectable } from '@angular/core';
 import { map } from 'rxjs';
 
 import { appEnvironment } from '../../core/config/app-environment';
-import { RawDbMention } from './raw-db.types';
+import { RawDbInfluencersResponse, RawDbMention } from './raw-db.types';
 
 interface RawDbLiveResponse {
   data?: RawDbAlert[];
@@ -46,6 +46,13 @@ export class RawDbApi {
     const safeLimit = Math.max(1, Math.min(Math.trunc(limit), 100));
     return this.http.get<RawDbLiveResponse>(`${this.baseUrl}/api/live?limit=${safeLimit}`).pipe(
       map((response) => (response.data ?? []).map(mapRawDbAlert))
+    );
+  }
+
+  listInfluencers(limit = 2500) {
+    const safeLimit = Math.max(1, Math.min(Math.trunc(limit), 5000));
+    return this.http.get<RawDbInfluencersResponse>(
+      `${this.baseUrl}/api/raw/influencers?limit=${safeLimit}`
     );
   }
 }
