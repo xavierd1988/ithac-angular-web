@@ -251,7 +251,14 @@ import { HealthApi, HealthStatus } from '../../data-access/system/health.api';
             <div class="raw-table" aria-label="Raw database influencer list">
               <div class="raw-head influencers-head">
                 <span>Influenceur</span>
-                <span>Followers</span>
+                <button
+                  class="sort-head"
+                  type="button"
+                  (click)="toggleInfluencerSort('followers')"
+                  [attr.aria-label]="'Sort influencers by followers ' + nextSortLabel('followers')"
+                >
+                  Followers {{ sortIndicator('followers') }}
+                </button>
                 <span>Mentions</span>
                 <span>Posts</span>
                 <span>Tokens</span>
@@ -263,7 +270,7 @@ import { HealthApi, HealthStatus } from '../../data-access/system/health.api';
                   <div class="raw-row influencers-row skeleton-row"></div>
                 }
               } @else {
-                @for (influencer of rawInfluencers(); track influencer.influencerId) {
+                @for (influencer of sortedRawInfluencers(); track influencer.influencerId) {
                   <article class="raw-row influencers-row">
                     <div class="influencer-identity">
                       @if (influencer.profileImageUrl) {
@@ -507,6 +514,22 @@ import { HealthApi, HealthStatus } from '../../data-access/system/health.api';
       text-transform: uppercase;
     }
 
+    .sort-head {
+      border: 0;
+      padding: 0;
+      background: transparent;
+      color: inherit;
+      font: inherit;
+      font-weight: 600;
+      letter-spacing: inherit;
+      text-align: left;
+      text-transform: inherit;
+    }
+
+    .sort-head:hover {
+      color: var(--gold-bright);
+    }
+
     .raw-row {
       min-height: 4.5rem;
       border: 1px solid var(--glass-border);
@@ -602,6 +625,10 @@ export class SettingsPage implements OnInit {
   readonly rawInfluencerTotal = signal(0);
   readonly rawInfluencersLoading = signal(false);
   readonly rawInfluencersError = signal<string | null>(null);
+  readonly influencerSort = signal<{ key: 'followers'; direction: 'asc' | 'desc' }>({
+    key: 'followers',
+    direction: 'desc'
+  });
   readonly apiBaseUrl = appEnvironment.apiBaseUrl;
   readonly rawDbApiBaseUrl = appEnvironment.rawDbApiBaseUrl;
   readonly signalrHubUrl = appEnvironment.signalrHubUrl;
@@ -625,6 +652,15 @@ export class SettingsPage implements OnInit {
       .map((part) => part[0])
       .join('')
   );
+  readonly sortedRawInfluencers = computed(() => {
+    const sort = this.influencerSort();
+    return [...this.rawInfluencers()].sort((a, b) => {
+      const left = a.followersCount;
+      const right = b.followersCount;
+      const result = left === right ? a.username.localeCompare(b.username) : left - right;
+      return sort.direction === 'asc' ? result : -result;
+    });
+  });
 
   private readonly healthApi = inject(HealthApi);
   private readonly rawDbApi = inject(RawDbApi);
@@ -702,6 +738,27 @@ export class SettingsPage implements OnInit {
         this.rawInfluencersLoading.set(false);
       }
     });
+  }
+
+  toggleInfluencerSort(key: 'followers'): void {
+    this.influencerSort.update((current) => ({
+      key,
+      direction: current.key === key && current.direction === 'desc' ? 'asc' : 'desc'
+    }));
+  }
+
+  sortIndicator(key: 'followers'): string {
+    const sort = this.influencerSort();
+    if (sort.key !== key) {
+      return '';
+    }
+
+    return sort.direction === 'desc' ? '↓' : '↑';
+  }
+
+  nextSortLabel(key: 'followers'): string {
+    const sort = this.influencerSort();
+    return sort.key === key && sort.direction === 'desc' ? 'ascending' : 'descending';
   }
 
   refreshActiveRaw(): void {
