@@ -8,6 +8,10 @@ import { RawDbApi } from '../../data-access/raw-db/raw-db.api';
 import { RawDbInfluencer, RawDbMention } from '../../data-access/raw-db/raw-db.types';
 import { HealthApi, HealthStatus } from '../../data-access/system/health.api';
 
+type SortDirection = 'asc' | 'desc';
+type RawMentionSortKey = 'token' | 'post' | 'influencer' | 'time' | 'age';
+type RawInfluencerSortKey = 'influencer' | 'followers' | 'mentions' | 'posts' | 'tokens' | 'latest';
+
 @Component({
   selector: 'ithac-settings-page',
   imports: [DatePipe, DecimalPipe],
@@ -209,11 +213,21 @@ import { HealthApi, HealthStatus } from '../../data-access/system/health.api';
           @if (rawDbSection() === 'database') {
             <div class="raw-table" aria-label="Raw database mention feed">
               <div class="raw-head mentions-head">
-                <span>Token</span>
-                <span>Post</span>
-                <span>Influencer</span>
-                <span>Time</span>
-                <span>Age</span>
+                <button class="sort-head" type="button" (click)="toggleMentionSort('token')">
+                  Token {{ mentionSortIndicator('token') }}
+                </button>
+                <button class="sort-head" type="button" (click)="toggleMentionSort('post')">
+                  Post {{ mentionSortIndicator('post') }}
+                </button>
+                <button class="sort-head" type="button" (click)="toggleMentionSort('influencer')">
+                  Influencer {{ mentionSortIndicator('influencer') }}
+                </button>
+                <button class="sort-head" type="button" (click)="toggleMentionSort('time')">
+                  Time {{ mentionSortIndicator('time') }}
+                </button>
+                <button class="sort-head" type="button" (click)="toggleMentionSort('age')">
+                  Age {{ mentionSortIndicator('age') }}
+                </button>
               </div>
 
               @if (rawDbLoading() && rawDbMentions().length === 0) {
@@ -221,7 +235,7 @@ import { HealthApi, HealthStatus } from '../../data-access/system/health.api';
                   <div class="raw-row mentions-row skeleton-row"></div>
                 }
               } @else {
-                @for (mention of rawDbMentions(); track mention.id) {
+                @for (mention of sortedRawMentions(); track mention.id) {
                   <article class="raw-row mentions-row">
                     <div class="token">
                       <strong>{{ mention.tokenSymbol }}</strong>
@@ -250,19 +264,28 @@ import { HealthApi, HealthStatus } from '../../data-access/system/health.api';
           } @else {
             <div class="raw-table" aria-label="Raw database influencer list">
               <div class="raw-head influencers-head">
-                <span>Influenceur</span>
+                <button class="sort-head" type="button" (click)="toggleInfluencerSort('influencer')">
+                  Influenceur {{ influencerSortIndicator('influencer') }}
+                </button>
                 <button
                   class="sort-head"
                   type="button"
                   (click)="toggleInfluencerSort('followers')"
-                  [attr.aria-label]="'Sort influencers by followers ' + nextSortLabel('followers')"
                 >
-                  Followers {{ sortIndicator('followers') }}
+                  Followers {{ influencerSortIndicator('followers') }}
                 </button>
-                <span>Mentions</span>
-                <span>Posts</span>
-                <span>Tokens</span>
-                <span>Latest</span>
+                <button class="sort-head" type="button" (click)="toggleInfluencerSort('mentions')">
+                  Mentions {{ influencerSortIndicator('mentions') }}
+                </button>
+                <button class="sort-head" type="button" (click)="toggleInfluencerSort('posts')">
+                  Posts {{ influencerSortIndicator('posts') }}
+                </button>
+                <button class="sort-head" type="button" (click)="toggleInfluencerSort('tokens')">
+                  Tokens {{ influencerSortIndicator('tokens') }}
+                </button>
+                <button class="sort-head" type="button" (click)="toggleInfluencerSort('latest')">
+                  Latest {{ influencerSortIndicator('latest') }}
+                </button>
               </div>
 
               @if (rawInfluencersLoading() && rawInfluencers().length === 0) {
@@ -625,7 +648,11 @@ export class SettingsPage implements OnInit {
   readonly rawInfluencerTotal = signal(0);
   readonly rawInfluencersLoading = signal(false);
   readonly rawInfluencersError = signal<string | null>(null);
-  readonly influencerSort = signal<{ key: 'followers'; direction: 'asc' | 'desc' }>({
+  readonly rawMentionSort = signal<{ key: RawMentionSortKey; direction: SortDirection }>({
+    key: 'time',
+    direction: 'desc'
+  });
+  readonly influencerSort = signal<{ key: RawInfluencerSortKey; direction: SortDirection }>({
     key: 'followers',
     direction: 'desc'
   });
@@ -652,12 +679,17 @@ export class SettingsPage implements OnInit {
       .map((part) => part[0])
       .join('')
   );
+  readonly sortedRawMentions = computed(() => {
+    const sort = this.rawMentionSort();
+    return [...this.rawDbMentions()].sort((a, b) => {
+      const result = this.compareMention(a, b, sort.key);
+      return sort.direction === 'asc' ? result : -result;
+    });
+  });
   readonly sortedRawInfluencers = computed(() => {
     const sort = this.influencerSort();
     return [...this.rawInfluencers()].sort((a, b) => {
-      const left = a.followersCount;
-      const right = b.followersCount;
-      const result = left === right ? a.username.localeCompare(b.username) : left - right;
+      const result = this.compareInfluencer(a, b, sort.key);
       return sort.direction === 'asc' ? result : -result;
     });
   });
@@ -740,15 +772,15 @@ export class SettingsPage implements OnInit {
     });
   }
 
-  toggleInfluencerSort(key: 'followers'): void {
-    this.influencerSort.update((current) => ({
+  toggleMentionSort(key: RawMentionSortKey): void {
+    this.rawMentionSort.update((current) => ({
       key,
       direction: current.key === key && current.direction === 'desc' ? 'asc' : 'desc'
     }));
   }
 
-  sortIndicator(key: 'followers'): string {
-    const sort = this.influencerSort();
+  mentionSortIndicator(key: RawMentionSortKey): string {
+    const sort = this.rawMentionSort();
     if (sort.key !== key) {
       return '';
     }
@@ -756,9 +788,20 @@ export class SettingsPage implements OnInit {
     return sort.direction === 'desc' ? '↓' : '↑';
   }
 
-  nextSortLabel(key: 'followers'): string {
+  toggleInfluencerSort(key: RawInfluencerSortKey): void {
+    this.influencerSort.update((current) => ({
+      key,
+      direction: current.key === key && current.direction === 'desc' ? 'asc' : 'desc'
+    }));
+  }
+
+  influencerSortIndicator(key: RawInfluencerSortKey): string {
     const sort = this.influencerSort();
-    return sort.key === key && sort.direction === 'desc' ? 'ascending' : 'descending';
+    if (sort.key !== key) {
+      return '';
+    }
+
+    return sort.direction === 'desc' ? '↓' : '↑';
   }
 
   refreshActiveRaw(): void {
@@ -820,5 +863,64 @@ export class SettingsPage implements OnInit {
     const hours = Math.floor(minutes / 60);
     if (hours < 24) return `${hours}h`;
     return `${Math.floor(hours / 24)}d`;
+  }
+
+  private compareMention(a: RawDbMention, b: RawDbMention, key: RawMentionSortKey): number {
+    switch (key) {
+      case 'token':
+        return (
+          this.compareText(a.tokenSymbol, b.tokenSymbol) ||
+          this.compareText(a.tokenName, b.tokenName) ||
+          this.compareTime(a.mentionedAt, b.mentionedAt)
+        );
+      case 'post':
+        return this.compareText(a.text, b.text) || this.compareTime(a.mentionedAt, b.mentionedAt);
+      case 'influencer':
+        return this.compareText(a.influencer, b.influencer) || this.compareTime(a.mentionedAt, b.mentionedAt);
+      case 'time':
+      case 'age':
+        return this.compareTime(a.mentionedAt, b.mentionedAt) || this.compareText(a.tokenSymbol, b.tokenSymbol);
+    }
+  }
+
+  private compareInfluencer(a: RawDbInfluencer, b: RawDbInfluencer, key: RawInfluencerSortKey): number {
+    switch (key) {
+      case 'influencer':
+        return (
+          this.compareText(a.name ?? a.username, b.name ?? b.username) ||
+          this.compareText(a.username, b.username)
+        );
+      case 'followers':
+        return this.compareNumber(a.followersCount, b.followersCount) || this.compareText(a.username, b.username);
+      case 'mentions':
+        return this.compareNumber(a.rawMentionCount, b.rawMentionCount) || this.compareText(a.username, b.username);
+      case 'posts':
+        return this.compareNumber(a.rawPostCount, b.rawPostCount) || this.compareText(a.username, b.username);
+      case 'tokens':
+        return this.compareNumber(a.rawTokenCount, b.rawTokenCount) || this.compareText(a.username, b.username);
+      case 'latest':
+        return this.compareTime(a.latestMentionAt, b.latestMentionAt) || this.compareText(a.username, b.username);
+    }
+  }
+
+  private compareText(a: string | null | undefined, b: string | null | undefined): number {
+    return (a ?? '').localeCompare(b ?? '', undefined, { numeric: true, sensitivity: 'base' });
+  }
+
+  private compareNumber(a: number | null | undefined, b: number | null | undefined): number {
+    return (a ?? 0) - (b ?? 0);
+  }
+
+  private compareTime(a: string | null | undefined, b: string | null | undefined): number {
+    return this.timeValue(a) - this.timeValue(b);
+  }
+
+  private timeValue(value: string | null | undefined): number {
+    if (!value) {
+      return 0;
+    }
+
+    const timestamp = new Date(value).getTime();
+    return Number.isFinite(timestamp) ? timestamp : 0;
   }
 }
