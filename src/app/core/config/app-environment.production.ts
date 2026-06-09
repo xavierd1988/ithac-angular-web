@@ -14,8 +14,8 @@ interface AppEnvironment {
 
 export const appEnvironment: AppEnvironment = {
   production: true,
-  apiBaseUrl: 'https://cointrends-api.dukanify.com',
-  signalrHubUrl: 'https://cointrends-api.dukanify.com/cryptomentionhub',
+  apiBaseUrl: 'http://146.190.69.111',
+  signalrHubUrl: 'http://146.190.69.111/cryptomentionhub',
   authProvider: 'local-dev',
   firebase: {
     webApiKey: ''

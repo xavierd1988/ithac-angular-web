@@ -1,17 +1,47 @@
+import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
 
-import { AlertsApi } from '../alerts/alerts.api';
+import { ApiUrlService } from '../../core/api/api-url.service';
 import { AlertSignal, AlertVerdictDto, TimexPricePoint } from '../alerts/alerts.types';
 import { CoinSignalSummary, CoinSparklinePoint } from './coins.types';
 
+interface BackendCoinRankingResponse {
+  data: BackendCoinRankingItem[];
+}
+
+interface BackendCoinRankingItem extends Omit<CoinSignalSummary, 'sparkline'> {
+  sparkline?: CoinSparklinePoint[];
+}
+
 @Injectable({ providedIn: 'root' })
 export class CoinsApi {
-  private readonly alertsApi = inject(AlertsApi);
+  private readonly http = inject(HttpClient);
+  private readonly apiUrl = inject(ApiUrlService);
 
   listCoins(): Observable<CoinSignalSummary[]> {
-    return this.alertsApi.listAlerts({ pageSize: 100 }).pipe(map(buildCoinSignalSummaries));
+    return this.http
+      .get<BackendCoinRankingResponse>(this.apiUrl.endpoint('/api/coins/ranking?limit=100'))
+      .pipe(map((response) => response.data.map(mapBackendCoin)));
   }
+}
+
+function mapBackendCoin(item: BackendCoinRankingItem): CoinSignalSummary {
+  return {
+    id: String(item.id),
+    symbol: item.symbol,
+    name: item.name,
+    latestAlertId: String(item.latestAlertId),
+    latestAt: item.latestAt,
+    topCaller: item.topCaller,
+    verdict: item.verdict,
+    alertCount: item.alertCount,
+    mentionCount: item.mentionCount,
+    averagePerformancePercent: item.averagePerformancePercent,
+    bestPerformancePercent: item.bestPerformancePercent,
+    worstPerformancePercent: item.worstPerformancePercent,
+    sparkline: item.sparkline ?? []
+  };
 }
 
 export function buildCoinSignalSummaries(alerts: AlertSignal[]): CoinSignalSummary[] {
