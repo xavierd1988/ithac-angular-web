@@ -93,7 +93,11 @@ import { HealthApi, HealthStatus } from '../../data-access/system/health.api';
 
               <div class="mention-cell">
                 <span class="field-label">Post / mention</span>
-                <strong class="mention-title ellipsis">{{ primaryPost(alert)?.text ?? alert.summary }}</strong>
+                <strong
+                  class="mention-title ellipsis"
+                  [title]="primaryPost(alert)?.text ?? alert.summary"
+                  >{{ mentionSnippet(alert) }}</strong
+                >
                 <small class="muted ellipsis">DB id {{ alert.id }}</small>
               </div>
 
@@ -662,6 +666,25 @@ export class LiveAlertsPage implements OnInit, OnDestroy {
     return alert.posts[0] ?? null;
   }
 
+  mentionSnippet(alert: AlertSignal): string {
+    const text = this.primaryPost(alert)?.text ?? alert.summary;
+    const symbol = alert.tokenSymbol.replace(/^\$/, '').trim();
+    if (!symbol) {
+      return text;
+    }
+
+    const match = new RegExp(`\\$?${escapeRegex(symbol)}\\b`, 'i').exec(text);
+    if (!match || match.index < 48) {
+      return text;
+    }
+
+    const start = Math.max(0, match.index - 42);
+    const end = Math.min(text.length, match.index + symbol.length + 110);
+    const prefix = start > 0 ? '... ' : '';
+    const suffix = end < text.length ? ' ...' : '';
+    return `${prefix}${text.slice(start, end).trim()}${suffix}`;
+  }
+
   postTime(alert: AlertSignal): string {
     return this.primaryPost(alert)?.postedAt ?? alert.createdAt;
   }
@@ -711,4 +734,8 @@ export class LiveAlertsPage implements OnInit, OnDestroy {
     this.newAlertIds.update((ids) => new Set([alert.id, ...ids]));
     this.lastUpdatedAt.set(new Date().toISOString());
   }
+}
+
+function escapeRegex(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
