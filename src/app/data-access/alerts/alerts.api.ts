@@ -45,7 +45,9 @@ export class AlertsApi {
     }
 
     return this.http
-      .get<BackendLiveEnvelope | BackendAlertsEnvelope>(this.apiUrl.endpoint(`/api/live?limit=${pageSize}`))
+      .get<BackendLiveEnvelope | BackendAlertsEnvelope>(
+        this.apiUrl.endpoint(`/api/Alerts?page=1&pageSize=${pageSize}`)
+      )
       .pipe(
         map((response) => extractAlertList(response).map(mapBackendAlert)),
         tap((alerts) => {
