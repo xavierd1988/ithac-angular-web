@@ -16,6 +16,10 @@ type BackendRankedInfluencer =
 type BackendTimexPricePoint =
   components['schemas']['CoinTrendsBackend.Models.AlertTimexPricePointDto'];
 type BackendInfluencer = BackendTopInfluencer | BackendRankedInfluencer;
+type BackendMentionWithLinks = NonNullable<BackendAlert['consolidatedMentions']>[number] & {
+  text?: string | null;
+  sourceUrl?: string | null;
+};
 
 @Injectable({ providedIn: 'root' })
 export class AlertsApi {
@@ -137,12 +141,16 @@ function mapBackendAlert(alert: BackendAlert): AlertSignal {
     mentionCount: alert.stats?.totalMentions ?? alert.consolidatedMentions?.length ?? 0,
     createdAt: observedAt,
     summary: `${alert.message ?? 'Alert activity detected'} · ${alert.stats?.totalInfluencers ?? 0} influencers`,
-    posts: (alert.consolidatedMentions ?? []).map((mention, index) => ({
-      id: toOptionalString(mention.id) ?? toOptionalString(mention.postId) ?? `${alertId}-${index}`,
-      handle: mention.influencer ? `@${mention.influencer}` : '@unknown',
-      text: `Mention detected for ${alert.token?.symbol ?? 'token'}`,
-      postedAt: mention.mentionedAt ?? observedAt
-    })),
+    posts: (alert.consolidatedMentions ?? []).map((rawMention, index) => {
+      const mention = rawMention as BackendMentionWithLinks;
+      return {
+        id: toOptionalString(mention.id) ?? toOptionalString(mention.postId) ?? `${alertId}-${index}`,
+        handle: mention.influencer ? `@${mention.influencer}` : '@unknown',
+        text: mention.text ?? alert.message ?? `Mention detected for ${alert.token?.symbol ?? 'token'}`,
+        postedAt: mention.mentionedAt ?? observedAt,
+        sourceUrl: mention.sourceUrl ?? undefined
+      };
+    }),
     timex: [
       {
         label: alert.timex?.status ? `TIMEX ${alert.timex.status}` : 'TIMEX result',

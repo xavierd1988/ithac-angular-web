@@ -78,7 +78,7 @@ import { HealthApi, HealthStatus } from '../../data-access/system/health.api';
       } @else {
         <section class="alerts-list" aria-label="Live alert feed">
           @for (alert of alerts(); track alert.id; let index = $index) {
-            <a class="alert-row panel" [class.new]="isNewAlert(alert.id)" [routerLink]="['/app/alerts', alert.id]">
+            <article class="alert-row panel" [class.new]="isNewAlert(alert.id)">
               <span class="card-accent" aria-hidden="true"></span>
 
               <span class="row-index">{{ index + 1 | number: '2.0-0' }}</span>
@@ -93,8 +93,28 @@ import { HealthApi, HealthStatus } from '../../data-access/system/health.api';
 
               <div class="caller-cell">
                 <span class="field-label">Caller</span>
-                <strong class="ellipsis">{{ alert.callerHandle }}</strong>
+                <a
+                  class="profile-link ellipsis"
+                  [href]="profileUrl(alert)"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  [attr.aria-label]="'Open X profile for ' + alert.callerHandle"
+                  >{{ alert.callerHandle }}</a
+                >
                 <small class="muted ellipsis">{{ alert.summary }}</small>
+                <div class="quick-links">
+                  @if (primaryPostUrl(alert); as postUrl) {
+                    <a
+                      class="quick-link"
+                      [href]="postUrl"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label="Open original post on X"
+                      >Post</a
+                    >
+                  }
+                  <a class="quick-link" [routerLink]="['/app/alerts', alert.id]">Details</a>
+                </div>
               </div>
 
               <span
@@ -132,7 +152,7 @@ import { HealthApi, HealthStatus } from '../../data-access/system/health.api';
                   <span class="new-badge">New</span>
                 }
               </footer>
-            </a>
+            </article>
           }
         </section>
       }
@@ -329,8 +349,39 @@ import { HealthApi, HealthStatus } from '../../data-access/system/health.api';
       line-height: 1.25;
     }
 
-    .caller-cell strong {
+    .caller-cell strong,
+    .profile-link {
       font-size: 0.95rem;
+      font-weight: 500;
+    }
+
+    .profile-link {
+      color: var(--ink);
+      min-width: 0;
+    }
+
+    .profile-link:hover,
+    .quick-link:hover {
+      color: var(--gold-bright);
+    }
+
+    .quick-links {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      margin-top: 0.18rem;
+    }
+
+    .quick-link {
+      display: inline-flex;
+      align-items: center;
+      min-height: 1.45rem;
+      padding: 0.16rem 0.48rem;
+      border-radius: 999px;
+      border: 1px solid var(--glass-border);
+      background: rgba(255, 255, 255, 0.035);
+      color: var(--ink-muted);
+      font-size: 0.68rem;
       font-weight: 500;
     }
 
@@ -601,6 +652,14 @@ export class LiveAlertsPage implements OnInit, OnDestroy {
     }
 
     return `${Math.round(hours / 24)}d ago`;
+  }
+
+  primaryPostUrl(alert: AlertSignal): string | null {
+    return alert.posts.find((post) => post.sourceUrl)?.sourceUrl ?? null;
+  }
+
+  profileUrl(alert: AlertSignal): string {
+    return `https://x.com/${alert.callerHandle.replace(/^@/, '')}`;
   }
 
   private loadAlerts(options: { forceRefresh?: boolean; background?: boolean } = {}): void {

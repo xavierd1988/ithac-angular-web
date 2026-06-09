@@ -35,7 +35,15 @@ import { AlertSignal } from '../../data-access/alerts/alerts.types';
           <div class="hero-stats">
             <div class="stat">
               <dt>Caller</dt>
-              <dd class="ellipsis">{{ a.callerHandle }}</dd>
+              <dd class="ellipsis">
+                <a
+                  [href]="profileUrl(a)"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  [attr.aria-label]="'Open X profile for ' + a.callerHandle"
+                  >{{ a.callerHandle }}</a
+                >
+              </dd>
             </div>
             <div class="stat">
               <dt>Rank</dt>
@@ -97,10 +105,21 @@ import { AlertSignal } from '../../data-access/alerts/alerts.types';
               @for (post of a.posts; track post.id) {
                 <section class="post">
                   <div class="post-head">
-                    <strong>{{ post.handle }}</strong>
+                    <a
+                      [href]="profileUrlFromHandle(post.handle)"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      [attr.aria-label]="'Open X profile for ' + post.handle"
+                      >{{ post.handle }}</a
+                    >
                     <time [dateTime]="post.postedAt">{{ post.postedAt | date: 'short' }}</time>
                   </div>
                   <p>{{ post.text }}</p>
+                  @if (post.sourceUrl) {
+                    <a class="post-link" [href]="post.sourceUrl" target="_blank" rel="noopener noreferrer">
+                      Open original post
+                    </a>
+                  }
                 </section>
               } @empty {
                 <p class="muted">No linked posts for this signal.</p>
@@ -240,6 +259,19 @@ import { AlertSignal } from '../../data-access/alerts/alerts.types';
       margin: 0.25rem 0 0;
       font-weight: 500;
       font-variant-numeric: tabular-nums;
+    }
+
+    .stat a,
+    .post-head a,
+    .post-link {
+      color: var(--ink);
+      font-weight: 500;
+    }
+
+    .stat a:hover,
+    .post-head a:hover,
+    .post-link:hover {
+      color: var(--gold-bright);
     }
 
     .grid {
@@ -399,6 +431,12 @@ import { AlertSignal } from '../../data-access/alerts/alerts.types';
       font-size: 0.92rem;
     }
 
+    .post-link {
+      display: inline-flex;
+      margin-top: 0.55rem;
+      font-size: 0.82rem;
+    }
+
     time {
       color: var(--ink-dim);
       font-size: 0.78rem;
@@ -503,5 +541,13 @@ export class SignalDetailPage implements OnInit {
         this.loading.set(false);
       }
     });
+  }
+
+  profileUrl(alert: AlertSignal): string {
+    return this.profileUrlFromHandle(alert.callerHandle);
+  }
+
+  profileUrlFromHandle(handle: string): string {
+    return `https://x.com/${handle.replace(/^@/, '')}`;
   }
 }
