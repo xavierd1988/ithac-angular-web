@@ -407,6 +407,53 @@ type RawDbSection = 'database' | 'influencers' | 'scraper';
                     </article>
                   }
                 </div>
+
+                <div class="raw-table">
+                  <div class="section-title">
+                    <h3>Recently scraped influencers</h3>
+                    <p class="muted">Latest accounts processed by the scraper, with their follower rank in MySQL.</p>
+                  </div>
+                  <div class="raw-head scraped-head">
+                    <span>Rank</span>
+                    <span>Influencer</span>
+                    <span>Followers</span>
+                    <span>Posts</span>
+                    <span>Last scrape</span>
+                    <span>Last post</span>
+                  </div>
+                  @for (influencer of scrapeHealth()?.recentInfluencers ?? []; track influencer.influencerId) {
+                    <article class="raw-row scraped-row">
+                      <strong>#{{ influencer.followerRank | number }}</strong>
+                      <div class="influencer-identity">
+                        @if (influencer.profileImageUrl) {
+                          <img [src]="influencer.profileImageUrl" [alt]="influencer.username" />
+                        }
+                        <span>
+                          <strong class="ellipsis">{{ influencer.name ?? influencer.username }}</strong>
+                          @if (influencer.profileUrl) {
+                            <a [href]="influencer.profileUrl" target="_blank" rel="noopener noreferrer">
+                              @{{ influencer.username }}
+                            </a>
+                          } @else {
+                            <small class="muted">@{{ influencer.username }}</small>
+                          }
+                        </span>
+                      </div>
+                      <strong>{{ influencer.followersCount | number }}</strong>
+                      <strong>{{ influencer.postsScraped | number }}</strong>
+                      <time [dateTime]="influencer.latestScrapedAt ?? ''">
+                        {{ influencer.latestScrapedAt ? relativeTime(influencer.latestScrapedAt) : 'none' }}
+                      </time>
+                      @if (influencer.latestPostUrl) {
+                        <a [href]="influencer.latestPostUrl" target="_blank" rel="noopener noreferrer">
+                          X post
+                        </a>
+                      } @else {
+                        <small class="muted">none</small>
+                      }
+                    </article>
+                  }
+                </div>
               }
             </div>
           }
@@ -625,6 +672,27 @@ type RawDbSection = 'database' | 'influencers' | 'scraper';
       align-items: center;
     }
 
+    .scraped-head,
+    .scraped-row {
+      display: grid;
+      grid-template-columns: minmax(4rem, 0.32fr) minmax(14rem, 1.35fr) minmax(7rem, 0.55fr) minmax(5rem, 0.35fr) minmax(6rem, 0.45fr) minmax(5rem, 0.4fr);
+      gap: 0.8rem;
+      align-items: center;
+    }
+
+    .section-title {
+      display: grid;
+      gap: 0.15rem;
+      margin: 0.5rem 0 0.15rem;
+    }
+
+    h3 {
+      margin: 0;
+      font-size: 0.95rem;
+      font-weight: 500;
+      letter-spacing: 0;
+    }
+
     .scraper-monitor {
       display: grid;
       gap: 1rem;
@@ -778,6 +846,7 @@ type RawDbSection = 'database' | 'influencers' | 'scraper';
       .mentions-row,
       .influencers-row,
       .buckets-row,
+      .scraped-row,
       .monitor-grid,
       .window-grid {
         grid-template-columns: 1fr;

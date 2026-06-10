@@ -66,10 +66,26 @@ export interface RawDbScrapeHealth {
     mentions24h: number;
   };
   buckets: RawDbScrapeBucket[];
+  recentInfluencers: RawDbRecentScrapedInfluencer[];
 }
 
 export interface RawDbScrapeBucket {
   bucketStart: string | null;
   postsScraped: number;
   mentions: number;
+}
+
+export interface RawDbRecentScrapedInfluencer {
+  influencerId: string;
+  username: string;
+  name: string | null;
+  profileImageUrl: string | null;
+  profileUrl: string | null;
+  followersCount: number;
+  followerRank: number;
+  postsScraped: number;
+  latestScrapedAt: string | null;
+  latestPostedAt: string | null;
+  latestPostId: string | null;
+  latestPostUrl: string | null;
 }
