@@ -335,6 +335,96 @@ type RawDbSection = 'database' | 'influencers' | 'scraper';
                 <div class="raw-row skeleton-row"></div>
                 <div class="raw-row skeleton-row"></div>
               } @else if (scrapeHealth()) {
+                <div class="cycle-blocks">
+                  <div class="section-title">
+                    <h3>Cycle blocks</h3>
+                    <p class="muted">
+                      First view: current block, completed blocks, and average scraper coverage.
+                    </p>
+                  </div>
+
+                  <section class="cycle-summary">
+                    <article>
+                      <span class="label">Average coverage</span>
+                      <strong>{{ scrapeHealth()?.cycleCoverage?.averageCoveragePct | number: '1.0-1' }}%</strong>
+                      <small class="muted">Mean coverage across visible blocks</small>
+                    </article>
+                    <article>
+                      <span class="label">Weighted coverage</span>
+                      <strong>{{ scrapeHealth()?.cycleCoverage?.weightedCoveragePct | number: '1.0-1' }}%</strong>
+                      <small class="muted">
+                        {{ scrapeHealth()?.cycleCoverage?.coveredAccounts | number }} /
+                        {{ scrapeHealth()?.cycleCoverage?.possibleAccounts | number }} accounts
+                      </small>
+                    </article>
+                    <article>
+                      <span class="label">Blocks</span>
+                      <strong>{{ scrapeHealth()?.cycleCoverage?.blockCount | number }}</strong>
+                      <small class="muted">
+                        {{ scrapeHealth()?.cycleCoverage?.completedBlockCount | number }} completed
+                      </small>
+                    </article>
+                  </section>
+
+                  @for (block of scrapeHealth()?.cycleBlocks ?? []; track block.blockId) {
+                    <article
+                      class="cycle-block"
+                      [class.current]="block.isCurrent"
+                      [class.completed]="!block.isCurrent"
+                      [class.tone-0]="block.colorIndex === 0"
+                      [class.tone-1]="block.colorIndex === 1"
+                      [class.tone-2]="block.colorIndex === 2"
+                      [class.tone-3]="block.colorIndex === 3"
+                      [class.tone-4]="block.colorIndex === 4"
+                      [class.tone-5]="block.colorIndex === 5"
+                      [class.tone-6]="block.colorIndex === 6"
+                      [class.tone-7]="block.colorIndex === 7"
+                    >
+                      <div class="cycle-main">
+                        <span class="status-pill dot" [class.ok]="block.isCurrent" [class.done]="!block.isCurrent">
+                          {{ block.isCurrent ? 'CURRENT' : 'COMPLETED' }}
+                        </span>
+                        <strong>
+                          #{{ block.minCyclePosition | number }} - #{{ block.maxCyclePosition | number }}
+                        </strong>
+                        <small class="muted">
+                          {{ block.influencerCount | number }} / {{ block.positionSpan | number }} accounts ·
+                          {{ block.coveragePct | number: '1.0-1' }}% coverage ·
+                          {{ block.postsScraped | number }} posts
+                        </small>
+                        <div class="coverage-track" aria-label="Block coverage">
+                          <span [style.width.%]="block.coveragePct"></span>
+                        </div>
+                      </div>
+                      <div class="cycle-meta">
+                        @if (block.isCurrent) {
+                          <span>Started {{ block.startedAt | date: 'h:mm a' }}</span>
+                          <small class="muted">Still moving through this block</small>
+                        } @else {
+                          <span>Completed {{ block.completedAt | date: 'h:mm a' }}</span>
+                          <small class="muted">
+                            {{ block.startedAt | date: 'h:mm a' }} → {{ block.endedAt | date: 'h:mm a' }}
+                            @if (block.durationMinutes !== null) {
+                              · {{ block.durationMinutes }} min
+                            }
+                          </small>
+                        }
+                        <small class="muted ellipsis">IDs {{ block.minUserId }} → {{ block.maxUserId }}</small>
+                      </div>
+                      <div class="cycle-samples">
+                        @for (entry of block.entries; track entry.influencerId) {
+                          <span>
+                            {{ entry.latestScrapedAt | date: 'h:mm:ss a' }}
+                            · @{{ entry.username }}
+                            · #{{ entry.cyclePosition | number }}
+                            · {{ entry.postsScraped }}p
+                          </span>
+                        }
+                      </div>
+                    </article>
+                  }
+                </div>
+
                 <section class="monitor-grid">
                   <article class="monitor-card important" [class.bad]="scrapeHealth()?.status === 'stale'">
                     <span class="label">Scraper status</span>
@@ -404,72 +494,6 @@ type RawDbSection = 'database' | 'influencers' | 'scraper';
                       </time>
                       <strong>{{ bucket.postsScraped | number }}</strong>
                       <strong>{{ bucket.mentions | number }}</strong>
-                    </article>
-                  }
-                </div>
-
-                <div class="cycle-blocks">
-                  <div class="section-title">
-                    <h3>Cycle blocks</h3>
-                    <p class="muted">
-                      Current block is active now. Completed blocks are kept below with their completion time.
-                    </p>
-                  </div>
-                  @for (block of scrapeHealth()?.cycleBlocks ?? []; track block.blockId) {
-                    <article
-                      class="cycle-block"
-                      [class.current]="block.isCurrent"
-                      [class.completed]="!block.isCurrent"
-                      [class.tone-0]="block.colorIndex === 0"
-                      [class.tone-1]="block.colorIndex === 1"
-                      [class.tone-2]="block.colorIndex === 2"
-                      [class.tone-3]="block.colorIndex === 3"
-                      [class.tone-4]="block.colorIndex === 4"
-                      [class.tone-5]="block.colorIndex === 5"
-                      [class.tone-6]="block.colorIndex === 6"
-                      [class.tone-7]="block.colorIndex === 7"
-                    >
-                      <div class="cycle-main">
-                        <span class="status-pill dot" [class.ok]="block.isCurrent" [class.done]="!block.isCurrent">
-                          {{ block.isCurrent ? 'CURRENT' : 'COMPLETED' }}
-                        </span>
-                        <strong>
-                          #{{ block.minCyclePosition | number }} - #{{ block.maxCyclePosition | number }}
-                        </strong>
-                        <small class="muted">
-                          {{ block.influencerCount | number }} / {{ block.positionSpan | number }} accounts ·
-                          {{ block.coveragePct | number: '1.0-1' }}% coverage ·
-                          {{ block.postsScraped | number }} posts
-                        </small>
-                        <div class="coverage-track" aria-label="Block coverage">
-                          <span [style.width.%]="block.coveragePct"></span>
-                        </div>
-                      </div>
-                      <div class="cycle-meta">
-                        @if (block.isCurrent) {
-                          <span>Started {{ block.startedAt | date: 'h:mm a' }}</span>
-                          <small class="muted">Still moving through this block</small>
-                        } @else {
-                          <span>Completed {{ block.completedAt | date: 'h:mm a' }}</span>
-                          <small class="muted">
-                            {{ block.startedAt | date: 'h:mm a' }} → {{ block.endedAt | date: 'h:mm a' }}
-                            @if (block.durationMinutes !== null) {
-                              · {{ block.durationMinutes }} min
-                            }
-                          </small>
-                        }
-                        <small class="muted ellipsis">IDs {{ block.minUserId }} → {{ block.maxUserId }}</small>
-                      </div>
-                      <div class="cycle-samples">
-                        @for (entry of block.entries; track entry.influencerId) {
-                          <span>
-                            {{ entry.latestScrapedAt | date: 'h:mm:ss a' }}
-                            · @{{ entry.username }}
-                            · #{{ entry.cyclePosition | number }}
-                            · {{ entry.postsScraped }}p
-                          </span>
-                        }
-                      </div>
                     </article>
                   }
                 </div>
@@ -879,6 +903,15 @@ type RawDbSection = 'database' | 'influencers' | 'scraper';
       gap: 0.55rem;
     }
 
+    .cycle-summary {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .cycle-summary strong {
+      color: var(--gold);
+      font-size: 1.5rem;
+    }
+
     .cycle-block {
       display: grid;
       grid-template-columns: minmax(11rem, 0.8fr) minmax(12rem, 0.7fr) minmax(18rem, 1.4fr);
@@ -985,6 +1018,7 @@ type RawDbSection = 'database' | 'influencers' | 'scraper';
     }
 
     .monitor-grid,
+    .cycle-summary,
     .window-grid {
       display: grid;
       gap: 0.75rem;
@@ -999,6 +1033,7 @@ type RawDbSection = 'database' | 'influencers' | 'scraper';
     }
 
     .monitor-card,
+    .cycle-summary article,
     .window-grid article {
       display: grid;
       gap: 0.25rem;
@@ -1135,6 +1170,7 @@ type RawDbSection = 'database' | 'influencers' | 'scraper';
       .scraped-row,
       .cycle-user-row,
       .cycle-block,
+      .cycle-summary,
       .monitor-grid,
       .window-grid {
         grid-template-columns: 1fr;
