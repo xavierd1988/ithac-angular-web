@@ -408,13 +408,48 @@ type RawDbSection = 'database' | 'influencers' | 'scraper';
                   }
                 </div>
 
+                <div class="cycle-blocks">
+                  <div class="section-title">
+                    <h3>Cycle blocks</h3>
+                    <p class="muted">
+                      Approximate scraper path by MySQL user-id position. Current block is where it is passing now.
+                    </p>
+                  </div>
+                  @for (block of scrapeHealth()?.cycleBlocks ?? []; track block.blockId) {
+                    <article class="cycle-block" [class.current]="block.isCurrent">
+                      <div class="cycle-main">
+                        <span class="status-pill dot" [class.ok]="block.isCurrent">
+                          {{ block.isCurrent ? 'CURRENT' : 'previous' }}
+                        </span>
+                        <strong>
+                          #{{ block.minCyclePosition | number }} - #{{ block.maxCyclePosition | number }}
+                        </strong>
+                        <small class="muted">
+                          {{ block.influencerCount | number }} accounts · {{ block.postsScraped | number }} posts
+                        </small>
+                      </div>
+                      <div class="cycle-meta">
+                        <span>
+                          {{ block.startedAt | date: 'h:mm a' }} → {{ block.endedAt | date: 'h:mm a' }}
+                        </span>
+                        <small class="muted ellipsis">IDs {{ block.minUserId }} → {{ block.maxUserId }}</small>
+                      </div>
+                      <div class="cycle-samples">
+                        @for (sample of block.samples; track sample.username) {
+                          <span>@{{ sample.username }} · #{{ sample.cyclePosition | number }}</span>
+                        }
+                      </div>
+                    </article>
+                  }
+                </div>
+
                 <div class="raw-table">
                   <div class="section-title">
                     <h3>Recently scraped influencers</h3>
                     <p class="muted">Latest accounts processed by the scraper, with their follower rank in MySQL.</p>
                   </div>
                   <div class="raw-head scraped-head">
-                    <span>Rank</span>
+                    <span>Cycle</span>
                     <span>Influencer</span>
                     <span>Followers</span>
                     <span>Posts</span>
@@ -423,7 +458,10 @@ type RawDbSection = 'database' | 'influencers' | 'scraper';
                   </div>
                   @for (influencer of scrapeHealth()?.recentInfluencers ?? []; track influencer.influencerId) {
                     <article class="raw-row scraped-row">
-                      <strong>#{{ influencer.followerRank | number }}</strong>
+                      <span>
+                        <strong>#{{ influencer.cyclePosition | number }}</strong>
+                        <small class="muted">rank #{{ influencer.followerRank | number }}</small>
+                      </span>
                       <div class="influencer-identity">
                         @if (influencer.profileImageUrl) {
                           <img [src]="influencer.profileImageUrl" [alt]="influencer.username" />
@@ -698,6 +736,62 @@ type RawDbSection = 'database' | 'influencers' | 'scraper';
       gap: 1rem;
     }
 
+    .cycle-blocks {
+      display: grid;
+      gap: 0.55rem;
+    }
+
+    .cycle-block {
+      display: grid;
+      grid-template-columns: minmax(11rem, 0.8fr) minmax(12rem, 0.7fr) minmax(18rem, 1.4fr);
+      gap: 0.8rem;
+      align-items: center;
+      min-height: 4.5rem;
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-sm);
+      padding: 0.85rem;
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .cycle-block.current {
+      border-color: rgba(255, 176, 32, 0.48);
+      background: linear-gradient(135deg, rgba(255, 176, 32, 0.16), rgba(255, 255, 255, 0.035));
+      box-shadow: 0 0 0 1px rgba(255, 176, 32, 0.08), 0 18px 45px rgba(255, 176, 32, 0.08);
+    }
+
+    .cycle-main,
+    .cycle-meta,
+    .cycle-samples {
+      display: grid;
+      min-width: 0;
+      gap: 0.25rem;
+    }
+
+    .cycle-main strong {
+      font-size: 1.25rem;
+      font-weight: 500;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .cycle-samples {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+    }
+
+    .cycle-samples span {
+      max-width: 11rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      border: 1px solid var(--glass-border);
+      border-radius: 999px;
+      padding: 0.2rem 0.45rem;
+      color: var(--ink-muted);
+      font-size: 0.75rem;
+      background: rgba(255, 255, 255, 0.035);
+    }
+
     .monitor-grid,
     .window-grid {
       display: grid;
@@ -847,6 +941,7 @@ type RawDbSection = 'database' | 'influencers' | 'scraper';
       .influencers-row,
       .buckets-row,
       .scraped-row,
+      .cycle-block,
       .monitor-grid,
       .window-grid {
         grid-template-columns: 1fr;

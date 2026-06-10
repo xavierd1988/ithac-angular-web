@@ -67,6 +67,7 @@ export interface RawDbScrapeHealth {
   };
   buckets: RawDbScrapeBucket[];
   recentInfluencers: RawDbRecentScrapedInfluencer[];
+  cycleBlocks: RawDbScrapeCycleBlock[];
 }
 
 export interface RawDbScrapeBucket {
@@ -83,9 +84,31 @@ export interface RawDbRecentScrapedInfluencer {
   profileUrl: string | null;
   followersCount: number;
   followerRank: number;
+  cyclePosition: number;
   postsScraped: number;
   latestScrapedAt: string | null;
   latestPostedAt: string | null;
   latestPostId: string | null;
   latestPostUrl: string | null;
+}
+
+export interface RawDbScrapeCycleBlock {
+  blockId: string;
+  isCurrent: boolean;
+  startedAt: string | null;
+  endedAt: string | null;
+  minCyclePosition: number;
+  maxCyclePosition: number;
+  minUserId: string;
+  maxUserId: string;
+  influencerCount: number;
+  postsScraped: number;
+  samples: RawDbScrapeCycleSample[];
+}
+
+export interface RawDbScrapeCycleSample {
+  username: string;
+  cyclePosition: number;
+  followersCount: number;
+  postsScraped: number;
 }
