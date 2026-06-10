@@ -443,6 +443,65 @@ type RawDbSection = 'database' | 'influencers' | 'scraper';
                   }
                 </div>
 
+                <div class="raw-table cycle-users-table">
+                  <div class="section-title">
+                    <h3>Twitter ID cycle</h3>
+                    <p class="muted">
+                      Full MySQL influencer list ordered by Twitter ID. Gold = current block. Framed = scraped recently.
+                    </p>
+                  </div>
+                  <div class="raw-head cycle-users-head">
+                    <span>Twitter ID</span>
+                    <span>Profile</span>
+                    <span>Followers</span>
+                    <span>Status</span>
+                  </div>
+                  <div class="cycle-users-scroll">
+                    @for (user of scrapeHealth()?.cycleUsers ?? []; track user.influencerId) {
+                      <article
+                        class="raw-row cycle-user-row"
+                        [class.current]="user.isCurrent"
+                        [class.scraped]="user.isRecentlyScraped"
+                      >
+                        <div class="cycle-id">
+                          <strong>{{ user.influencerId }}</strong>
+                          <small class="muted">#{{ user.cyclePosition | number }}</small>
+                        </div>
+                        <div class="influencer-identity">
+                          @if (user.profileImageUrl) {
+                            <img [src]="user.profileImageUrl" [alt]="user.username" />
+                          }
+                          <span>
+                            <strong class="ellipsis">{{ user.name ?? user.username }}</strong>
+                            @if (user.profileUrl) {
+                              <a [href]="user.profileUrl" target="_blank" rel="noopener noreferrer">
+                                @{{ user.username }}
+                              </a>
+                            } @else {
+                              <small class="muted">@{{ user.username }}</small>
+                            }
+                          </span>
+                        </div>
+                        <strong>{{ user.followersCount | number }}</strong>
+                        <div class="cycle-status">
+                          @if (user.isCurrent) {
+                            <span class="status-pill dot ok">current</span>
+                          }
+                          @if (user.isRecentlyScraped) {
+                            <span class="status-pill dot">scraped</span>
+                            <small class="muted">{{ user.latestScrapedAt ? relativeTime(user.latestScrapedAt) : '' }}</small>
+                          } @else if (!user.isCurrent) {
+                            <small class="muted">waiting</small>
+                          }
+                          @if (user.latestPostUrl) {
+                            <a [href]="user.latestPostUrl" target="_blank" rel="noopener noreferrer">X post</a>
+                          }
+                        </div>
+                      </article>
+                    }
+                  </div>
+                </div>
+
                 <div class="raw-table">
                   <div class="section-title">
                     <h3>Recently scraped influencers</h3>
@@ -718,6 +777,54 @@ type RawDbSection = 'database' | 'influencers' | 'scraper';
       align-items: center;
     }
 
+    .cycle-users-head,
+    .cycle-user-row {
+      display: grid;
+      grid-template-columns: minmax(12rem, 0.9fr) minmax(15rem, 1.2fr) minmax(7rem, 0.45fr) minmax(10rem, 0.7fr);
+      gap: 0.8rem;
+      align-items: center;
+    }
+
+    .cycle-users-scroll {
+      display: grid;
+      gap: 0.4rem;
+      max-height: 32rem;
+      overflow: auto;
+      padding-right: 0.2rem;
+    }
+
+    .cycle-user-row {
+      min-height: 3.9rem;
+    }
+
+    .cycle-user-row.current {
+      border-color: rgba(255, 176, 32, 0.55);
+      background: rgba(255, 176, 32, 0.1);
+    }
+
+    .cycle-user-row.scraped {
+      box-shadow: inset 0 0 0 1px rgba(107, 226, 166, 0.32);
+    }
+
+    .cycle-id,
+    .cycle-status {
+      display: grid;
+      min-width: 0;
+      gap: 0.18rem;
+    }
+
+    .cycle-id strong {
+      font-size: 0.8rem;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .cycle-status {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      flex-wrap: wrap;
+    }
+
     .section-title {
       display: grid;
       gap: 0.15rem;
@@ -941,6 +1048,7 @@ type RawDbSection = 'database' | 'influencers' | 'scraper';
       .influencers-row,
       .buckets-row,
       .scraped-row,
+      .cycle-user-row,
       .cycle-block,
       .monitor-grid,
       .window-grid {
