@@ -437,8 +437,13 @@ type RawDbSection = 'database' | 'influencers' | 'scraper';
                           #{{ block.minCyclePosition | number }} - #{{ block.maxCyclePosition | number }}
                         </strong>
                         <small class="muted">
-                          {{ block.influencerCount | number }} accounts · {{ block.postsScraped | number }} posts
+                          {{ block.influencerCount | number }} / {{ block.positionSpan | number }} accounts ·
+                          {{ block.coveragePct | number: '1.0-1' }}% coverage ·
+                          {{ block.postsScraped | number }} posts
                         </small>
+                        <div class="coverage-track" aria-label="Block coverage">
+                          <span [style.width.%]="block.coveragePct"></span>
+                        </div>
                       </div>
                       <div class="cycle-meta">
                         @if (block.isCurrent) {
@@ -938,6 +943,24 @@ type RawDbSection = 'database' | 'influencers' | 'scraper';
       font-size: 1.25rem;
       font-weight: 500;
       font-variant-numeric: tabular-nums;
+    }
+
+    .coverage-track {
+      width: min(13rem, 100%);
+      height: 0.42rem;
+      overflow: hidden;
+      border: 1px solid rgba(var(--block-rgb, 255, 176, 32), 0.24);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .coverage-track span {
+      display: block;
+      height: 100%;
+      min-width: 0.18rem;
+      max-width: 100%;
+      border-radius: inherit;
+      background: rgba(var(--block-rgb, 255, 176, 32), 0.82);
     }
 
     .cycle-samples {

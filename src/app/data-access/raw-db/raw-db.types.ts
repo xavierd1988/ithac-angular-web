@@ -104,6 +104,8 @@ export interface RawDbScrapeCycleBlock {
   durationMinutes: number | null;
   minCyclePosition: number;
   maxCyclePosition: number;
+  positionSpan: number;
+  coveragePct: number;
   minUserId: string;
   maxUserId: string;
   influencerCount: number;
