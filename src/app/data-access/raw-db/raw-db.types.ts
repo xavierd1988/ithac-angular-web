@@ -95,15 +95,20 @@ export interface RawDbRecentScrapedInfluencer {
 
 export interface RawDbScrapeCycleBlock {
   blockId: string;
+  colorIndex: number;
+  status: 'current' | 'completed';
   isCurrent: boolean;
   startedAt: string | null;
   endedAt: string | null;
+  completedAt: string | null;
+  durationMinutes: number | null;
   minCyclePosition: number;
   maxCyclePosition: number;
   minUserId: string;
   maxUserId: string;
   influencerCount: number;
   postsScraped: number;
+  entries: RawDbScrapeCycleEntry[];
   samples: RawDbScrapeCycleSample[];
 }
 
@@ -112,6 +117,16 @@ export interface RawDbScrapeCycleSample {
   cyclePosition: number;
   followersCount: number;
   postsScraped: number;
+  latestScrapedAt: string | null;
+}
+
+export interface RawDbScrapeCycleEntry {
+  influencerId: string;
+  username: string;
+  cyclePosition: number;
+  followersCount: number;
+  postsScraped: number;
+  latestScrapedAt: string | null;
 }
 
 export interface RawDbScrapeCycleUser {

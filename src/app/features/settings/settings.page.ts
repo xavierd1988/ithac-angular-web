@@ -412,14 +412,26 @@ type RawDbSection = 'database' | 'influencers' | 'scraper';
                   <div class="section-title">
                     <h3>Cycle blocks</h3>
                     <p class="muted">
-                      Approximate scraper path by MySQL user-id position. Current block is where it is passing now.
+                      Current block is active now. Completed blocks are kept below with their completion time.
                     </p>
                   </div>
                   @for (block of scrapeHealth()?.cycleBlocks ?? []; track block.blockId) {
-                    <article class="cycle-block" [class.current]="block.isCurrent">
+                    <article
+                      class="cycle-block"
+                      [class.current]="block.isCurrent"
+                      [class.completed]="!block.isCurrent"
+                      [class.tone-0]="block.colorIndex === 0"
+                      [class.tone-1]="block.colorIndex === 1"
+                      [class.tone-2]="block.colorIndex === 2"
+                      [class.tone-3]="block.colorIndex === 3"
+                      [class.tone-4]="block.colorIndex === 4"
+                      [class.tone-5]="block.colorIndex === 5"
+                      [class.tone-6]="block.colorIndex === 6"
+                      [class.tone-7]="block.colorIndex === 7"
+                    >
                       <div class="cycle-main">
-                        <span class="status-pill dot" [class.ok]="block.isCurrent">
-                          {{ block.isCurrent ? 'CURRENT' : 'previous' }}
+                        <span class="status-pill dot" [class.ok]="block.isCurrent" [class.done]="!block.isCurrent">
+                          {{ block.isCurrent ? 'CURRENT' : 'COMPLETED' }}
                         </span>
                         <strong>
                           #{{ block.minCyclePosition | number }} - #{{ block.maxCyclePosition | number }}
@@ -429,14 +441,28 @@ type RawDbSection = 'database' | 'influencers' | 'scraper';
                         </small>
                       </div>
                       <div class="cycle-meta">
-                        <span>
-                          {{ block.startedAt | date: 'h:mm a' }} → {{ block.endedAt | date: 'h:mm a' }}
-                        </span>
+                        @if (block.isCurrent) {
+                          <span>Started {{ block.startedAt | date: 'h:mm a' }}</span>
+                          <small class="muted">Still moving through this block</small>
+                        } @else {
+                          <span>Completed {{ block.completedAt | date: 'h:mm a' }}</span>
+                          <small class="muted">
+                            {{ block.startedAt | date: 'h:mm a' }} → {{ block.endedAt | date: 'h:mm a' }}
+                            @if (block.durationMinutes !== null) {
+                              · {{ block.durationMinutes }} min
+                            }
+                          </small>
+                        }
                         <small class="muted ellipsis">IDs {{ block.minUserId }} → {{ block.maxUserId }}</small>
                       </div>
                       <div class="cycle-samples">
-                        @for (sample of block.samples; track sample.username) {
-                          <span>@{{ sample.username }} · #{{ sample.cyclePosition | number }}</span>
+                        @for (entry of block.entries; track entry.influencerId) {
+                          <span>
+                            {{ entry.latestScrapedAt | date: 'h:mm:ss a' }}
+                            · @{{ entry.username }}
+                            · #{{ entry.cyclePosition | number }}
+                            · {{ entry.postsScraped }}p
+                          </span>
                         }
                       </div>
                     </article>
@@ -866,6 +892,40 @@ type RawDbSection = 'database' | 'influencers' | 'scraper';
       box-shadow: 0 0 0 1px rgba(255, 176, 32, 0.08), 0 18px 45px rgba(255, 176, 32, 0.08);
     }
 
+    .cycle-block.completed {
+      border-color: rgba(107, 226, 166, 0.22);
+      background: rgba(107, 226, 166, 0.035);
+    }
+
+    .cycle-block.tone-0 { --block-rgb: 255, 176, 32; }
+    .cycle-block.tone-1 { --block-rgb: 107, 226, 166; }
+    .cycle-block.tone-2 { --block-rgb: 125, 166, 255; }
+    .cycle-block.tone-3 { --block-rgb: 255, 120, 144; }
+    .cycle-block.tone-4 { --block-rgb: 186, 139, 255; }
+    .cycle-block.tone-5 { --block-rgb: 96, 211, 224; }
+    .cycle-block.tone-6 { --block-rgb: 255, 143, 89; }
+    .cycle-block.tone-7 { --block-rgb: 202, 232, 96; }
+
+    .cycle-block {
+      border-color: rgba(var(--block-rgb, 255, 176, 32), 0.34);
+      background: rgba(var(--block-rgb, 255, 176, 32), 0.045);
+    }
+
+    .cycle-block.current {
+      border-color: rgba(var(--block-rgb, 255, 176, 32), 0.62);
+      background: linear-gradient(
+        135deg,
+        rgba(var(--block-rgb, 255, 176, 32), 0.18),
+        rgba(255, 255, 255, 0.035)
+      );
+    }
+
+    .status-pill.done {
+      border-color: rgba(107, 226, 166, 0.26);
+      color: var(--good);
+      background: rgba(107, 226, 166, 0.08);
+    }
+
     .cycle-main,
     .cycle-meta,
     .cycle-samples {
@@ -884,10 +944,12 @@ type RawDbSection = 'database' | 'influencers' | 'scraper';
       display: flex;
       flex-wrap: wrap;
       gap: 0.35rem;
+      max-height: 6.7rem;
+      overflow: auto;
     }
 
     .cycle-samples span {
-      max-width: 11rem;
+      max-width: 16rem;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -896,7 +958,7 @@ type RawDbSection = 'database' | 'influencers' | 'scraper';
       padding: 0.2rem 0.45rem;
       color: var(--ink-muted);
       font-size: 0.75rem;
-      background: rgba(255, 255, 255, 0.035);
+      background: rgba(var(--block-rgb, 255, 176, 32), 0.08);
     }
 
     .monitor-grid,
