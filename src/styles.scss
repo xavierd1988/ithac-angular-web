@@ -1,42 +1,21 @@
 :root {
   color-scheme: dark;
-
-  /* Brand — gold (azure-test signature) */
-  --gold: #ffb020;
-  --gold-bright: #ffc247;
-  --gold-deep: #ff7a00;
-  --gold-glow: rgba(255, 138, 0, 0.45);
-
-  /* Base — deep indigo cosmos */
-  --bg-0: #05060f;
-  --bg-1: #0a0f28;
-  --bg-2: #0d1533;
-
-  /* Ink */
+  --bg: #060811;
+  --panel: rgba(255, 255, 255, 0.055);
+  --panel-strong: rgba(255, 255, 255, 0.085);
+  --line: rgba(255, 255, 255, 0.12);
+  --line-strong: rgba(255, 255, 255, 0.2);
   --ink: #eef2fb;
-  --ink-muted: #8b95b5;
-  --ink-dim: #5c6689;
-
-  /* Glass */
-  --glass: rgba(255, 255, 255, 0.04);
-  --glass-strong: rgba(255, 255, 255, 0.07);
-  --glass-border: rgba(255, 255, 255, 0.1);
-  --glass-border-strong: rgba(255, 255, 255, 0.18);
-  --glass-shadow: 0 22px 48px -28px rgba(0, 0, 0, 0.92);
-
-  /* Signal tiers */
-  --super: #ffb020;
-  --good: #34d39e;
-  --avoid: #ff5d6c;
-  --neutral: #8b95b5;
-
-  --radius: 18px;
-  --radius-sm: 12px;
-  --font-sans: "Avenir Next", "Avenir Next LT Pro", Avenir, "Helvetica Neue", Arial, sans-serif;
-
-  font-family: var(--font-sans);
-  font-weight: 300;
-  color: var(--ink);
+  --muted: #8e99b8;
+  --dim: #5f6b8e;
+  --gold: #ffb020;
+  --gold-2: #ff7a00;
+  --green: #35d39e;
+  --red: #ff5d6c;
+  --blue: #68a8ff;
+  --violet: #a78bfa;
+  --radius: 10px;
+  font-family: "Avenir Next", "Helvetica Neue", Arial, sans-serif;
 }
 
 * {
@@ -45,39 +24,14 @@
 
 body {
   margin: 0;
-  min-width: 320px;
+  min-width: 1120px;
   min-height: 100vh;
-  font-family: var(--font-sans);
-  font-weight: 300;
   color: var(--ink);
   background:
-    radial-gradient(900px 620px at 88% -10%, rgba(255, 138, 0, 0.13), transparent 60%),
-    radial-gradient(820px 640px at 4% -2%, rgba(58, 80, 200, 0.22), transparent 58%),
-    radial-gradient(1200px 820px at 50% 118%, rgba(48, 32, 96, 0.34), transparent 60%),
-    linear-gradient(180deg, var(--bg-1) 0%, var(--bg-0) 56%, #04050c 100%);
-  background-attachment: fixed;
+    radial-gradient(720px 420px at 10% -5%, rgba(88, 120, 255, 0.18), transparent 65%),
+    radial-gradient(780px 480px at 95% 0%, rgba(255, 176, 32, 0.12), transparent 62%),
+    linear-gradient(180deg, #0b1026 0%, var(--bg) 58%, #03040a 100%);
   -webkit-font-smoothing: antialiased;
-}
-
-/* Subtle starfield over the cosmos */
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background-image:
-    radial-gradient(1px 1px at 18% 28%, rgba(255, 255, 255, 0.55), transparent),
-    radial-gradient(1px 1px at 72% 62%, rgba(255, 255, 255, 0.35), transparent),
-    radial-gradient(1px 1px at 42% 82%, rgba(255, 255, 255, 0.3), transparent),
-    radial-gradient(1.5px 1.5px at 86% 22%, rgba(255, 214, 150, 0.45), transparent),
-    radial-gradient(1px 1px at 32% 52%, rgba(255, 255, 255, 0.28), transparent);
-  opacity: 0.6;
-}
-
-a {
-  color: inherit;
-  text-decoration: none;
 }
 
 button,
@@ -87,127 +41,4 @@ input {
 
 button {
   cursor: pointer;
-}
-
-::selection {
-  background: rgba(255, 176, 32, 0.28);
-}
-
-::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
-}
-
-::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.09);
-  border-radius: 999px;
-  border: 2px solid transparent;
-  background-clip: padding-box;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.18);
-  background-clip: padding-box;
-}
-
-.button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 2.5rem;
-  border: 0;
-  border-radius: var(--radius-sm);
-  padding: 0.65rem 1.15rem;
-  background: linear-gradient(135deg, var(--gold-bright), var(--gold-deep));
-  color: #1a1003;
-  font-weight: 500;
-  letter-spacing: 0.01em;
-  box-shadow: 0 12px 26px -12px var(--gold-glow);
-  transition:
-    transform 140ms ease,
-    box-shadow 140ms ease,
-    filter 140ms ease;
-}
-
-.button:hover {
-  transform: translateY(-1px);
-  filter: brightness(1.05);
-  box-shadow: 0 16px 32px -12px var(--gold-glow);
-}
-
-.button.secondary {
-  border: 1px solid var(--glass-border);
-  background: var(--glass-strong);
-  color: var(--ink);
-  box-shadow: none;
-}
-
-.button.secondary:hover {
-  border-color: var(--glass-border-strong);
-  background: rgba(255, 255, 255, 0.1);
-  filter: none;
-}
-
-.muted {
-  color: var(--ink-muted);
-}
-
-.status-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.42rem;
-  border-radius: 999px;
-  padding: 0.3rem 0.7rem;
-  border: 1px solid var(--glass-border);
-  background: var(--glass);
-  color: var(--ink-muted);
-  font-size: 0.74rem;
-  font-weight: 500;
-  letter-spacing: 0.02em;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-}
-
-.status-pill.dot::before {
-  content: "";
-  width: 0.42rem;
-  height: 0.42rem;
-  border-radius: 999px;
-  background: currentColor;
-  box-shadow: 0 0 8px currentColor;
-}
-
-.status-pill.ok {
-  color: var(--good);
-  border-color: rgba(52, 211, 158, 0.3);
-}
-
-.status-pill.warn {
-  color: var(--gold);
-  border-color: rgba(255, 176, 32, 0.32);
-}
-
-.status-pill.bad {
-  color: var(--avoid);
-  border-color: rgba(255, 93, 108, 0.32);
-}
-
-.status-pill.brand {
-  color: var(--gold);
-  border-color: rgba(255, 176, 32, 0.32);
-  background: rgba(255, 176, 32, 0.08);
-}
-
-.page {
-  width: min(1240px, calc(100vw - 3rem));
-  margin: 0 auto;
-}
-
-.panel {
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius);
-  background: var(--glass);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  box-shadow: var(--glass-shadow);
 }
