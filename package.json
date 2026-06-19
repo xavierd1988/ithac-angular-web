@@ -4,7 +4,7 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve --port 8080",
-    "build": "ng build",
+    "build": "ng build && node scripts/copy-spa-fallback.mjs",
     "generate:api": "npx -y openapi-typescript@7.13.0 https://cointrends-api.dukanify.com/swagger/v1/swagger.json -o src/app/data-access/generated/ithac-api.types.ts",
     "generate:api:local": "npx -y openapi-typescript@7.13.0 http://127.0.0.1:5269/swagger/v1/swagger.json -o src/app/data-access/generated/ithac-api.types.ts",
     "watch": "ng build --watch --configuration development",
