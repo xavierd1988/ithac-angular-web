@@ -171,6 +171,28 @@ export class App implements OnDestroy, OnInit {
     this.pushEvent('info', `Started ${this.mode()} run`);
   }
 
+  async scrapeFirstFour(): Promise<void> {
+    const targets = this.liveRows()
+      .filter((row) => row.enabled)
+      .slice(0, 4)
+      .map((row) => row.username);
+    if (targets.length === 0) {
+      return;
+    }
+
+    this.status.set('running');
+    this.targetCount.set(targets.length);
+    this.pushEvent('info', `Scraping ${targets.length} handles`);
+    if (this.source() === 'api') {
+      try {
+        await this.api.startRun('Fast', targets);
+        await this.loadSnapshot();
+      } catch {
+        this.source.set('mock');
+      }
+    }
+  }
+
   async pauseRun(): Promise<void> {
     if (this.source() === 'api') {
       try {

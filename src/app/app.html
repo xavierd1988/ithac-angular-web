@@ -29,6 +29,10 @@
       [ngModel]="filterText()"
       (ngModelChange)="onFilterText($event)"
     />
+
+    <button class="scrape-button" type="button" (click)="scrapeFirstFour()">
+      Scrape 4
+    </button>
   </section>
 
   <section class="list-card" aria-label="Influencer list">

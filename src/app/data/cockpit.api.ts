@@ -76,8 +76,8 @@ export class CockpitApi {
     }
   }
 
-  async startRun(mode: RunMode): Promise<RunDashboard> {
-    return this.post<RunDashboard>('/api/runs', { mode });
+  async startRun(mode: RunMode, targetUsernames?: string[]): Promise<RunDashboard> {
+    return this.post<RunDashboard>('/api/runs', { mode, targetUsernames });
   }
 
   async togglePause(): Promise<RunDashboard> {
