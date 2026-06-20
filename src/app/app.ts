@@ -43,6 +43,7 @@ export class App implements OnDestroy, OnInit {
   private refreshTimer: ReturnType<typeof setInterval> | undefined;
   private filterTimer: ReturnType<typeof setTimeout> | undefined;
   private liveWatchdogTimer: ReturnType<typeof setInterval> | undefined;
+  private activeRunTimer: ReturnType<typeof setInterval> | undefined;
   private liveEvents: EventSource | null = null;
   private lastLiveSignalAt = 0;
   private snapshotLoading = false;
@@ -149,6 +150,7 @@ export class App implements OnDestroy, OnInit {
 
   ngOnDestroy(): void {
     this.clearScheduledSnapshotLoad();
+    this.stopActiveRunWatch();
     this.stopFallbackPolling();
     this.liveEvents?.close();
     if (this.liveWatchdogTimer) {
@@ -160,6 +162,7 @@ export class App implements OnDestroy, OnInit {
     if (this.source() === 'api') {
       try {
         await this.api.startRun(this.mode());
+        this.startActiveRunWatch();
         await this.loadSnapshot();
         return;
       } catch {
@@ -186,6 +189,7 @@ export class App implements OnDestroy, OnInit {
     if (this.source() === 'api') {
       try {
         await this.api.startRun('Fast', targets);
+        this.startActiveRunWatch();
         await this.loadSnapshot();
       } catch {
         this.source.set('mock');
@@ -698,6 +702,25 @@ export class App implements OnDestroy, OnInit {
     }
     clearInterval(this.refreshTimer);
     this.refreshTimer = undefined;
+  }
+
+  private startActiveRunWatch(): void {
+    this.stopActiveRunWatch();
+    this.activeRunTimer = setInterval(() => {
+      void this.loadSnapshot().then(() => {
+        if (this.status() !== 'running') {
+          this.stopActiveRunWatch();
+        }
+      });
+    }, 1000);
+  }
+
+  private stopActiveRunWatch(): void {
+    if (!this.activeRunTimer) {
+      return;
+    }
+    clearInterval(this.activeRunTimer);
+    this.activeRunTimer = undefined;
   }
 
   private scheduleSnapshotLoad(): void {
