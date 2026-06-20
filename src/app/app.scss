@@ -151,12 +151,14 @@ button {
 }
 
 .influencer-row.running,
-.influencer-row.scraping {
+.influencer-row.scraping,
+.influencer-row.scraper-trace {
   background: rgba(53, 211, 158, 0.16);
 }
 
 .influencer-row.running::before,
-.influencer-row.scraping::before {
+.influencer-row.scraping::before,
+.influencer-row.scraper-trace::before {
   content: "";
   position: absolute;
   inset: 0;
@@ -167,7 +169,8 @@ button {
 }
 
 .influencer-row.running::after,
-.influencer-row.scraping::after {
+.influencer-row.scraping::after,
+.influencer-row.scraper-trace::after {
   content: "";
   position: absolute;
   inset: 2px 6px;
@@ -176,6 +179,21 @@ button {
   border-radius: 7px;
   box-shadow: 0 0 34px rgba(255, 196, 0, 0.34);
   animation: scraper-blink 0.62s ease-in-out infinite;
+}
+
+.influencer-row.scraper-trace:not(.scraping) {
+  background: rgba(255, 196, 0, 0.15);
+}
+
+.influencer-row.scraper-trace:not(.scraping)::before {
+  animation-duration: 1.4s;
+  opacity: 0.72;
+}
+
+.influencer-row.scraper-trace:not(.scraping)::after {
+  border-color: rgba(53, 211, 158, 0.78);
+  box-shadow: 0 0 22px rgba(53, 211, 158, 0.28);
+  animation-duration: 1.1s;
 }
 
 .influencer-row.selected {

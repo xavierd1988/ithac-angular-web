@@ -39,6 +39,7 @@ export class App implements OnDestroy, OnInit {
   private readonly api = inject(CockpitApi);
   private readonly fallbackRefreshEveryMs = 2500;
   private readonly quickScrapeTargetCount = 40;
+  private readonly scraperTraceWindowMs = 15_000;
   private readonly liveWatchdogEveryMs = 5000;
   private readonly liveStaleAfterMs = 20000;
   private refreshTimer: ReturnType<typeof setInterval> | undefined;
@@ -108,8 +109,11 @@ export class App implements OnDestroy, OnInit {
     this.proxies().find((item) => item.name === this.selectedProxyName()) ?? null);
   readonly queuedCount = computed(() =>
     Math.max(0, this.total() - this.completed() - this.running() - this.failed()));
-  readonly activeScannerCount = computed(() => this.running());
-  readonly activeScraper = computed(() => this.jobHistory().find((job) => job.status === 'running') ?? null);
+  readonly activeScraper = computed(() =>
+    this.jobHistory().find((job) => job.status === 'running')
+      ?? this.jobHistory().find((job) => this.isRecentScraperJob(job))
+      ?? null);
+  readonly activeScannerCount = computed(() => this.running() || (this.activeScraper() ? 1 : 0));
   readonly activeScannerLabel = computed(() => {
     const job = this.activeScraper();
     return job ? `@${job.username}` : 'idle';
@@ -155,6 +159,23 @@ export class App implements OnDestroy, OnInit {
 
   isRowActivelyScraping(row: InfluencerRow): boolean {
     return this.latestJobFor(row.username)?.status === 'running';
+  }
+
+  isRowInScraperTrace(row: InfluencerRow): boolean {
+    const job = this.latestJobFor(row.username);
+    return job?.status === 'running' || Boolean(job && this.isRecentScraperJob(job));
+  }
+
+  scraperBadge(row: InfluencerRow): string {
+    return this.isRowActivelyScraping(row) ? 'SCRAPER' : 'SCRAPED';
+  }
+
+  scraperStateLabel(row: InfluencerRow): string {
+    return this.isRowActivelyScraping(row) ? 'SCRAPING' : 'SCRAPED';
+  }
+
+  scraperDetailLabel(row: InfluencerRow): string {
+    return this.isRowActivelyScraping(row) ? 'Live scan in progress' : 'Scraped moments ago';
   }
 
   readonly projectedDuration = computed(() => {
@@ -785,9 +806,21 @@ export class App implements OnDestroy, OnInit {
     }
     setTimeout(() => {
       document
-        .querySelector('.influencer-row.scraping')
+        .querySelector('.influencer-row.scraping, .influencer-row.scraper-trace')
         ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }, 0);
+  }
+
+  private isRecentScraperJob(job: JobHistoryRow): boolean {
+    const timestamp = this.jobActivityTime(job);
+    return timestamp > 0 && Date.now() - timestamp < this.scraperTraceWindowMs;
+  }
+
+  private jobActivityTime(job: JobHistoryRow): number {
+    const values = [job.finishedAt, job.updatedAt, job.startedAt]
+      .map((value) => value ? new Date(value).getTime() : 0)
+      .filter((value) => Number.isFinite(value));
+    return Math.max(0, ...values);
   }
 
   private scheduleSnapshotLoad(): void {

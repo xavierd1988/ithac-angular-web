@@ -49,14 +49,15 @@
           [class.disabled]="!row.enabled"
           [class.selected]="selectedUsername() === row.username"
           [class.scraping]="isRowActivelyScraping(row)"
+          [class.scraper-trace]="isRowInScraperTrace(row)"
           [ngClass]="row.status"
           role="button"
           tabindex="0"
           (click)="selectRow(row)"
           (keydown.enter)="selectRow(row)"
         >
-          @if (isRowActivelyScraping(row)) {
-            <div class="scanner">SCRAPER</div>
+          @if (isRowInScraperTrace(row)) {
+            <div class="scanner">{{ scraperBadge(row) }}</div>
           }
 
           <span class="rank">{{ pageStart() + index + 1 }}</span>
@@ -65,17 +66,17 @@
             <strong>@{{ row.username }}</strong>
           </span>
 
-          <span class="state" [class.scanning]="isRowActivelyScraping(row)" [ngClass]="row.status">
-            @if (isRowActivelyScraping(row)) {
-              SCRAPING
+          <span class="state" [class.scanning]="isRowInScraperTrace(row)" [ngClass]="row.status">
+            @if (isRowInScraperTrace(row)) {
+              {{ scraperStateLabel(row) }}
             } @else {
               {{ row.status }}
             }
           </span>
 
           <span class="detail">
-            @if (isRowActivelyScraping(row)) {
-              Live scan in progress
+            @if (isRowInScraperTrace(row)) {
+              {{ scraperDetailLabel(row) }}
             } @else if (row.status === 'success') {
               page recovered
             } @else if (row.status === 'failed') {
