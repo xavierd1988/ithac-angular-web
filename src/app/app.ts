@@ -1,4 +1,4 @@
-import { DatePipe, DecimalPipe, NgClass } from '@angular/common';
+import { DatePipe, NgClass } from '@angular/common';
 import { Component, computed, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
@@ -31,7 +31,7 @@ import {
 
 @Component({
   selector: 'app-root',
-  imports: [DatePipe, DecimalPipe, FormsModule, NgClass],
+  imports: [DatePipe, FormsModule, NgClass],
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })

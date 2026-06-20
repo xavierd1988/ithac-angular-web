@@ -1,346 +1,197 @@
-<main class="live-shell">
-  <header class="command-bar">
-    <section class="brand">
-      <div class="mark">I</div>
-      <div>
-        <span class="eyebrow">Ithac rebuild v2</span>
-        <h1>Live Scraper</h1>
-      </div>
+<main class="scraper-page">
+  <header class="topbar">
+    <section>
+      <span class="eyebrow">Ithac scraper</span>
+      <h1>Live influencer list</h1>
+      <p>La liste reste modifiable pendant que le scraper passe dessus en direct.</p>
     </section>
 
-    <section class="status-rail" aria-label="Live scraper status">
-      <span class="transport" [ngClass]="liveTransport()">{{ liveTransport() }}</span>
+    <section class="live-state" aria-label="Live status">
+      <span class="dot" [ngClass]="status()"></span>
+      <strong>{{ status() }}</strong>
+      <span>{{ liveTransport() }}</span>
       <span>{{ source() }} data</span>
-      <span>{{ lastRefreshedAt() ? (lastRefreshedAt() | date: 'mediumTime') : 'loading' }}</span>
-    </section>
-
-    <section class="run-actions" aria-label="Run actions">
-      <div class="segmented" role="group" aria-label="Run mode">
-        @for (item of ['Safe', 'Fast', 'Burst']; track item) {
-          <button type="button" [class.active]="mode() === item" (click)="setMode($any(item))">
-            {{ item }}
-          </button>
-        }
-      </div>
-      <button class="button primary" type="button" (click)="startRun()">
-        {{ status() === 'running' ? 'Running' : 'Start' }}
-      </button>
-      <button class="button" type="button" (click)="pauseRun()">
-        {{ status() === 'paused' ? 'Resume' : 'Pause' }}
-      </button>
+      <span>{{ lastRefreshedAt() ? (lastRefreshedAt() | date: 'HH:mm:ss') : 'loading' }}</span>
     </section>
   </header>
 
-  <section class="run-strip" aria-label="Current run">
-    <article class="run-card main-run">
-      <div>
-        <span class="eyebrow">Current run</span>
-        <strong>{{ mode() }} · {{ status() }}</strong>
-        <small>{{ projectedDuration() }} · target {{ targetCount() }}</small>
-      </div>
-      <div class="progress-ring" [style.--progress]="progress()">
-        <span>{{ progress() }}%</span>
-      </div>
+  <section class="numbers" aria-label="Run summary">
+    <article>
+      <span>Total</span>
+      <strong>{{ total() }}</strong>
     </article>
-
-    <article class="run-card">
-      <span>Done</span>
-      <strong>{{ completed() }}</strong>
-      <small>{{ enabled() }} enabled</small>
-    </article>
-    <article class="run-card">
+    <article>
       <span>Running</span>
       <strong>{{ running() }}</strong>
-      <small>{{ activeSlots().length }} active slot{{ activeSlots().length === 1 ? '' : 's' }}</small>
     </article>
-    <article class="run-card">
-      <span>Queued</span>
-      <strong>{{ queuedCount() }}</strong>
-      <small>{{ total() }} loaded</small>
+    <article>
+      <span>Done</span>
+      <strong>{{ completed() }}</strong>
     </article>
-    <article class="run-card" [class.warn]="failed() > 0">
+    <article [class.warn]="failed() > 0">
       <span>Failed</span>
       <strong>{{ failed() }}</strong>
-      <small>{{ resourceIssues() }} resource issue{{ resourceIssues() === 1 ? '' : 's' }}</small>
+    </article>
+    <article>
+      <span>Progress</span>
+      <strong>{{ progress() }}%</strong>
     </article>
   </section>
 
-  <section class="slot-board" aria-label="Live slots">
-    @for (slot of slots(); track slot.slot) {
-      <article class="slot-block" [class.active]="slot.current && slot.current.toLowerCase() !== 'idle'">
-        <div class="slot-head">
-          <strong>S{{ slot.slot }}</strong>
-          <span class="health" [ngClass]="slot.health">{{ slot.health }}</span>
-        </div>
-        <p>{{ slot.current || 'idle' }}</p>
-        <small>{{ slot.session }} · {{ slot.proxy }}</small>
-        <span class="pace">{{ slot.throughput }}/h</span>
-      </article>
-    } @empty {
-      <article class="slot-block">
-        <div class="slot-head">
-          <strong>No slots</strong>
-          <span class="health disabled">offline</span>
-        </div>
-        <p>waiting</p>
-      </article>
-    }
+  <section class="toolbar" aria-label="List controls">
+    <form class="add-form" (submit)="$event.preventDefault(); addInfluencer()">
+      <input
+        name="username"
+        placeholder="@handle"
+        [ngModel]="newInfluencer()"
+        (ngModelChange)="newInfluencer.set($event)"
+      />
+      <button type="submit">Add</button>
+    </form>
+
+    <form class="filters" (submit)="$event.preventDefault()">
+      <input
+        name="filterText"
+        placeholder="Search list"
+        [ngModel]="filterText()"
+        (ngModelChange)="onFilterText($event)"
+      />
+      <select
+        name="filterStatus"
+        [ngModel]="filterStatus()"
+        (ngModelChange)="onFilterStatus($event)"
+        aria-label="Filter status"
+      >
+        @for (item of statusFilters; track item) {
+          <option [ngValue]="item">{{ item }}</option>
+        }
+      </select>
+    </form>
+
+    <div class="run-buttons">
+      <button type="button" class="primary" (click)="startRun()">
+        {{ status() === 'running' ? 'Running' : 'Start' }}
+      </button>
+      <button type="button" (click)="pauseRun()">
+        {{ status() === 'paused' ? 'Resume' : 'Pause' }}
+      </button>
+    </div>
   </section>
 
-  <section class="live-grid">
-    <section class="queue-panel">
-      <header class="panel-title">
+  <section class="workspace">
+    <section class="queue-card" aria-label="Scraper queue">
+      <header class="queue-head">
         <div>
-          <span class="eyebrow">Live list</span>
-          <h2>Scraper queue</h2>
+          <span class="eyebrow">Queue</span>
+          <h2>{{ visibleCount() }} influencers</h2>
         </div>
-        <div class="pager-mini">
-          <span>{{ visibleCount() === 0 ? 0 : pageStart() + 1 }}-{{ pageEnd() }} / {{ visibleCount() }}</span>
+        <div class="pager">
+          <span>{{ visibleCount() === 0 ? 0 : pageStart() + 1 }}-{{ pageEnd() }}</span>
           <button type="button" (click)="previousPage()" [disabled]="effectivePageIndex() === 0">Prev</button>
           <button type="button" (click)="nextPage()" [disabled]="effectivePageIndex() >= pageCount() - 1">Next</button>
         </div>
       </header>
 
-      <section class="operator-bar">
-        <form class="inline-form" (submit)="$event.preventDefault(); addInfluencer()">
-          <input
-            name="username"
-            placeholder="@handle"
-            [ngModel]="newInfluencer()"
-            (ngModelChange)="newInfluencer.set($event)"
-          />
-          <button class="button compact primary" type="submit">Add</button>
-        </form>
+      <div class="table-head">
+        <span>Influencer</span>
+        <span>Status</span>
+        <span>Live step</span>
+        <span>Page</span>
+        <span></span>
+      </div>
 
-        <form class="filter-row" (submit)="$event.preventDefault()">
-          <input
-            name="filterText"
-            placeholder="Search"
-            [ngModel]="filterText()"
-            (ngModelChange)="onFilterText($event)"
-          />
-          <select
-            name="filterStatus"
-            [ngModel]="filterStatus()"
-            (ngModelChange)="onFilterStatus($event)"
-            aria-label="Filter by status"
-          >
-            @for (item of statusFilters; track item) {
-              <option [ngValue]="item">{{ item }}</option>
-            }
-          </select>
-          <select
-            name="pageSize"
-            [ngModel]="pageSize()"
-            (ngModelChange)="onPageSize(+$event)"
-            aria-label="Rows per page"
-          >
-            @for (item of pageSizes; track item) {
-              <option [ngValue]="item">{{ item }}/page</option>
-            }
-          </select>
-          <label>
-            <input
-              type="checkbox"
-              name="priorityOnly"
-              [ngModel]="priorityOnly()"
-              (ngModelChange)="onPriorityOnly($event)"
-            />
-            Priority
-          </label>
-        </form>
-      </section>
-
-      <section class="bulk-strip">
-        <form class="bulk-import" (submit)="$event.preventDefault(); importInfluencers()">
-          <textarea
-            name="bulkInfluencers"
-            placeholder="Paste handles"
-            [ngModel]="bulkInfluencers()"
-            (ngModelChange)="bulkInfluencers.set($event)"
-          ></textarea>
-          <button class="button compact" type="submit">Import</button>
-        </form>
-        <div class="bulk-actions">
-          <span>{{ selectedInfluencerCount() }} selected</span>
-          <button type="button" (click)="selectCurrentPage()" [disabled]="!currentPageHasRows() || bulkActionRunning()">
-            Select page
-          </button>
-          <button type="button" (click)="bulkRetry()" [disabled]="selectedInfluencerCount() === 0 || bulkActionRunning()">
-            Retry
-          </button>
-          <button type="button" (click)="bulkSetEnabled(false)" [disabled]="selectedInfluencerCount() === 0 || bulkActionRunning()">
-            Pause
-          </button>
-          <button type="button" (click)="bulkSetEnabled(true)" [disabled]="selectedInfluencerCount() === 0 || bulkActionRunning()">
-            Enable
-          </button>
-          <button type="button" (click)="clearSelection()" [disabled]="selectedInfluencerCount() === 0 || bulkActionRunning()">
-            Clear
-          </button>
-        </div>
-      </section>
-
-      <div class="live-list" role="table" aria-label="Live scraper queue">
-        <div class="list-head" role="row">
-          <span>
-            <input
-              type="checkbox"
-              aria-label="Select current page"
-              [checked]="allCurrentPageSelected()"
-              [indeterminate]="someCurrentPageSelected()"
-              [disabled]="!currentPageHasRows()"
-              (change)="onTogglePageSelection($event)"
-            />
-          </span>
-          <span>Handle</span>
-          <span>Status</span>
-          <span>Outcome</span>
-          <span>Posts</span>
-          <span>Mentions</span>
-          <span>Score</span>
-          <span>Slot</span>
-          <span>Actions</span>
-        </div>
-
+      <div class="rows">
         @for (row of liveRows(); track row.username) {
-          <article class="live-row" role="row" [class.disabled]="!row.enabled">
-            <span class="select-cell">
-              <input
-                type="checkbox"
-                [attr.aria-label]="'Select @' + row.username"
-                [checked]="isSelected(row)"
-                (change)="onToggleRowSelection(row, $event)"
-              />
-            </span>
-            <span class="identity-cell">
+          <article class="queue-row" [class.disabled]="!row.enabled" [ngClass]="row.status">
+            <span class="handle">
+              <span class="status-dot" [ngClass]="row.status"></span>
               <strong>@{{ row.username }}</strong>
-              <small>{{ row.priority ? 'priority' : 'standard' }}</small>
+              @if (row.priority) {
+                <small>priority</small>
+              }
             </span>
-            <span class="pill" [ngClass]="row.status">{{ row.status }}</span>
-            <span class="outcome" [ngClass]="row.outcome">{{ row.outcomeCode || row.outcome }}</span>
-            <span>{{ row.posts }}</span>
-            <span>{{ row.mentions }}</span>
-            <span>{{ row.score === null ? '—' : (row.score | number: '1.1-1') }}</span>
-            <span>{{ row.slot === null ? '—' : 'S' + row.slot }}</span>
-            <span class="row-actions">
+
+            <span class="status-pill" [ngClass]="row.status">{{ row.status }}</span>
+
+            <span class="step">
+              {{ row.lastEvent || 'Waiting' }}
+              @if (row.slot !== null) {
+                <small>slot {{ row.slot }}</small>
+              }
+            </span>
+
+            <span class="page-result">
+              @switch (row.status) {
+                @case ('success') {
+                  <strong>page saved</strong>
+                }
+                @case ('running') {
+                  <strong>capturing</strong>
+                }
+                @case ('failed') {
+                  <strong>not saved</strong>
+                }
+                @case ('paused') {
+                  <strong>paused</strong>
+                }
+                @default {
+                  <strong>waiting</strong>
+                }
+              }
+              <a [href]="'https://x.com/' + row.username" target="_blank" rel="noreferrer">X page</a>
+            </span>
+
+            <span class="actions">
               <button type="button" (click)="retry(row)">Retry</button>
               <button type="button" (click)="toggleEnabled(row)">{{ row.enabled ? 'Pause' : 'Enable' }}</button>
               <button type="button" (click)="remove(row)">Del</button>
             </span>
-            <p>{{ row.lastEvent }}</p>
           </article>
         } @empty {
           <article class="empty-state">
-            <strong>No handles</strong>
-            <span>The current filter has no result.</span>
+            <strong>No influencer in this view.</strong>
+            <span>Add a handle or clear the filters.</span>
           </article>
         }
       </div>
     </section>
 
-    <aside class="signal-rail">
-      <section class="rail-panel">
-        <header class="rail-head">
-          <span class="eyebrow">Resources</span>
-          <strong>{{ availableSessions() }}/{{ sessions().length }} sessions · {{ availableProxies() }}/{{ proxies().length }} proxies</strong>
-        </header>
-        <div class="resource-grid">
-          @for (session of sessions(); track session.name) {
-            <article class="resource-chip" [class.disabled]="!session.enabled" (click)="selectSession(session)">
-              <span>{{ session.name }}</span>
-              <strong class="health" [ngClass]="session.health">{{ session.health }}</strong>
-              <small>{{ session.dailyJobCount }}/day · {{ session.assignedProxy || 'no proxy' }}</small>
-            </article>
-          }
-          @for (proxy of proxies(); track proxy.name) {
-            <article class="resource-chip" [class.disabled]="!proxy.enabled" (click)="selectProxy(proxy)">
-              <span>{{ proxy.name }}</span>
-              <strong class="health" [ngClass]="proxy.health">{{ proxy.health }}</strong>
-              <small>{{ proxy.provider }}</small>
-            </article>
-          }
-        </div>
-      </section>
-
-      <section class="rail-panel">
-        <header class="rail-head">
-          <span class="eyebrow">Recent jobs</span>
-          <strong>{{ latestRunLabel() }}</strong>
-        </header>
-        <div class="job-stack">
-          @for (job of jobHistory(); track job.id) {
-            <article class="job-card">
-              <div>
-                <strong>@{{ job.username }}</strong>
-                <small>{{ job.resource }}</small>
-              </div>
-              <span class="pill" [ngClass]="job.status">{{ job.status }}</span>
-              <p>{{ job.counters }} · {{ job.outcome }}</p>
+    <aside class="side-card" aria-label="Workers and recent events">
+      <section>
+        <span class="eyebrow">Workers</span>
+        <h2>{{ activeSlots().length }} active</h2>
+        <div class="workers">
+          @for (slot of slots(); track slot.slot) {
+            <article class="worker" [class.active]="slot.current && slot.current.toLowerCase() !== 'idle'">
+              <strong>S{{ slot.slot }}</strong>
+              <span>{{ slot.current || 'idle' }}</span>
+              <small>{{ slot.session }} · {{ slot.health }}</small>
             </article>
           } @empty {
-            <article class="job-card empty">
-              <p>No job history yet.</p>
+            <article class="worker">
+              <strong>—</strong>
+              <span>No worker</span>
+              <small>waiting for backend</small>
             </article>
           }
         </div>
       </section>
 
-      <section class="rail-panel">
-        <header class="rail-head">
-          <span class="eyebrow">Signals</span>
-          <strong>Mentions & scores</strong>
-        </header>
-        <div class="signal-list">
-          @for (score of scores(); track score.username) {
-            <article class="score-line">
-              <div>
-                <strong>@{{ score.username }}</strong>
-                <small>{{ score.mentions }} mentions · {{ score.outcome }}</small>
-              </div>
-              <span>{{ score.score | number: '1.1-1' }}</span>
-            </article>
-          }
-        </div>
-      </section>
-
-      <section class="rail-panel">
-        <header class="rail-head">
-          <span class="eyebrow">Posts</span>
-          <strong>{{ recentPosts().length }} latest</strong>
-        </header>
-        <div class="post-stack">
-          @for (post of recentPosts(); track post.sourcePostId) {
-            <article class="post-card">
-              <strong>@{{ post.username }}</strong>
-              <p>{{ post.content }}</p>
-              <div class="mention-list">
-                @for (symbol of post.mentions; track symbol) {
-                  <span>{{ symbol }}</span>
-                }
-              </div>
-            </article>
-          } @empty {
-            <article class="post-card empty">
-              <p>No stored posts yet.</p>
-            </article>
-          }
-        </div>
-      </section>
-
-      <section class="rail-panel">
-        <header class="rail-head">
-          <span class="eyebrow">Live log</span>
-          <strong>{{ latestEventLevel() }}</strong>
-        </header>
-        <ol class="events">
-          @for (event of events(); track event.at + event.text) {
-            <li [ngClass]="event.level">
+      <section>
+        <span class="eyebrow">Last events</span>
+        <div class="events">
+          @for (event of events().slice(0, 6); track event.at + event.text) {
+            <article [ngClass]="event.level">
               <time>{{ event.at }}</time>
               <span>{{ event.text }}</span>
-            </li>
+            </article>
+          } @empty {
+            <article>
+              <time>—</time>
+              <span>No live event yet.</span>
+            </article>
           }
-        </ol>
+        </div>
       </section>
     </aside>
   </section>
