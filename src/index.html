@@ -4,6 +4,14 @@
   <meta charset="utf-8">
   <title>Ithac Live Scraper</title>
   <base href="/">
+  <script>
+    (function () {
+      var host = window.location.hostname;
+      if (window.location.protocol === 'https:' && (host === 'ithacapp.com' || host === 'www.ithacapp.com')) {
+        window.location.replace('http://' + host + window.location.pathname + window.location.search + window.location.hash);
+      }
+    })();
+  </script>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
 </head>
