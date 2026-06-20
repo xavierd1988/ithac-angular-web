@@ -120,25 +120,7 @@ export class App implements OnDestroy, OnInit {
     return run ? `Run #${run.id}` : 'No run';
   });
   readonly latestEventLevel = computed(() => this.latestEvent()?.level ?? 'quiet');
-  readonly liveRows = computed(() => {
-    const weight: Record<UiJobStatus, number> = {
-      running: 0,
-      failed: 1,
-      queued: 2,
-      success: 3,
-      paused: 4
-    };
-    return [...this.pagedVisibleInfluencers()].sort((left, right) => {
-      const statusDelta = weight[left.status] - weight[right.status];
-      if (statusDelta !== 0) {
-        return statusDelta;
-      }
-      if (left.priority !== right.priority) {
-        return left.priority ? -1 : 1;
-      }
-      return left.username.localeCompare(right.username);
-    });
-  });
+  readonly liveRows = computed(() => this.pagedVisibleInfluencers());
 
   readonly projectedDuration = computed(() => {
     const mode = this.mode();
