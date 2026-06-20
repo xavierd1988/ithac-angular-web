@@ -105,6 +105,10 @@ export class App implements OnDestroy, OnInit {
     this.proxies().find((item) => item.name === this.selectedProxyName()) ?? null);
   readonly queuedCount = computed(() =>
     Math.max(0, this.total() - this.completed() - this.running() - this.failed()));
+  readonly activeScannerCount = computed(() =>
+    this.status() === 'running'
+      ? Math.min(this.targetCount(), this.pageSize())
+      : this.running());
   readonly activeSlots = computed(() =>
     this.slots().filter((slot) => slot.current && slot.current.toLowerCase() !== 'idle'));
   readonly availableSessions = computed(() =>
