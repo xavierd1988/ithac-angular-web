@@ -58,7 +58,7 @@ export class App implements OnDestroy, OnInit {
   readonly filterStatus = signal<'all' | UiJobStatus>('all');
   readonly priorityOnly = signal(false);
   readonly pageIndex = signal(0);
-  readonly pageSize = signal(100);
+  readonly pageSize = signal(250);
   readonly selectedSessionName = signal<string | null>(null);
   readonly selectedProxyName = signal<string | null>(null);
   readonly source = signal<'api' | 'mock'>('mock');
@@ -109,6 +109,11 @@ export class App implements OnDestroy, OnInit {
   readonly queuedCount = computed(() =>
     Math.max(0, this.total() - this.completed() - this.running() - this.failed()));
   readonly activeScannerCount = computed(() => this.running());
+  readonly activeScraper = computed(() => this.jobHistory().find((job) => job.status === 'running') ?? null);
+  readonly activeScannerLabel = computed(() => {
+    const job = this.activeScraper();
+    return job ? `@${job.username}` : 'idle';
+  });
   readonly activeSlots = computed(() =>
     this.slots().filter((slot) => slot.current && slot.current.toLowerCase() !== 'idle'));
   readonly availableSessions = computed(() =>
@@ -695,6 +700,7 @@ export class App implements OnDestroy, OnInit {
     try {
       const snapshot = await this.api.snapshot(this.pageParams());
       this.applySnapshot(snapshot);
+      this.scrollActiveScraperIntoView();
       this.lastRefreshedAt.set(new Date().toISOString());
     } finally {
       this.snapshotLoading = false;
@@ -771,6 +777,17 @@ export class App implements OnDestroy, OnInit {
     }
     clearInterval(this.activeRunTimer);
     this.activeRunTimer = undefined;
+  }
+
+  private scrollActiveScraperIntoView(): void {
+    if (this.activeScannerCount() === 0) {
+      return;
+    }
+    setTimeout(() => {
+      document
+        .querySelector('.influencer-row.scraping')
+        ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 0);
   }
 
   private scheduleSnapshotLoad(): void {

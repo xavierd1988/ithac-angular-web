@@ -1,9 +1,9 @@
 .scraper-page {
   display: grid;
-  gap: 14px;
-  width: min(980px, calc(100vw - 32px));
+  gap: 8px;
+  width: min(1280px, calc(100vw - 18px));
   margin: 0 auto;
-  padding: 22px 0 30px;
+  padding: 10px 0 14px;
 }
 
 .topbar,
@@ -30,7 +30,7 @@
 
 h1 {
   margin: 3px 0 0;
-  font-size: 34px;
+  font-size: 26px;
   font-weight: 780;
 }
 
@@ -38,16 +38,22 @@ h1 {
   display: flex;
   align-items: center;
   gap: 8px;
-  min-height: 38px;
+  min-height: 34px;
   border: 1px solid rgba(53, 211, 158, 0.28);
   border-radius: 999px;
-  padding: 0 13px;
+  padding: 0 12px;
   color: var(--muted);
   background: rgba(53, 211, 158, 0.08);
 }
 
 .live-chip strong {
   color: var(--ink);
+}
+
+.live-chip em {
+  color: var(--gold);
+  font-style: normal;
+  font-weight: 820;
 }
 
 .live-dot {
@@ -69,7 +75,7 @@ h1 {
 
 input,
 button {
-  height: 40px;
+  height: 34px;
   border: 1px solid var(--line);
   border-radius: 8px;
   color: var(--ink);
@@ -112,23 +118,29 @@ button {
 }
 
 .list-card header {
+  position: sticky;
+  top: 0;
+  z-index: 3;
   justify-content: space-between;
-  min-height: 46px;
+  min-height: 34px;
   padding: 0 14px;
   color: var(--muted);
   border-bottom: 1px solid rgba(255, 255, 255, 0.09);
   font-size: 13px;
+  background: rgba(13, 17, 23, 0.96);
 }
 
 .list {
   display: grid;
+  max-height: calc(100vh - 142px);
+  overflow: auto;
 }
 
 .influencer-row {
   position: relative;
   isolation: isolate;
-  min-height: 58px;
-  padding: 0 14px;
+  min-height: 36px;
+  padding: 0 12px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.075);
   overflow: hidden;
   cursor: pointer;
@@ -140,7 +152,7 @@ button {
 
 .influencer-row.running,
 .influencer-row.scraping {
-  background: rgba(104, 168, 255, 0.08);
+  background: rgba(53, 211, 158, 0.16);
 }
 
 .influencer-row.running::before,
@@ -150,20 +162,20 @@ button {
   inset: 0;
   z-index: -1;
   background:
-    linear-gradient(90deg, transparent 0%, rgba(104, 168, 255, 0.14) 30%, rgba(53, 211, 158, 0.26) 50%, rgba(104, 168, 255, 0.14) 70%, transparent 100%);
-  animation: scraper-sweep 1.35s linear infinite;
+    linear-gradient(90deg, rgba(53, 211, 158, 0.05) 0%, rgba(53, 211, 158, 0.22) 35%, rgba(255, 196, 0, 0.48) 50%, rgba(53, 211, 158, 0.22) 65%, rgba(53, 211, 158, 0.05) 100%);
+  animation: scraper-sweep 0.9s linear infinite;
 }
 
 .influencer-row.running::after,
 .influencer-row.scraping::after {
   content: "";
   position: absolute;
-  inset: 6px 8px;
+  inset: 2px 6px;
   z-index: -1;
-  border: 1px solid rgba(53, 211, 158, 0.58);
-  border-radius: 8px;
-  box-shadow: 0 0 26px rgba(53, 211, 158, 0.28);
-  animation: scraper-blink 0.82s ease-in-out infinite;
+  border: 2px solid rgba(255, 196, 0, 0.9);
+  border-radius: 7px;
+  box-shadow: 0 0 34px rgba(255, 196, 0, 0.34);
+  animation: scraper-blink 0.62s ease-in-out infinite;
 }
 
 .influencer-row.selected {
@@ -172,36 +184,37 @@ button {
 
 .scanner {
   position: absolute;
-  right: 13px;
+  right: 10px;
   top: 50%;
   transform: translateY(-50%);
   border-radius: 999px;
-  padding: 5px 9px;
+  padding: 6px 11px;
   color: #071017;
-  background: var(--green);
-  font-size: 11px;
-  font-weight: 850;
+  background: var(--gold);
+  font-size: 12px;
+  font-weight: 920;
   letter-spacing: 0.08em;
+  box-shadow: 0 0 24px rgba(255, 196, 0, 0.62);
 }
 
 .rank {
-  width: 42px;
+  width: 38px;
   color: var(--dim);
   font-variant-numeric: tabular-nums;
 }
 
 .handle {
-  min-width: 230px;
+  min-width: 210px;
 }
 
 .handle strong {
-  font-size: 18px;
+  font-size: 15px;
 }
 
 .state {
-  min-width: 88px;
+  min-width: 78px;
   border-radius: 999px;
-  padding: 5px 8px;
+  padding: 3px 7px;
   color: #10131b;
   background: var(--gold);
   font-size: 12px;
@@ -230,7 +243,7 @@ button {
 .detail {
   min-width: 0;
   margin-left: 16px;
-  padding-right: 96px;
+  padding-right: 116px;
   color: var(--muted);
   overflow: hidden;
   text-overflow: ellipsis;

@@ -8,6 +8,7 @@
       <span class="live-dot"></span>
       <strong>{{ activeScannerCount() }}</strong>
       <span>scraping now</span>
+      <em>{{ activeScannerLabel() }}</em>
     </div>
   </header>
 
@@ -37,7 +38,7 @@
 
   <section class="list-card" aria-label="Influencer list">
     <header>
-      <span>{{ visibleCount() }} handles</span>
+      <span>{{ liveRows().length }} visible · {{ visibleCount() }} handles</span>
       <span>{{ completed() }} done · {{ failed() }} failed</span>
     </header>
 
