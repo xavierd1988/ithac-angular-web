@@ -65,11 +65,17 @@
             <strong>@{{ row.username }}</strong>
           </span>
 
-          <span class="state" [ngClass]="row.status">{{ row.status }}</span>
+          <span class="state" [class.scanning]="isRowActivelyScraping(row)" [ngClass]="row.status">
+            @if (isRowActivelyScraping(row)) {
+              SCRAPING
+            } @else {
+              {{ row.status }}
+            }
+          </span>
 
           <span class="detail">
             @if (isRowActivelyScraping(row)) {
-              {{ row.lastEvent || 'Reading page' }}
+              Live scan in progress
             } @else if (row.status === 'success') {
               page recovered
             } @else if (row.status === 'failed') {

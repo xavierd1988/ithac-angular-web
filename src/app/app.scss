@@ -240,6 +240,12 @@ button {
   background: rgba(255, 255, 255, 0.14);
 }
 
+.state.scanning {
+  color: #071017;
+  background: var(--gold);
+  box-shadow: 0 0 18px rgba(255, 196, 0, 0.42);
+}
+
 .detail {
   min-width: 0;
   margin-left: 16px;
