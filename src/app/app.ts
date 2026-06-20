@@ -83,6 +83,7 @@ export class App implements OnDestroy, OnInit {
   readonly liveTransport = signal<'sse' | 'polling'>('polling');
   readonly selectedInfluencers = signal<ReadonlySet<string>>(new Set<string>());
   readonly selectedUsername = signal<string | null>(null);
+  readonly traceClock = signal(Date.now());
 
   readonly visibleInfluencers = computed(() => this.influencers());
   readonly visibleCount = computed(() => this.filteredTotal());
@@ -721,6 +722,9 @@ export class App implements OnDestroy, OnInit {
     try {
       const snapshot = await this.api.snapshot(this.pageParams());
       this.applySnapshot(snapshot);
+      if (this.status() === 'running' || this.activeScraper()) {
+        this.startActiveRunWatch();
+      }
       this.scrollActiveScraperIntoView();
       this.lastRefreshedAt.set(new Date().toISOString());
     } finally {
@@ -782,13 +786,24 @@ export class App implements OnDestroy, OnInit {
   }
 
   private startActiveRunWatch(): void {
-    this.stopActiveRunWatch();
+    if (this.activeRunTimer) {
+      return;
+    }
     this.activeRunTimer = setInterval(() => {
-      void this.loadSnapshot().then(() => {
-        if (this.status() !== 'running') {
-          this.stopActiveRunWatch();
-        }
-      });
+      this.traceClock.set(Date.now());
+      if (this.status() === 'running') {
+        void this.loadSnapshot().then(() => {
+          this.traceClock.set(Date.now());
+          if (this.status() !== 'running' && !this.activeScraper()) {
+            this.stopActiveRunWatch();
+          }
+        });
+        return;
+      }
+
+      if (!this.activeScraper()) {
+        this.stopActiveRunWatch();
+      }
     }, 1000);
   }
 
@@ -813,7 +828,7 @@ export class App implements OnDestroy, OnInit {
 
   private isRecentScraperJob(job: JobHistoryRow): boolean {
     const timestamp = this.jobActivityTime(job);
-    return timestamp > 0 && Date.now() - timestamp < this.scraperTraceWindowMs;
+    return timestamp > 0 && this.traceClock() - timestamp < this.scraperTraceWindowMs;
   }
 
   private jobActivityTime(job: JobHistoryRow): number {
