@@ -40,7 +40,7 @@
     <div class="list">
       @for (row of liveRows(); track row.username; let index = $index) {
         <article class="influencer-row" [class.disabled]="!row.enabled" [ngClass]="row.status">
-          @if (row.status === 'running') {
+          @if (row.status === 'running' || isBatchActive(index)) {
             <div class="scanner">SCRAPER</div>
           }
 

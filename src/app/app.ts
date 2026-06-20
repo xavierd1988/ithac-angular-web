@@ -122,6 +122,10 @@ export class App implements OnDestroy, OnInit {
   readonly latestEventLevel = computed(() => this.latestEvent()?.level ?? 'quiet');
   readonly liveRows = computed(() => this.pagedVisibleInfluencers());
 
+  isBatchActive(index: number): boolean {
+    return this.status() === 'running' && this.pageStart() + index < this.targetCount();
+  }
+
   readonly projectedDuration = computed(() => {
     const mode = this.mode();
     if (mode === 'Safe') {
