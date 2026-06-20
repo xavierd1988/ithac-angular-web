@@ -139,6 +139,10 @@ export class CockpitApi {
     return this.get<RecentPost[]>(`/api/posts/recent?take=${take}`);
   }
 
+  async postsForInfluencer(username: string, take: number): Promise<RecentPost[]> {
+    return this.get<RecentPost[]>(`/api/posts/by-influencer/${encodeURIComponent(username)}?take=${take}`);
+  }
+
   async recentJobs(take: number): Promise<JobHistory[]> {
     return this.get<JobHistory[]>(`/api/jobs/recent?take=${take}`);
   }

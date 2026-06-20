@@ -75,6 +75,7 @@ export class App implements OnDestroy, OnInit {
   readonly sessions = signal<SessionRow[]>([]);
   readonly proxies = signal<ProxyRow[]>([]);
   readonly recentPosts = signal<RecentPostRow[]>([]);
+  readonly selectedPostsByUsername = signal<Record<string, RecentPostRow[]>>({});
   readonly scores = signal<ScoreRow[]>([]);
   readonly jobHistory = signal<JobHistoryRow[]>([]);
   readonly runHistory = signal<RunHistoryRow[]>([]);
@@ -246,7 +247,13 @@ export class App implements OnDestroy, OnInit {
   }
 
   selectRow(row: InfluencerRow): void {
-    this.selectedUsername.set(this.selectedUsername() === row.username ? null : row.username);
+    if (this.selectedUsername() === row.username) {
+      this.selectedUsername.set(null);
+      return;
+    }
+
+    this.selectedUsername.set(row.username);
+    void this.loadPostsForInfluencer(row.username);
   }
 
   latestJobFor(username: string): JobHistoryRow | null {
@@ -254,6 +261,11 @@ export class App implements OnDestroy, OnInit {
   }
 
   recentPostsFor(username: string): RecentPostRow[] {
+    const selectedRows = this.selectedPostsByUsername()[username.toLowerCase()];
+    if (selectedRows) {
+      return selectedRows;
+    }
+
     return this.recentPostsByUsername().get(username.toLowerCase()) ?? [];
   }
 
@@ -1036,6 +1048,21 @@ export class App implements OnDestroy, OnInit {
       scrapedAt: item.scrapedAt,
       mentions: item.mentions.map((mention) => mention.symbol)
     };
+  }
+
+  private async loadPostsForInfluencer(username: string): Promise<void> {
+    try {
+      const posts = await this.api.postsForInfluencer(username, 10);
+      this.selectedPostsByUsername.update((current) => ({
+        ...current,
+        [username.toLowerCase()]: posts.map((item) => this.mapRecentPost(item))
+      }));
+    } catch {
+      this.selectedPostsByUsername.update((current) => ({
+        ...current,
+        [username.toLowerCase()]: []
+      }));
+    }
   }
 
   private mapJobHistory(item: JobHistory): JobHistoryRow {
