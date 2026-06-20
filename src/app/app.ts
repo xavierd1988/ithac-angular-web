@@ -38,6 +38,7 @@ import {
 export class App implements OnDestroy, OnInit {
   private readonly api = inject(CockpitApi);
   private readonly fallbackRefreshEveryMs = 2500;
+  private readonly quickScrapeTargetCount = 40;
   private readonly liveWatchdogEveryMs = 5000;
   private readonly liveStaleAfterMs = 20000;
   private refreshTimer: ReturnType<typeof setInterval> | undefined;
@@ -80,6 +81,7 @@ export class App implements OnDestroy, OnInit {
   readonly lastRefreshedAt = signal<string | null>(null);
   readonly liveTransport = signal<'sse' | 'polling'>('polling');
   readonly selectedInfluencers = signal<ReadonlySet<string>>(new Set<string>());
+  readonly selectedUsername = signal<string | null>(null);
 
   readonly visibleInfluencers = computed(() => this.influencers());
   readonly visibleCount = computed(() => this.filteredTotal());
@@ -106,10 +108,7 @@ export class App implements OnDestroy, OnInit {
     this.proxies().find((item) => item.name === this.selectedProxyName()) ?? null);
   readonly queuedCount = computed(() =>
     Math.max(0, this.total() - this.completed() - this.running() - this.failed()));
-  readonly activeScannerCount = computed(() =>
-    this.status() === 'running'
-      ? Math.min(this.targetCount(), this.pageSize())
-      : this.running());
+  readonly activeScannerCount = computed(() => this.running());
   readonly activeSlots = computed(() =>
     this.slots().filter((slot) => slot.current && slot.current.toLowerCase() !== 'idle'));
   readonly availableSessions = computed(() =>
@@ -126,9 +125,31 @@ export class App implements OnDestroy, OnInit {
   });
   readonly latestEventLevel = computed(() => this.latestEvent()?.level ?? 'quiet');
   readonly liveRows = computed(() => this.pagedVisibleInfluencers());
+  readonly latestJobByUsername = computed(() => {
+    const jobs = new Map<string, JobHistoryRow>();
+    for (const job of this.jobHistory()) {
+      const key = job.username.toLowerCase();
+      if (!jobs.has(key)) {
+        jobs.set(key, job);
+      }
+    }
+    return jobs;
+  });
+  readonly recentPostsByUsername = computed(() => {
+    const posts = new Map<string, RecentPostRow[]>();
+    for (const post of this.recentPosts()) {
+      const key = post.username.toLowerCase();
+      const rows = posts.get(key) ?? [];
+      if (rows.length < 3) {
+        rows.push(post);
+        posts.set(key, rows);
+      }
+    }
+    return posts;
+  });
 
-  isBatchActive(index: number): boolean {
-    return this.status() === 'running' && this.pageStart() + index < this.targetCount();
+  isRowActivelyScraping(row: InfluencerRow): boolean {
+    return this.latestJobFor(row.username)?.status === 'running';
   }
 
   readonly projectedDuration = computed(() => {
@@ -174,10 +195,10 @@ export class App implements OnDestroy, OnInit {
     this.pushEvent('info', `Started ${this.mode()} run`);
   }
 
-  async scrapeFirstFour(): Promise<void> {
+  async scrapeBatch(): Promise<void> {
     const targets = this.liveRows()
       .filter((row) => row.enabled)
-      .slice(0, 4)
+      .slice(0, this.quickScrapeTargetCount)
       .map((row) => row.username);
     if (targets.length === 0) {
       return;
@@ -195,6 +216,35 @@ export class App implements OnDestroy, OnInit {
         this.source.set('mock');
       }
     }
+  }
+
+  selectRow(row: InfluencerRow): void {
+    this.selectedUsername.set(this.selectedUsername() === row.username ? null : row.username);
+  }
+
+  latestJobFor(username: string): JobHistoryRow | null {
+    return this.latestJobByUsername().get(username.toLowerCase()) ?? null;
+  }
+
+  recentPostsFor(username: string): RecentPostRow[] {
+    return this.recentPostsByUsername().get(username.toLowerCase()) ?? [];
+  }
+
+  primaryTimeFor(job: JobHistoryRow | null): string {
+    return this.formatDateTime(job?.finishedAt ?? job?.startedAt ?? job?.updatedAt ?? null);
+  }
+
+  formatDateTime(value: string | null): string {
+    if (!value) {
+      return '—';
+    }
+    return new Intl.DateTimeFormat('en-US', {
+      month: 'short',
+      day: '2-digit',
+      hour: 'numeric',
+      minute: '2-digit',
+      second: '2-digit'
+    }).format(new Date(value));
   }
 
   async pauseRun(): Promise<void> {
@@ -935,6 +985,13 @@ export class App implements OnDestroy, OnInit {
       resource,
       outcome: item.outcomeCode || item.outcome,
       counters: `${item.postsStored}/${item.postsSeen} posts · ${item.mentionsFound} mentions`,
+      postsSeen: item.postsSeen,
+      postsStored: item.postsStored,
+      mentionsFound: item.mentionsFound,
+      outcomeMessage: item.outcomeMessage,
+      errorMessage: item.errorMessage,
+      startedAt: item.startedAt,
+      finishedAt: item.finishedAt,
       updatedAt: item.updatedAt
     };
   }

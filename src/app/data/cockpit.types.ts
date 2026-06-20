@@ -280,6 +280,13 @@ export interface JobHistoryRow {
   resource: string;
   outcome: string;
   counters: string;
+  postsSeen: number;
+  postsStored: number;
+  mentionsFound: number;
+  outcomeMessage: string | null;
+  errorMessage: string | null;
+  startedAt: string | null;
+  finishedAt: string | null;
   updatedAt: string;
 }
 

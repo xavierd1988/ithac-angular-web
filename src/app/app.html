@@ -30,8 +30,8 @@
       (ngModelChange)="onFilterText($event)"
     />
 
-    <button class="scrape-button" type="button" (click)="scrapeFirstFour()">
-      Scrape 4
+    <button class="scrape-button" type="button" (click)="scrapeBatch()">
+      Scrape 40
     </button>
   </section>
 
@@ -43,8 +43,18 @@
 
     <div class="list">
       @for (row of liveRows(); track row.username; let index = $index) {
-        <article class="influencer-row" [class.disabled]="!row.enabled" [ngClass]="row.status">
-          @if (row.status === 'running' || isBatchActive(index)) {
+        <article
+          class="influencer-row"
+          [class.disabled]="!row.enabled"
+          [class.selected]="selectedUsername() === row.username"
+          [class.scraping]="isRowActivelyScraping(row)"
+          [ngClass]="row.status"
+          role="button"
+          tabindex="0"
+          (click)="selectRow(row)"
+          (keydown.enter)="selectRow(row)"
+        >
+          @if (isRowActivelyScraping(row)) {
             <div class="scanner">SCRAPER</div>
           }
 
@@ -57,7 +67,7 @@
           <span class="state" [ngClass]="row.status">{{ row.status }}</span>
 
           <span class="detail">
-            @if (row.status === 'running') {
+            @if (isRowActivelyScraping(row)) {
               {{ row.lastEvent || 'Reading page' }}
             } @else if (row.status === 'success') {
               page recovered
@@ -70,6 +80,43 @@
             }
           </span>
         </article>
+        @if (selectedUsername() === row.username) {
+          @let job = latestJobFor(row.username);
+          <section class="scrape-detail">
+            <div>
+              <span class="detail-label">Last scrape</span>
+              <strong>{{ primaryTimeFor(job) }}</strong>
+            </div>
+            <div>
+              <span class="detail-label">Result</span>
+              <strong>{{ job?.status || row.status }} · {{ job?.outcome || row.outcomeCode || row.outcome }}</strong>
+            </div>
+            <div>
+              <span class="detail-label">Data</span>
+              <strong>{{ job?.postsSeen ?? 0 }} seen · {{ job?.postsStored ?? 0 }} stored · {{ job?.mentionsFound ?? 0 }} mentions</strong>
+            </div>
+            <div>
+              <span class="detail-label">Run</span>
+              <strong>#{{ job?.runId || '—' }} · {{ job?.resource || 'unassigned' }}</strong>
+            </div>
+            @if (job?.outcomeMessage || job?.errorMessage || row.lastEvent) {
+              <p class="detail-message">{{ job?.errorMessage || job?.outcomeMessage || row.lastEvent }}</p>
+            }
+            @if (recentPostsFor(row.username).length > 0) {
+              <div class="post-list">
+                @for (post of recentPostsFor(row.username); track post.sourcePostId) {
+                  <a [href]="post.url" target="_blank" rel="noreferrer">
+                    <span>{{ formatDateTime(post.scrapedAt) }}</span>
+                    <strong>{{ post.mentions.length ? post.mentions.join(', ') : 'post' }}</strong>
+                    <em>{{ post.content }}</em>
+                  </a>
+                }
+              </div>
+            } @else {
+              <p class="detail-empty">No stored post for this handle in the recent cache.</p>
+            }
+          </section>
+        }
       } @empty {
         <article class="empty-state">
           <strong>No handle</strong>

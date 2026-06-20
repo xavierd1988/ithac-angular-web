@@ -68,9 +68,12 @@ export class CockpitApi {
 
   async snapshot(params?: InfluencerPageParams): Promise<CockpitSnapshot> {
     try {
-      const snapshot = await this.get<Omit<CockpitSnapshot, 'source'>>(
-        `/api/dashboard/snapshot${this.pageQuery(params)}`);
-      return { ...snapshot, source: 'api' };
+      const [snapshot, posts, jobs] = await Promise.all([
+        this.get<Omit<CockpitSnapshot, 'source'>>(`/api/dashboard/snapshot${this.pageQuery(params)}`),
+        this.recentPosts(160),
+        this.recentJobs(200)
+      ]);
+      return { ...snapshot, posts, jobs, source: 'api' };
     } catch {
       return this.legacySnapshot(params);
     }
@@ -124,6 +127,14 @@ export class CockpitApi {
     return this.patch<ProxyResource>(`/api/proxies/${encodeURIComponent(name)}`, patch);
   }
 
+  async recentPosts(take: number): Promise<RecentPost[]> {
+    return this.get<RecentPost[]>(`/api/posts/recent?take=${take}`);
+  }
+
+  async recentJobs(take: number): Promise<JobHistory[]> {
+    return this.get<JobHistory[]>(`/api/jobs/recent?take=${take}`);
+  }
+
   private get<T>(path: string): Promise<T> {
     return firstValueFrom(this.http.get<T>(apiUrl(path)));
   }
@@ -137,9 +148,9 @@ export class CockpitApi {
         this.get<SessionResource[]>('/api/sessions'),
         this.get<ProxyResource[]>('/api/proxies'),
         this.get<DashboardEvent[]>('/api/events'),
-        this.get<RecentPost[]>('/api/posts/recent?take=8'),
+        this.get<RecentPost[]>('/api/posts/recent?take=160'),
         this.get<InfluencerScore[]>('/api/scores/influencers?take=8'),
-        this.get<JobHistory[]>('/api/jobs/recent?take=8'),
+        this.get<JobHistory[]>('/api/jobs/recent?take=200'),
         this.get<RunHistory[]>('/api/runs/history?take=5')
       ]);
       const page = this.localInfluencerPage(influencers, params);
