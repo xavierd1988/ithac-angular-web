@@ -43,6 +43,10 @@ function resolveApiBaseUrl(): string {
     return 'http://127.0.0.1:5088';
   }
 
+  if (location.hostname === 'ithacapp.com' || location.hostname === 'www.ithacapp.com') {
+    return 'http://178.105.42.115:8080';
+  }
+
   return '';
 }
 
