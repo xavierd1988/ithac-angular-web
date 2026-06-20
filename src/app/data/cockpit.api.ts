@@ -76,10 +76,10 @@ export class CockpitApi {
 
   async snapshot(params?: InfluencerPageParams): Promise<CockpitSnapshot> {
     try {
-      const [snapshot, posts, jobs] = await Promise.all([
-        this.get<Omit<CockpitSnapshot, 'source'>>(`/api/dashboard/snapshot${this.pageQuery(params)}`),
-        this.recentPosts(160),
-        this.recentJobs(200)
+      const snapshot = await this.get<Omit<CockpitSnapshot, 'source'>>(`/api/dashboard/snapshot${this.pageQuery(params)}`);
+      const [posts, jobs] = await Promise.all([
+        this.recentPosts(160).catch(() => [] as RecentPost[]),
+        this.recentJobs(200).catch(() => [] as JobHistory[])
       ]);
       return { ...snapshot, posts, jobs, source: 'api' };
     } catch {
