@@ -50,6 +50,14 @@ function resolveApiBaseUrl(): string {
   return '';
 }
 
+function allowDemoFallback(): boolean {
+  const location = globalThis.window?.location;
+  if (!location) {
+    return true;
+  }
+  return location.hostname === '127.0.0.1' || location.hostname === 'localhost';
+}
+
 function apiUrl(path: string): string {
   return `${API_BASE_URL}${path}`;
 }
@@ -156,8 +164,11 @@ export class CockpitApi {
       const page = this.localInfluencerPage(influencers, params);
 
       return { run, influencerPage: page, influencers, slots, sessions, proxies, events, posts, scores, jobs, runs, source: 'api' };
-    } catch {
-      return structuredClone(MOCK_COCKPIT);
+    } catch (error) {
+      if (allowDemoFallback()) {
+        return structuredClone(MOCK_COCKPIT);
+      }
+      throw error;
     }
   }
 
