@@ -52,6 +52,11 @@ h1 {
   background: rgba(255, 176, 32, 0.08);
 }
 
+.live-chip.replay {
+  border-color: rgba(255, 176, 32, 0.48);
+  background: rgba(255, 176, 32, 0.12);
+}
+
 .live-chip strong {
   color: var(--ink);
 }
@@ -161,8 +166,15 @@ button {
 }
 
 .influencer-row.scraping,
-.influencer-row.scraper-trace {
+.influencer-row.scraper-trace,
+.influencer-row.replay {
   background: rgba(53, 211, 158, 0.13);
+}
+
+.influencer-row.replay {
+  background:
+    linear-gradient(90deg, rgba(53, 211, 158, 0.16), rgba(255, 176, 32, 0.16)),
+    rgba(53, 211, 158, 0.08);
 }
 
 .scanner-beam {
@@ -182,7 +194,8 @@ button {
 }
 
 .influencer-row.scraping::after,
-.influencer-row.scraper-trace::after {
+.influencer-row.scraper-trace::after,
+.influencer-row.replay::after {
   content: "";
   position: absolute;
   inset: 4px 7px;

@@ -4,10 +4,10 @@
       <span class="eyebrow">Ithac scraper</span>
       <h1>Live list</h1>
     </div>
-    <div class="live-chip" [class.polling]="liveTransport() === 'polling'">
+    <div class="live-chip" [class.polling]="liveTransport() === 'polling'" [class.replay]="scannerMode() === 'replay'">
       <span class="live-dot"></span>
       <strong>{{ activeScannerCount() }}</strong>
-      <span>scraping now</span>
+      <span>{{ scannerModeLabel() }}</span>
       <em>{{ activeScannerLabel() }}</em>
     </div>
   </header>
@@ -50,6 +50,7 @@
           [class.selected]="selectedUsername() === row.username"
           [class.scraping]="isRowActivelyScraping(row)"
           [class.scraper-trace]="isRowInScraperTrace(row)"
+          [class.replay]="isRowReplayTrace(row)"
           [ngClass]="row.status"
           role="button"
           tabindex="0"

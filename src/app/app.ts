@@ -40,14 +40,18 @@ export class App implements OnDestroy, OnInit {
   private readonly fallbackRefreshEveryMs = 2500;
   private readonly quickScrapeTargetCount = 40;
   private readonly scraperTraceWindowMs = 15_000;
+  private readonly replayTickEveryMs = 150;
+  private readonly replayRowEveryMs = 850;
   private readonly liveWatchdogEveryMs = 5000;
   private readonly liveStaleAfterMs = 20000;
   private refreshTimer: ReturnType<typeof setInterval> | undefined;
   private filterTimer: ReturnType<typeof setTimeout> | undefined;
   private liveWatchdogTimer: ReturnType<typeof setInterval> | undefined;
   private activeRunTimer: ReturnType<typeof setInterval> | undefined;
+  private replayTimer: ReturnType<typeof setInterval> | undefined;
   private liveEvents: EventSource | null = null;
   private lastLiveSignalAt = 0;
+  private lastScrolledScanner = '';
   private snapshotLoading = false;
 
   readonly bulkActionRunning = signal(false);
@@ -115,10 +119,40 @@ export class App implements OnDestroy, OnInit {
     this.jobHistory().find((job) => job.status === 'running')
       ?? this.jobHistory().find((job) => this.isRecentScraperJob(job))
       ?? null);
-  readonly activeScannerCount = computed(() => this.running() || (this.activeScraper() ? 1 : 0));
+  readonly replayUsername = computed(() => {
+    if (this.status() === 'running' || this.running() > 0 || this.activeScraper()) {
+      return null;
+    }
+
+    const usernames = this.pageUsernames();
+    if (usernames.length === 0) {
+      return null;
+    }
+
+    const index = Math.floor(this.traceClock() / this.replayRowEveryMs) % usernames.length;
+    return usernames[index];
+  });
+  readonly scannerMode = computed<'live' | 'replay' | 'idle'>(() => {
+    if (this.activeScraper() || this.status() === 'running' || this.running() > 0) {
+      return 'live';
+    }
+    return this.replayUsername() ? 'replay' : 'idle';
+  });
+  readonly scannerModeLabel = computed(() => {
+    const mode = this.scannerMode();
+    if (mode === 'live') {
+      return 'scraping live';
+    }
+    if (mode === 'replay') {
+      return 'scanner replay';
+    }
+    return 'scanner idle';
+  });
+  readonly visibleScannerUsername = computed(() => this.activeScraper()?.username ?? this.replayUsername());
+  readonly activeScannerCount = computed(() => this.running() || (this.visibleScannerUsername() ? 1 : 0));
   readonly activeScannerLabel = computed(() => {
-    const job = this.activeScraper();
-    return job ? `@${job.username}` : 'idle';
+    const username = this.visibleScannerUsername();
+    return username ? `@${username}` : 'idle';
   });
   readonly activeSlots = computed(() =>
     this.slots().filter((slot) => slot.current && slot.current.toLowerCase() !== 'idle'));
@@ -170,8 +204,16 @@ export class App implements OnDestroy, OnInit {
   }
 
   isRowInScraperTrace(row: InfluencerRow): boolean {
+    if (this.visibleScannerUsername()?.toLowerCase() === row.username.toLowerCase()) {
+      return true;
+    }
+
     const job = this.latestJobFor(row.username);
     return job?.status === 'running' || Boolean(job && this.isRecentScraperJob(job));
+  }
+
+  isRowReplayTrace(row: InfluencerRow): boolean {
+    return this.replayUsername()?.toLowerCase() === row.username.toLowerCase();
   }
 
   scraperBadge(row: InfluencerRow): string {
@@ -187,6 +229,10 @@ export class App implements OnDestroy, OnInit {
   }
 
   rowProgress(row: InfluencerRow): number {
+    if (this.isRowReplayTrace(row)) {
+      return Math.min(96, 18 + Math.round(this.replayPhase() * 78));
+    }
+
     if (row.status === 'success' || row.status === 'failed') {
       return 100;
     }
@@ -218,6 +264,20 @@ export class App implements OnDestroy, OnInit {
   }
 
   rowActiveStep(row: InfluencerRow): string {
+    if (this.isRowReplayTrace(row)) {
+      const phase = this.replayPhase();
+      if (phase < 0.26) {
+        return 'open';
+      }
+      if (phase < 0.52) {
+        return 'read';
+      }
+      if (phase < 0.78) {
+        return 'extract';
+      }
+      return 'store';
+    }
+
     const job = this.latestJobFor(row.username);
     if (row.status === 'success') {
       return 'complete';
@@ -255,6 +315,9 @@ export class App implements OnDestroy, OnInit {
   }
 
   rowStatusLabel(row: InfluencerRow): string {
+    if (this.isRowReplayTrace(row)) {
+      return 'scanning';
+    }
     if (row.status === 'success') {
       return 'complete';
     }
@@ -271,6 +334,14 @@ export class App implements OnDestroy, OnInit {
   }
 
   rowMeta(row: InfluencerRow): string {
+    if (this.isRowReplayTrace(row)) {
+      const job = this.latestJobFor(row.username);
+      if (job) {
+        return `visual pass · ${job.postsSeen} seen · ${job.postsStored} stored`;
+      }
+      return 'visual pass · waiting for real scrape';
+    }
+
     const job = this.latestJobFor(row.username);
     if (job) {
       return `${job.postsSeen} seen · ${job.postsStored} stored · ${job.mentionsFound} mentions`;
@@ -282,6 +353,9 @@ export class App implements OnDestroy, OnInit {
   }
 
   rowLightClass(row: InfluencerRow): string {
+    if (this.isRowReplayTrace(row)) {
+      return 'running';
+    }
     if (row.status === 'success') {
       return 'complete';
     }
@@ -308,11 +382,13 @@ export class App implements OnDestroy, OnInit {
   ngOnInit(): void {
     void this.loadSnapshot();
     this.connectLiveEvents();
+    this.startReplayTicker();
     this.liveWatchdogTimer = setInterval(() => this.checkLiveHealth(), this.liveWatchdogEveryMs);
   }
 
   ngOnDestroy(): void {
     this.clearScheduledSnapshotLoad();
+    this.stopReplayTicker();
     this.stopActiveRunWatch();
     this.stopFallbackPolling();
     this.liveEvents?.close();
@@ -941,16 +1017,43 @@ export class App implements OnDestroy, OnInit {
     this.activeRunTimer = undefined;
   }
 
+  private startReplayTicker(): void {
+    if (this.replayTimer) {
+      return;
+    }
+    this.replayTimer = setInterval(() => {
+      this.traceClock.set(Date.now());
+      const username = this.visibleScannerUsername() ?? '';
+      if (username && username !== this.lastScrolledScanner) {
+        this.lastScrolledScanner = username;
+        this.scrollActiveScraperIntoView();
+      }
+    }, this.replayTickEveryMs);
+  }
+
+  private stopReplayTicker(): void {
+    if (!this.replayTimer) {
+      return;
+    }
+    clearInterval(this.replayTimer);
+    this.replayTimer = undefined;
+  }
+
   private scrollActiveScraperIntoView(): void {
     if (this.activeScannerCount() === 0) {
       return;
     }
     setTimeout(() => {
       document
-        .querySelector('.influencer-row.scraping, .influencer-row.scraper-trace')
+        .querySelector('.influencer-row.scraping, .influencer-row.replay, .influencer-row.scraper-trace')
         ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }, 0);
   }
+
+  private replayPhase(): number {
+    return (this.traceClock() % this.replayRowEveryMs) / this.replayRowEveryMs;
+  }
+
 
   private isRecentScraperJob(job: JobHistoryRow): boolean {
     const timestamp = this.jobActivityTime(job);
