@@ -59,7 +59,7 @@ export class App implements OnDestroy, OnInit {
   readonly filterStatus = signal<'all' | UiJobStatus>('all');
   readonly priorityOnly = signal(false);
   readonly pageIndex = signal(0);
-  readonly pageSize = signal(2000);
+  readonly pageSize = signal(250);
   readonly selectedSessionName = signal<string | null>(null);
   readonly selectedProxyName = signal<string | null>(null);
   readonly source = signal<'api' | 'mock'>('mock');
