@@ -433,6 +433,16 @@ export class App implements OnDestroy, OnInit {
     }).format(new Date(value));
   }
 
+  compactNumber(value: number | null): string {
+    if (value === null || !Number.isFinite(value)) {
+      return '—';
+    }
+    return new Intl.NumberFormat('en-US', {
+      notation: 'compact',
+      maximumFractionDigits: 1
+    }).format(value);
+  }
+
   async pauseRun(): Promise<void> {
     if (this.source() === 'api') {
       try {
@@ -492,9 +502,9 @@ export class App implements OnDestroy, OnInit {
     void this.loadSnapshot();
   }
 
-  onPageSize(value: number): void {
+  onPageSize(value: number | string): void {
     this.clearScheduledSnapshotLoad();
-    this.pageSize.set(value);
+    this.pageSize.set(Number(value));
     this.resetPage();
     void this.loadSnapshot();
   }

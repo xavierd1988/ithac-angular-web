@@ -137,9 +137,57 @@ button {
   background: rgba(13, 17, 23, 0.97);
 }
 
+.pager {
+  position: sticky;
+  top: 34px;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  min-height: 38px;
+  padding: 0 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.075);
+  color: var(--muted);
+  background: rgba(17, 21, 32, 0.98);
+}
+
+.pager strong {
+  color: var(--ink);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.pager button {
+  height: 27px;
+  border-radius: 7px;
+  padding: 0 10px;
+  font-size: 12px;
+  font-weight: 760;
+}
+
+.pager button:disabled {
+  opacity: 0.38;
+}
+
+.pager label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+}
+
+.pager select {
+  height: 27px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.08);
+}
+
 .list {
   display: grid;
-  max-height: calc(100vh - 142px);
+  max-height: calc(100vh - 180px);
   overflow: auto;
   overflow-anchor: none;
   overscroll-behavior: contain;

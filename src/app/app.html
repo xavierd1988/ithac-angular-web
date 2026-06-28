@@ -38,9 +38,27 @@
 
   <section class="list-card" aria-label="Influencer scrape list">
     <header>
-      <span>{{ liveRows().length }} visible · {{ visibleCount() }} handles</span>
+      <span>{{ pageStart() + 1 }}-{{ pageEnd() }} visible · {{ visibleCount() }} handles</span>
       <span>{{ completed() }} complete · {{ failed() }} failed</span>
     </header>
+
+    <nav class="pager" aria-label="Influencer pages">
+      <button type="button" (click)="previousPage()" [disabled]="effectivePageIndex() === 0">
+        Previous
+      </button>
+      <strong>Page {{ effectivePageIndex() + 1 }} / {{ pageCount() }}</strong>
+      <button type="button" (click)="nextPage()" [disabled]="effectivePageIndex() >= pageCount() - 1">
+        Next
+      </button>
+      <label>
+        Rows
+        <select [ngModel]="pageSize()" (ngModelChange)="onPageSize($event)">
+          @for (size of pageSizes; track size) {
+            <option [ngValue]="size">{{ size }}</option>
+          }
+        </select>
+      </label>
+    </nav>
 
     <div class="list">
       @for (row of liveRows(); track row.username; let index = $index) {
