@@ -59,7 +59,7 @@ export class App implements OnDestroy, OnInit {
   readonly filterStatus = signal<'all' | UiJobStatus>('all');
   readonly priorityOnly = signal(false);
   readonly pageIndex = signal(0);
-  readonly pageSize = signal(250);
+  readonly pageSize = signal(2000);
   readonly selectedSessionName = signal<string | null>(null);
   readonly selectedProxyName = signal<string | null>(null);
   readonly source = signal<'api' | 'mock'>('mock');
@@ -104,7 +104,7 @@ export class App implements OnDestroy, OnInit {
   readonly someCurrentPageSelected = computed(() => this.selectedInfluencerCount() > 0 && !this.allCurrentPageSelected());
   readonly progress = computed(() => Math.round((this.completed() / Math.max(this.total(), 1)) * 100));
   readonly statusFilters: ReadonlyArray<'all' | UiJobStatus> = ['all', 'queued', 'running', 'success', 'failed', 'paused'];
-  readonly pageSizes: ReadonlyArray<number> = [50, 100, 250];
+  readonly pageSizes: ReadonlyArray<number> = [250, 500, 1000, 2000];
   readonly selectedSession = computed(() =>
     this.sessions().find((item) => item.name === this.selectedSessionName()) ?? null);
   readonly selectedProxy = computed(() =>
@@ -289,6 +289,19 @@ export class App implements OnDestroy, OnInit {
       return `${row.posts} posts · ${row.mentions} mentions`;
     }
     return row.lastEvent || row.outcome || 'Waiting for scraper';
+  }
+
+  formatFollowers(value: number | null): string {
+    if (value == null || !Number.isFinite(value)) {
+      return 'followers —';
+    }
+    if (value >= 1_000_000) {
+      return `${(value / 1_000_000).toFixed(value >= 10_000_000 ? 0 : 1)}M followers`;
+    }
+    if (value >= 1_000) {
+      return `${(value / 1_000).toFixed(value >= 10_000 ? 0 : 1)}K followers`;
+    }
+    return `${value} followers`;
   }
 
   rowLightClass(row: InfluencerRow): string {
@@ -545,6 +558,9 @@ export class App implements OnDestroy, OnInit {
     this.influencers.update((rows) => [
       {
         username,
+        displayName: null,
+        followersCount: null,
+        profileImageUrl: null,
         priority: true,
         enabled: true,
         status: 'queued',
@@ -588,6 +604,9 @@ export class App implements OnDestroy, OnInit {
     this.influencers.update((rows) => [
       ...added.map((username) => ({
         username,
+        displayName: null,
+        followersCount: null,
+        profileImageUrl: null,
         priority: this.mode() !== 'Safe',
         enabled: true,
         status: 'queued' as const,
@@ -1108,6 +1127,9 @@ export class App implements OnDestroy, OnInit {
   private mapInfluencer(item: InfluencerJob): InfluencerRow {
     return {
       username: item.username,
+      displayName: item.displayName ?? null,
+      followersCount: item.followersCount ?? null,
+      profileImageUrl: item.profileImageUrl ?? null,
       priority: item.priority,
       enabled: item.enabled,
       status: this.mapJobStatus(item.status),

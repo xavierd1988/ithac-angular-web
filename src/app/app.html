@@ -63,9 +63,23 @@
 
           <span class="rank">{{ pageStart() + index + 1 }}</span>
 
-          <span class="handle">
-            <strong>@{{ row.username }}</strong>
-          </span>
+          <section class="handle">
+            @if (row.profileImageUrl) {
+              <img
+                class="avatar"
+                [src]="row.profileImageUrl"
+                [alt]="'@' + row.username"
+                loading="lazy"
+                referrerpolicy="no-referrer"
+              />
+            } @else {
+              <span class="avatar avatar-fallback">{{ row.username.slice(0, 1).toUpperCase() }}</span>
+            }
+            <span class="identity">
+              <strong>{{ row.displayName || '@' + row.username }}</strong>
+              <em>@{{ row.username }} · {{ formatFollowers(row.followersCount) }}</em>
+            </span>
+          </section>
 
           <section class="progress-cell" aria-label="Scrape progress">
             <div class="row-line">

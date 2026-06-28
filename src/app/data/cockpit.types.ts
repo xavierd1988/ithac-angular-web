@@ -40,6 +40,9 @@ export interface RunDashboard {
 export interface InfluencerJob {
   id: number;
   username: string;
+  displayName?: string | null;
+  followersCount?: number | null;
+  profileImageUrl?: string | null;
   priority: boolean;
   enabled: boolean;
   status: ApiJobStatus;
@@ -202,6 +205,9 @@ export interface CockpitSnapshot {
 
 export interface InfluencerRow {
   username: string;
+  displayName: string | null;
+  followersCount: number | null;
+  profileImageUrl: string | null;
   priority: boolean;
   enabled: boolean;
   status: UiJobStatus;
