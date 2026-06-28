@@ -53,8 +53,9 @@
           [ngClass]="row.status"
           role="button"
           tabindex="0"
-          (click)="selectRow(row)"
-          (keydown.enter)="selectRow(row)"
+          (mousedown)="preventRowFocus($event)"
+          (click)="selectRow(row, $event)"
+          (keydown.enter)="selectRow(row, $event)"
         >
           @if (isRowInScraperTrace(row)) {
             <div class="scanner-beam"></div>

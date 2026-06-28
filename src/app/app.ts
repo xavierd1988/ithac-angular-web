@@ -370,13 +370,23 @@ export class App implements OnDestroy, OnInit {
     }
   }
 
-  selectRow(row: InfluencerRow): void {
+  preventRowFocus(event: MouseEvent): void {
+    event.preventDefault();
+  }
+
+  selectRow(row: InfluencerRow, event?: Event): void {
+    event?.preventDefault();
+    (event?.currentTarget as HTMLElement | null)?.blur();
+    const scrollState = this.captureScrollState();
+
     if (this.selectedUsername() === row.username) {
       this.selectedUsername.set(null);
+      this.restoreScrollState(scrollState);
       return;
     }
 
     this.selectedUsername.set(row.username);
+    this.restoreScrollState(scrollState);
     void this.loadPostsForInfluencer(row.username);
   }
 
@@ -1193,6 +1203,7 @@ export class App implements OnDestroy, OnInit {
   }
 
   private async loadPostsForInfluencer(username: string): Promise<void> {
+    const scrollState = this.captureScrollState();
     try {
       const posts = await this.api.postsForInfluencer(username, 10);
       this.selectedPostsByUsername.update((current) => ({
@@ -1204,6 +1215,8 @@ export class App implements OnDestroy, OnInit {
         ...current,
         [username.toLowerCase()]: []
       }));
+    } finally {
+      this.restoreScrollState(scrollState);
     }
   }
 

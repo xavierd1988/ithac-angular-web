@@ -142,6 +142,8 @@ button {
   max-height: calc(100vh - 142px);
   overflow: auto;
   overflow-anchor: none;
+  overscroll-behavior: contain;
+  scroll-behavior: auto;
 }
 
 .influencer-row {
