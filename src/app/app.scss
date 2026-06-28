@@ -4,6 +4,7 @@
   width: min(1460px, calc(100vw - 24px));
   margin: 0 auto;
   padding: 10px 0 14px;
+  overflow-anchor: none;
 }
 
 .topbar,
@@ -140,6 +141,7 @@ button {
   display: grid;
   max-height: calc(100vh - 142px);
   overflow: auto;
+  overflow-anchor: none;
 }
 
 .influencer-row {
@@ -149,6 +151,7 @@ button {
   padding: 8px 12px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.075);
   overflow: hidden;
+  overflow-anchor: none;
   cursor: pointer;
 }
 
@@ -347,6 +350,7 @@ button {
   padding: 14px 14px 16px 286px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.075);
   background: rgba(0, 0, 0, 0.24);
+  overflow-anchor: none;
 }
 
 .detail-label {

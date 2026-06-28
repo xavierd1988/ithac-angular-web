@@ -855,9 +855,11 @@ export class App implements OnDestroy, OnInit {
     }
 
     this.snapshotLoading = true;
+    const scrollState = this.captureScrollState();
     try {
       const snapshot = await this.api.snapshot(this.pageParams());
       this.applySnapshot(snapshot);
+      this.restoreScrollState(scrollState);
       if (this.status() === 'running' || this.activeScraper()) {
         this.startActiveRunWatch();
       }
@@ -968,6 +970,34 @@ export class App implements OnDestroy, OnInit {
       this.filterTimer = undefined;
       void this.loadSnapshot();
     }, 250);
+  }
+
+  private captureScrollState(): { listTop: number | null; windowX: number; windowY: number } {
+    if (typeof document === 'undefined' || typeof window === 'undefined') {
+      return { listTop: null, windowX: 0, windowY: 0 };
+    }
+
+    return {
+      listTop: document.querySelector<HTMLElement>('.list')?.scrollTop ?? null,
+      windowX: window.scrollX,
+      windowY: window.scrollY
+    };
+  }
+
+  private restoreScrollState(state: { listTop: number | null; windowX: number; windowY: number }): void {
+    if (typeof document === 'undefined' || typeof window === 'undefined') {
+      return;
+    }
+
+    requestAnimationFrame(() => {
+      if (state.listTop !== null) {
+        const list = document.querySelector<HTMLElement>('.list');
+        if (list) {
+          list.scrollTop = state.listTop;
+        }
+      }
+      window.scrollTo(state.windowX, state.windowY);
+    });
   }
 
   private clearScheduledSnapshotLoad(): void {
