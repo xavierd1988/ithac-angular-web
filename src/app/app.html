@@ -2,9 +2,9 @@
   <header class="topbar">
     <div>
       <span class="eyebrow">Ithac scraper</span>
-      <h1>Influencers</h1>
+      <h1>Live list</h1>
     </div>
-    <div class="live-chip">
+    <div class="live-chip" [class.polling]="liveTransport() === 'polling'">
       <span class="live-dot"></span>
       <strong>{{ activeScannerCount() }}</strong>
       <span>scraping now</span>
@@ -12,7 +12,7 @@
     </div>
   </header>
 
-  <section class="controls" aria-label="List controls">
+  <section class="controls" aria-label="Scraper controls">
     <form class="add-form" (submit)="$event.preventDefault(); addInfluencer()">
       <input
         name="username"
@@ -36,10 +36,10 @@
     </button>
   </section>
 
-  <section class="list-card" aria-label="Influencer list">
+  <section class="list-card" aria-label="Influencer scrape list">
     <header>
       <span>{{ liveRows().length }} visible · {{ visibleCount() }} handles</span>
-      <span>{{ completed() }} done · {{ failed() }} failed</span>
+      <span>{{ completed() }} complete · {{ failed() }} failed</span>
     </header>
 
     <div class="list">
@@ -57,7 +57,7 @@
           (keydown.enter)="selectRow(row)"
         >
           @if (isRowInScraperTrace(row)) {
-            <div class="scanner">{{ scraperBadge(row) }}</div>
+            <div class="scanner-beam"></div>
           }
 
           <span class="rank">{{ pageStart() + index + 1 }}</span>
@@ -66,28 +66,31 @@
             <strong>@{{ row.username }}</strong>
           </span>
 
-          <span class="state" [class.scanning]="isRowInScraperTrace(row)" [ngClass]="row.status">
-            @if (isRowInScraperTrace(row)) {
-              {{ scraperStateLabel(row) }}
-            } @else {
-              {{ row.status }}
-            }
-          </span>
+          <section class="progress-cell" aria-label="Scrape progress">
+            <div class="row-line">
+              <strong>{{ rowStatusLabel(row) }}</strong>
+              <span>{{ rowMeta(row) }}</span>
+            </div>
+            <div class="progress-track">
+              <span
+                [class.failed]="row.status === 'failed'"
+                [style.width.%]="rowProgress(row)"
+              ></span>
+            </div>
+            <div class="steps">
+              @for (step of scrapeSteps; track step.key) {
+                <span [ngClass]="stepClass(row, step.key)">
+                  <i></i>{{ step.label }}
+                </span>
+              }
+            </div>
+          </section>
 
-          <span class="detail">
-            @if (isRowInScraperTrace(row)) {
-              {{ scraperDetailLabel(row) }}
-            } @else if (row.status === 'success') {
-              page recovered
-            } @else if (row.status === 'failed') {
-              {{ row.outcomeCode || 'failed' }}
-            } @else if (row.status === 'paused') {
-              paused
-            } @else {
-              waiting
-            }
+          <span class="result-light" [ngClass]="rowLightClass(row)">
+            <i></i>{{ rowStatusLabel(row) }}
           </span>
         </article>
+
         @if (selectedUsername() === row.username) {
           @let job = latestJobFor(row.username);
           <section class="scrape-detail">
@@ -121,7 +124,7 @@
                 }
               </div>
             } @else {
-              <p class="detail-empty">No stored post for this handle in the recent cache.</p>
+              <p class="detail-empty">No stored post for this handle yet.</p>
             }
           </section>
         }

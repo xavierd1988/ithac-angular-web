@@ -136,6 +136,12 @@ export class App implements OnDestroy, OnInit {
   });
   readonly latestEventLevel = computed(() => this.latestEvent()?.level ?? 'quiet');
   readonly liveRows = computed(() => this.pagedVisibleInfluencers());
+  readonly scrapeSteps = [
+    { key: 'open', label: 'Open page' },
+    { key: 'read', label: 'Read posts' },
+    { key: 'extract', label: 'Extract data' },
+    { key: 'store', label: 'Store' }
+  ] as const;
   readonly latestJobByUsername = computed(() => {
     const jobs = new Map<string, JobHistoryRow>();
     for (const job of this.jobHistory()) {
@@ -178,6 +184,114 @@ export class App implements OnDestroy, OnInit {
 
   scraperDetailLabel(row: InfluencerRow): string {
     return this.isRowActivelyScraping(row) ? 'Live scan in progress' : 'Scraped moments ago';
+  }
+
+  rowProgress(row: InfluencerRow): number {
+    if (row.status === 'success' || row.status === 'failed') {
+      return 100;
+    }
+    if (row.status === 'paused') {
+      return 0;
+    }
+
+    const job = this.latestJobFor(row.username);
+    if (!job) {
+      return row.status === 'running' ? 24 : 0;
+    }
+    if (job.status === 'success' || job.status === 'failed') {
+      return 100;
+    }
+    if (job.status !== 'running') {
+      return row.status === 'queued' ? 0 : 18;
+    }
+
+    if (job.postsStored > 0) {
+      return 88;
+    }
+    if (job.mentionsFound > 0) {
+      return 74;
+    }
+    if (job.postsSeen > 0) {
+      return 56;
+    }
+    return 30;
+  }
+
+  rowActiveStep(row: InfluencerRow): string {
+    const job = this.latestJobFor(row.username);
+    if (row.status === 'success') {
+      return 'complete';
+    }
+    if (row.status === 'failed') {
+      return 'failed';
+    }
+    if (job?.postsStored) {
+      return 'store';
+    }
+    if (job?.mentionsFound) {
+      return 'extract';
+    }
+    if (job?.postsSeen) {
+      return 'read';
+    }
+    return row.status === 'running' ? 'open' : 'waiting';
+  }
+
+  stepClass(row: InfluencerRow, stepKey: string): string {
+    const active = this.rowActiveStep(row);
+    const order = ['open', 'read', 'extract', 'store'];
+    const activeIndex = order.indexOf(active);
+    const stepIndex = order.indexOf(stepKey);
+    if (active === 'complete') {
+      return 'done';
+    }
+    if (stepKey === active) {
+      return 'active';
+    }
+    if (activeIndex >= 0 && stepIndex < activeIndex) {
+      return 'done';
+    }
+    return 'upcoming';
+  }
+
+  rowStatusLabel(row: InfluencerRow): string {
+    if (row.status === 'success') {
+      return 'complete';
+    }
+    if (row.status === 'running') {
+      return 'scraping';
+    }
+    if (row.status === 'failed') {
+      return 'failed';
+    }
+    if (row.status === 'paused') {
+      return 'paused';
+    }
+    return 'waiting';
+  }
+
+  rowMeta(row: InfluencerRow): string {
+    const job = this.latestJobFor(row.username);
+    if (job) {
+      return `${job.postsSeen} seen · ${job.postsStored} stored · ${job.mentionsFound} mentions`;
+    }
+    if (row.status === 'success') {
+      return `${row.posts} posts · ${row.mentions} mentions`;
+    }
+    return row.lastEvent || row.outcome || 'Waiting for scraper';
+  }
+
+  rowLightClass(row: InfluencerRow): string {
+    if (row.status === 'success') {
+      return 'complete';
+    }
+    if (row.status === 'failed') {
+      return 'failed';
+    }
+    if (row.status === 'running') {
+      return 'running';
+    }
+    return 'idle';
   }
 
   readonly projectedDuration = computed(() => {
