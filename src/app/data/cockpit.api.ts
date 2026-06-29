@@ -44,7 +44,9 @@ function resolveApiBaseUrl(): string {
   }
 
   if (location.hostname === 'ithacapp.com' || location.hostname === 'www.ithacapp.com') {
-    return 'http://178.105.42.115:8080';
+    return location.protocol === 'https:'
+      ? 'https://178.105.42.115.sslip.io'
+      : 'http://178.105.42.115:8080';
   }
 
   return '';
