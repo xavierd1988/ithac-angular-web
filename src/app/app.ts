@@ -149,6 +149,8 @@ export class App implements OnDestroy, OnInit {
     { key: 'extract', label: 'Extract data' },
     { key: 'store', label: 'Store' }
   ] as const;
+  readonly scrapeScopeSummary =
+    'Reads X UserTweets cursor pages, not an infinite visual scroll: max 50 candidate posts, 24h window, 15 timeline pages, stops early on old or already-stored posts.';
   readonly latestJobByUsername = computed(() => {
     const jobs = new Map<string, JobHistoryRow>();
     for (const job of this.jobHistory()) {
@@ -292,6 +294,64 @@ export class App implements OnDestroy, OnInit {
     return row.lastEvent || row.outcome || 'Waiting for scraper';
   }
 
+  rowScrapeMinute(row: InfluencerRow): string {
+    const job = this.latestJobFor(row.username);
+    if (!job) {
+      return 'not scraped yet';
+    }
+    if (job.status === 'running') {
+      return `started ${this.formatMinute(job.startedAt ?? job.updatedAt)}`;
+    }
+    if (job.finishedAt) {
+      return `scraped ${this.formatMinute(job.finishedAt)}`;
+    }
+    return `updated ${this.formatMinute(job.updatedAt ?? job.startedAt)}`;
+  }
+
+  stepDetail(row: InfluencerRow, stepKey: string): string {
+    const job = this.latestJobFor(row.username);
+    if (!job) {
+      return stepKey === 'open' ? 'waiting' : '—';
+    }
+
+    switch (stepKey) {
+      case 'open':
+        return job.startedAt ? this.formatMinute(job.startedAt) : 'queued';
+      case 'read':
+        return job.postsSeen > 0 ? `${job.postsSeen}/50 seen` : this.jobTerminal(job) ? '0/50 seen' : 'timeline';
+      case 'extract':
+        if (job.mentionsFound > 0) {
+          return `${job.mentionsFound} mentions`;
+        }
+        return job.postsSeen > 0 || this.jobTerminal(job) ? 'checked' : 'waiting';
+      case 'store':
+        if (job.postsStored > 0) {
+          return `${job.postsStored} stored`;
+        }
+        return this.jobTerminal(job) ? '0 stored' : 'waiting';
+      default:
+        return '—';
+    }
+  }
+
+  scrapeDurationFor(job: JobHistoryRow | null): string {
+    if (!job?.startedAt) {
+      return '—';
+    }
+    const start = new Date(job.startedAt).getTime();
+    const end = new Date(job.finishedAt ?? job.updatedAt ?? job.startedAt).getTime();
+    if (!Number.isFinite(start) || !Number.isFinite(end) || end < start) {
+      return '—';
+    }
+    const seconds = Math.round((end - start) / 1000);
+    if (seconds < 60) {
+      return `${seconds}s`;
+    }
+    const minutes = Math.floor(seconds / 60);
+    const rest = seconds % 60;
+    return `${minutes}m ${String(rest).padStart(2, '0')}s`;
+  }
+
   formatFollowers(value: number | null): string {
     if (value == null || !Number.isFinite(value)) {
       return 'followers —';
@@ -419,6 +479,18 @@ export class App implements OnDestroy, OnInit {
 
   primaryTimeFor(job: JobHistoryRow | null): string {
     return this.formatDateTime(job?.finishedAt ?? job?.startedAt ?? job?.updatedAt ?? null);
+  }
+
+  formatMinute(value: string | null): string {
+    if (!value) {
+      return '—';
+    }
+    return new Intl.DateTimeFormat('en-US', {
+      month: 'short',
+      day: '2-digit',
+      hour: 'numeric',
+      minute: '2-digit'
+    }).format(new Date(value));
   }
 
   formatDateTime(value: string | null): string {
@@ -1007,6 +1079,10 @@ export class App implements OnDestroy, OnInit {
       .map((value) => value ? new Date(value).getTime() : 0)
       .filter((value) => Number.isFinite(value));
     return Math.max(0, ...values);
+  }
+
+  private jobTerminal(job: JobHistoryRow): boolean {
+    return job.status === 'success' || job.status === 'failed';
   }
 
   private scheduleSnapshotLoad(): void {

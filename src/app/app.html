@@ -109,8 +109,9 @@
           <section class="progress-cell" aria-label="Scrape progress">
             <div class="row-line">
               <strong>{{ rowStatusLabel(row) }}</strong>
-              <span>{{ rowMeta(row) }}</span>
+              <span class="scrape-minute">{{ rowScrapeMinute(row) }}</span>
             </div>
+            <p class="row-subline">{{ rowMeta(row) }}</p>
             <div class="progress-track">
               <span
                 [class.failed]="row.status === 'failed'"
@@ -120,7 +121,9 @@
             <div class="steps">
               @for (step of scrapeSteps; track step.key) {
                 <span [ngClass]="stepClass(row, step.key)">
-                  <i></i>{{ step.label }}
+                  <i></i>
+                  <b>{{ step.label }}</b>
+                  <em>{{ stepDetail(row, step.key) }}</em>
                 </span>
               }
             </div>
@@ -135,8 +138,16 @@
           @let job = latestJobFor(row.username);
           <section class="scrape-detail">
             <div>
-              <span class="detail-label">Last scrape</span>
+              <span class="detail-label">Scraped minute</span>
               <strong>{{ primaryTimeFor(job) }}</strong>
+            </div>
+            <div>
+              <span class="detail-label">Started</span>
+              <strong>{{ formatMinute(job?.startedAt ?? null) }}</strong>
+            </div>
+            <div>
+              <span class="detail-label">Duration</span>
+              <strong>{{ scrapeDurationFor(job) }}</strong>
             </div>
             <div>
               <span class="detail-label">Result</span>
@@ -150,6 +161,11 @@
               <span class="detail-label">Run</span>
               <strong>#{{ job?.runId || '—' }} · {{ job?.resource || 'unassigned' }}</strong>
             </div>
+            <aside class="scrape-scope">
+              <strong>What it reads</strong>
+              <span>{{ scrapeScopeSummary }}</span>
+              <small>Open page = resolve profile/session. Read posts = request timeline cursor pages. Extract data = parse usable posts and crypto mentions. Store = save new posts/mentions in MySQL.</small>
+            </aside>
             @if (job?.outcomeMessage || job?.errorMessage || row.lastEvent) {
               <p class="detail-message">{{ job?.errorMessage || job?.outcomeMessage || row.lastEvent }}</p>
             }
