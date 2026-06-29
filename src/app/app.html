@@ -4,11 +4,18 @@
       <span class="eyebrow">Ithac scraper</span>
       <h1>Live list</h1>
     </div>
-    <div class="live-chip" [class.polling]="liveTransport() === 'polling'">
-      <span class="live-dot"></span>
-      <strong>{{ activeScannerCount() }}</strong>
-      <span>{{ scannerModeLabel() }}</span>
-      <em>{{ activeScannerLabel() }}</em>
+    <div class="topbar-right">
+      <div class="live-chip" [class.polling]="liveTransport() === 'polling'">
+        <span class="live-dot"></span>
+        <strong>{{ activeScannerCount() }}</strong>
+        <span>{{ scannerModeLabel() }}</span>
+        <em>{{ activeScannerLabel() }}</em>
+      </div>
+      <div class="scanner-position">
+        <span>Scanner position</span>
+        <strong>{{ scannerPositionLabel() }}</strong>
+        <em>{{ scannerPositionMeta() }}</em>
+      </div>
     </div>
   </header>
 
@@ -134,56 +141,6 @@
           </span>
         </article>
 
-        @if (selectedUsername() === row.username) {
-          @let job = latestJobFor(row.username);
-          <section class="scrape-detail">
-            <div>
-              <span class="detail-label">Scraped minute</span>
-              <strong>{{ rowScrapeMinute(row) }}</strong>
-            </div>
-            <div>
-              <span class="detail-label">Started</span>
-              <strong>{{ formatMinute(job?.startedAt ?? null) }}</strong>
-            </div>
-            <div>
-              <span class="detail-label">Duration</span>
-              <strong>{{ scrapeDurationFor(job) }}</strong>
-            </div>
-            <div>
-              <span class="detail-label">Result</span>
-              <strong>{{ job?.status || row.status }} · {{ job?.outcome || row.outcomeCode || row.outcome }}</strong>
-            </div>
-            <div>
-              <span class="detail-label">Data</span>
-              <strong>{{ detailDataFor(row, job) }}</strong>
-            </div>
-            <div>
-              <span class="detail-label">Run</span>
-              <strong>#{{ job?.runId || '—' }} · {{ job?.resource || 'unassigned' }}</strong>
-            </div>
-            <aside class="scrape-scope">
-              <strong>What it reads</strong>
-              <span>{{ scrapeScopeSummary }}</span>
-              <small>Open page = resolve profile/session. Read posts = request timeline cursor pages. Extract data = parse usable posts and crypto mentions. Store = save new posts/mentions in MySQL.</small>
-            </aside>
-            @if (job?.outcomeMessage || job?.errorMessage || row.lastEvent) {
-              <p class="detail-message">{{ job?.errorMessage || job?.outcomeMessage || row.lastEvent }}</p>
-            }
-            @if (recentPostsFor(row.username).length > 0) {
-              <div class="post-list">
-                @for (post of recentPostsFor(row.username); track post.sourcePostId) {
-                  <a [href]="post.url" target="_blank" rel="noreferrer">
-                    <span>{{ formatDateTime(post.scrapedAt) }}</span>
-                    <strong>{{ post.mentions.length ? post.mentions.join(', ') : 'post' }}</strong>
-                    <em>{{ post.content }}</em>
-                  </a>
-                }
-              </div>
-            } @else {
-              <p class="detail-empty">No stored post for this handle yet.</p>
-            }
-          </section>
-        }
       } @empty {
         <article class="empty-state">
           <strong>{{ loadError() ? 'Live data unavailable' : 'No handle' }}</strong>
@@ -192,4 +149,66 @@
       }
     </div>
   </section>
+
+  @if (selectedRow(); as selected) {
+    @let job = latestJobFor(selected.username);
+    <aside class="scrape-inspector" aria-label="Selected scrape detail">
+      <header>
+        <div>
+          <span class="detail-label">Selected account</span>
+          <strong>{{ selected.displayName || '@' + selected.username }}</strong>
+          <em>@{{ selected.username }}</em>
+        </div>
+        <button type="button" (click)="clearSelection()">Close</button>
+      </header>
+
+      <section class="scrape-detail">
+        <div>
+          <span class="detail-label">Scraped minute</span>
+          <strong>{{ rowScrapeMinute(selected) }}</strong>
+        </div>
+        <div>
+          <span class="detail-label">Started</span>
+          <strong>{{ formatMinute(job?.startedAt ?? null) }}</strong>
+        </div>
+        <div>
+          <span class="detail-label">Duration</span>
+          <strong>{{ scrapeDurationFor(job) }}</strong>
+        </div>
+        <div>
+          <span class="detail-label">Result</span>
+          <strong>{{ job?.status || selected.status }} · {{ job?.outcome || selected.outcomeCode || selected.outcome }}</strong>
+        </div>
+        <div>
+          <span class="detail-label">Data</span>
+          <strong>{{ detailDataFor(selected, job) }}</strong>
+        </div>
+        <div>
+          <span class="detail-label">Run</span>
+          <strong>#{{ job?.runId || '—' }} · {{ job?.resource || 'unassigned' }}</strong>
+        </div>
+        <aside class="scrape-scope">
+          <strong>What it reads</strong>
+          <span>{{ scrapeScopeSummary }}</span>
+          <small>Open page = resolve profile/session. Read posts = request timeline cursor pages. It is posts, not views. Extract data = parse usable posts and crypto mentions. Store = save new posts/mentions in MySQL.</small>
+        </aside>
+        @if (job?.outcomeMessage || job?.errorMessage || selected.lastEvent) {
+          <p class="detail-message">{{ job?.errorMessage || job?.outcomeMessage || selected.lastEvent }}</p>
+        }
+        @if (recentPostsFor(selected.username).length > 0) {
+          <div class="post-list">
+            @for (post of recentPostsFor(selected.username); track post.sourcePostId) {
+              <a [href]="post.url" target="_blank" rel="noreferrer">
+                <span>{{ formatDateTime(post.scrapedAt) }}</span>
+                <strong>{{ post.mentions.length ? post.mentions.join(', ') : 'post' }}</strong>
+                <em>{{ post.content }}</em>
+              </a>
+            }
+          </div>
+        } @else {
+          <p class="detail-empty">No stored post for this handle yet.</p>
+        }
+      </section>
+    </aside>
+  }
 </main>

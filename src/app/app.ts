@@ -127,6 +127,34 @@ export class App implements OnDestroy, OnInit {
     const username = this.visibleScannerUsername();
     return username ? `@${username}` : 'idle';
   });
+  readonly scannerPositionLabel = computed(() => {
+    const job = this.activeScraper();
+    if (job) {
+      return `@${job.username}`;
+    }
+    const run = this.latestRun();
+    if (this.status() === 'running' || run?.status === 'running') {
+      return `${run ? `Run #${run.id}` : 'Run'} waiting`;
+    }
+    return 'idle';
+  });
+  readonly scannerPositionMeta = computed(() => {
+    const job = this.activeScraper();
+    if (!job) {
+      const run = this.latestRun();
+      if (this.status() === 'running' || run?.status === 'running') {
+        return 'between accounts · waiting for next job';
+      }
+      return 'no active scrape';
+    }
+
+    const index = this.liveRows().findIndex((row) => row.username.toLowerCase() === job.username.toLowerCase());
+    const position = index >= 0
+      ? `row ${this.pageStart() + index + 1}/${this.visibleCount()}`
+      : `not on page ${this.effectivePageIndex() + 1}`;
+    const phase = job.status === 'running' ? 'now' : 'last';
+    return `${phase} · ${position} · ${job.resource} · ${this.formatMinute(job.startedAt ?? job.updatedAt)}`;
+  });
   readonly activeSlots = computed(() =>
     this.slots().filter((slot) => slot.current && slot.current.toLowerCase() !== 'idle'));
   readonly availableSessions = computed(() =>
@@ -143,6 +171,13 @@ export class App implements OnDestroy, OnInit {
   });
   readonly latestEventLevel = computed(() => this.latestEvent()?.level ?? 'quiet');
   readonly liveRows = computed(() => this.pagedVisibleInfluencers());
+  readonly selectedRow = computed(() => {
+    const username = this.selectedUsername();
+    if (!username) {
+      return null;
+    }
+    return this.influencers().find((row) => row.username.toLowerCase() === username.toLowerCase()) ?? null;
+  });
   readonly scrapeSteps = [
     { key: 'open', label: 'Open page' },
     { key: 'read', label: 'Read posts' },
@@ -332,7 +367,7 @@ export class App implements OnDestroy, OnInit {
       case 'open':
         return job.startedAt ? this.formatMinute(job.startedAt) : 'queued';
       case 'read':
-        return job.postsSeen > 0 ? `${job.postsSeen}/50 seen` : this.jobTerminal(job) ? '0/50 seen' : 'timeline';
+        return job.postsSeen > 0 ? `${job.postsSeen} posts / max 50` : this.jobTerminal(job) ? '0 posts / max 50' : 'timeline';
       case 'extract':
         if (job.mentionsFound > 0) {
           return `${job.mentionsFound} mentions`;
