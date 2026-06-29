@@ -366,6 +366,13 @@ export class App implements OnDestroy, OnInit {
     return `${minutes}m ${String(rest).padStart(2, '0')}s`;
   }
 
+  detailDataFor(row: InfluencerRow, job: JobHistoryRow | null): string {
+    if (job) {
+      return `${job.postsSeen} seen · ${job.postsStored} stored · ${job.mentionsFound} mentions`;
+    }
+    return `${row.posts} total posts · ${row.mentions} total mentions`;
+  }
+
   formatFollowers(value: number | null): string {
     if (value == null || !Number.isFinite(value)) {
       return 'followers —';

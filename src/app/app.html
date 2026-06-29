@@ -139,7 +139,7 @@
           <section class="scrape-detail">
             <div>
               <span class="detail-label">Scraped minute</span>
-              <strong>{{ formatMinute(job?.finishedAt ?? job?.startedAt ?? job?.updatedAt ?? null) }}</strong>
+              <strong>{{ rowScrapeMinute(row) }}</strong>
             </div>
             <div>
               <span class="detail-label">Started</span>
@@ -155,7 +155,7 @@
             </div>
             <div>
               <span class="detail-label">Data</span>
-              <strong>{{ job?.postsSeen ?? 0 }} seen · {{ job?.postsStored ?? 0 }} stored · {{ job?.mentionsFound ?? 0 }} mentions</strong>
+              <strong>{{ detailDataFor(row, job) }}</strong>
             </div>
             <div>
               <span class="detail-label">Run</span>
