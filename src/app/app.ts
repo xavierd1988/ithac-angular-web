@@ -80,6 +80,7 @@ export class App implements OnDestroy, OnInit {
   readonly jobHistory = signal<JobHistoryRow[]>([]);
   readonly runHistory = signal<RunHistoryRow[]>([]);
   readonly events = signal<EventRow[]>([]);
+  readonly loadError = signal<string | null>(null);
   readonly lastRefreshedAt = signal<string | null>(null);
   readonly liveTransport = signal<'sse' | 'polling'>('polling');
   readonly selectedInfluencers = signal<ReadonlySet<string>>(new Set<string>());
@@ -897,12 +898,17 @@ export class App implements OnDestroy, OnInit {
     const scrollState = this.captureScrollState();
     try {
       const snapshot = await this.api.snapshot(this.pageParams());
+      this.loadError.set(null);
       this.applySnapshot(snapshot);
       this.restoreScrollState(scrollState);
       if (this.status() === 'running' || this.activeScraper()) {
         this.startActiveRunWatch();
       }
       this.lastRefreshedAt.set(new Date().toISOString());
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unable to load live scraper data';
+      this.loadError.set(message);
+      this.pushEvent('error', message);
     } finally {
       this.snapshotLoading = false;
     }

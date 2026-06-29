@@ -185,6 +185,25 @@ button {
   background: rgba(255, 255, 255, 0.08);
 }
 
+.load-error {
+  display: grid;
+  gap: 4px;
+  padding: 12px 14px;
+  color: #ffd4d8;
+  border-bottom: 1px solid rgba(255, 93, 108, 0.28);
+  background: rgba(255, 93, 108, 0.11);
+}
+
+.load-error strong {
+  color: var(--red);
+  font-size: 13px;
+  text-transform: uppercase;
+}
+
+.load-error span {
+  color: #f3b8bf;
+}
+
 .list {
   display: grid;
   max-height: calc(100vh - 180px);

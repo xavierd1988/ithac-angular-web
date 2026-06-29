@@ -42,6 +42,13 @@
       <span>{{ completed() }} complete · {{ failed() }} failed</span>
     </header>
 
+    @if (loadError()) {
+      <aside class="load-error">
+        <strong>Live API not loaded</strong>
+        <span>{{ loadError() }}</span>
+      </aside>
+    }
+
     <nav class="pager" aria-label="Influencer pages">
       <button type="button" (click)="previousPage()" [disabled]="effectivePageIndex() === 0">
         Previous
@@ -163,8 +170,8 @@
         }
       } @empty {
         <article class="empty-state">
-          <strong>No handle</strong>
-          <span>Add the first influencer above.</span>
+          <strong>{{ loadError() ? 'Live data unavailable' : 'No handle' }}</strong>
+          <span>{{ loadError() ? 'The scraper backend did not answer this browser yet.' : 'Add the first influencer above.' }}</span>
         </article>
       }
     </div>
