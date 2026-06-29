@@ -148,7 +148,19 @@ export class CockpitApi {
   }
 
   private get<T>(path: string): Promise<T> {
-    return firstValueFrom(this.http.get<T>(apiUrl(path)));
+    return firstValueFrom(
+      this.http.get<T>(apiUrl(this.cacheBustedPath(path)), {
+        headers: {
+          'Cache-Control': 'no-cache',
+          Pragma: 'no-cache'
+        }
+      })
+    );
+  }
+
+  private cacheBustedPath(path: string): string {
+    const separator = path.includes('?') ? '&' : '?';
+    return `${path}${separator}_=${Date.now()}`;
   }
 
   private async legacySnapshot(params?: InfluencerPageParams): Promise<CockpitSnapshot> {
