@@ -297,7 +297,7 @@ export class App implements OnDestroy, OnInit {
   rowScrapeMinute(row: InfluencerRow): string {
     const job = this.latestJobFor(row.username);
     if (!job) {
-      return 'not scraped yet';
+      return row.status === 'success' ? 'no recent job' : 'not scraped yet';
     }
     if (job.status === 'running') {
       return `started ${this.formatMinute(job.startedAt ?? job.updatedAt)}`;
@@ -311,6 +311,20 @@ export class App implements OnDestroy, OnInit {
   stepDetail(row: InfluencerRow, stepKey: string): string {
     const job = this.latestJobFor(row.username);
     if (!job) {
+      if (row.status === 'success') {
+        if (stepKey === 'open') {
+          return 'history';
+        }
+        if (stepKey === 'read' && row.posts > 0) {
+          return `${row.posts} total`;
+        }
+        if (stepKey === 'extract' && row.mentions > 0) {
+          return `${row.mentions} total`;
+        }
+        if (stepKey === 'store') {
+          return 'complete';
+        }
+      }
       return stepKey === 'open' ? 'waiting' : '—';
     }
 

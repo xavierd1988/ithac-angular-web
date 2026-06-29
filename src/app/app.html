@@ -139,7 +139,7 @@
           <section class="scrape-detail">
             <div>
               <span class="detail-label">Scraped minute</span>
-              <strong>{{ primaryTimeFor(job) }}</strong>
+              <strong>{{ formatMinute(job?.finishedAt ?? job?.startedAt ?? job?.updatedAt ?? null) }}</strong>
             </div>
             <div>
               <span class="detail-label">Started</span>
