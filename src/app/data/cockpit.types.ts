@@ -53,6 +53,18 @@ export interface InfluencerJob {
   lastOutcome: ApiScrapeOutcome;
   lastOutcomeCode: string | null;
   lastEvent: string;
+  lastScrapeRunId?: number | null;
+  lastScrapeStatus?: ApiJobStatus | null;
+  lastPostsSeen?: number | null;
+  lastPostsStored?: number | null;
+  lastMentionsFound?: number | null;
+  lastScrapeStartedAt?: string | null;
+  lastScrapeFinishedAt?: string | null;
+  lastScrapeUpdatedAt?: string | null;
+  lastScrapeSessionName?: string | null;
+  lastScrapeProxyName?: string | null;
+  lastScrapeOutcomeMessage?: string | null;
+  lastScrapeErrorMessage?: string | null;
 }
 
 export interface InfluencerPage {
@@ -218,6 +230,18 @@ export interface InfluencerRow {
   outcome: ApiScrapeOutcome;
   outcomeCode: string | null;
   lastEvent: string;
+  lastScrapeRunId: number | null;
+  lastScrapeStatus: UiJobStatus | null;
+  lastPostsSeen: number | null;
+  lastPostsStored: number | null;
+  lastMentionsFound: number | null;
+  lastScrapeStartedAt: string | null;
+  lastScrapeFinishedAt: string | null;
+  lastScrapeUpdatedAt: string | null;
+  lastScrapeSessionName: string | null;
+  lastScrapeProxyName: string | null;
+  lastScrapeOutcomeMessage: string | null;
+  lastScrapeErrorMessage: string | null;
 }
 
 export interface SlotRow {

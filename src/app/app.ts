@@ -335,12 +335,12 @@ export class App implements OnDestroy, OnInit {
       return row.status === 'success' ? 'no recent job' : 'not scraped yet';
     }
     if (job.status === 'running') {
-      return `started ${this.formatMinute(job.startedAt ?? job.updatedAt)}`;
+      return `opened ${this.timeAgo(job.startedAt ?? job.updatedAt)} · ${this.formatMinute(job.startedAt ?? job.updatedAt)}`;
     }
     if (job.finishedAt) {
-      return `scraped ${this.formatMinute(job.finishedAt)}`;
+      return `scraped ${this.timeAgo(job.finishedAt)} · ${this.formatMinute(job.finishedAt)}`;
     }
-    return `updated ${this.formatMinute(job.updatedAt ?? job.startedAt)}`;
+    return `updated ${this.timeAgo(job.updatedAt ?? job.startedAt)} · ${this.formatMinute(job.updatedAt ?? job.startedAt)}`;
   }
 
   stepDetail(row: InfluencerRow, stepKey: string): string {
@@ -367,7 +367,7 @@ export class App implements OnDestroy, OnInit {
       case 'open':
         return job.startedAt ? this.formatMinute(job.startedAt) : 'queued';
       case 'read':
-        return job.postsSeen > 0 ? `${job.postsSeen} posts / max 50` : this.jobTerminal(job) ? '0 posts / max 50' : 'timeline';
+        return job.postsSeen > 0 ? `${job.postsSeen}/50 posts scanned` : this.jobTerminal(job) ? '0/50 posts scanned' : 'timeline cursor';
       case 'extract':
         if (job.mentionsFound > 0) {
           return `${job.mentionsFound} mentions`;
@@ -521,7 +521,13 @@ export class App implements OnDestroy, OnInit {
   }
 
   latestJobFor(username: string): JobHistoryRow | null {
-    return this.latestJobByUsername().get(username.toLowerCase()) ?? null;
+    const recentJob = this.latestJobByUsername().get(username.toLowerCase());
+    if (recentJob) {
+      return recentJob;
+    }
+
+    const row = this.influencers().find((item) => item.username.toLowerCase() === username.toLowerCase());
+    return row ? this.lastScrapeJobFromRow(row) : null;
   }
 
   recentPostsFor(username: string): RecentPostRow[] {
@@ -560,6 +566,34 @@ export class App implements OnDestroy, OnInit {
       minute: '2-digit',
       second: '2-digit'
     }).format(new Date(value));
+  }
+
+  timeAgo(value: string | null): string {
+    if (!value) {
+      return '—';
+    }
+    const timestamp = new Date(value).getTime();
+    if (!Number.isFinite(timestamp)) {
+      return '—';
+    }
+    const seconds = Math.max(0, Math.round((this.traceClock() - timestamp) / 1000));
+    if (seconds < 10) {
+      return 'just now';
+    }
+    if (seconds < 60) {
+      return `${seconds}s ago`;
+    }
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) {
+      return `${minutes}m ago`;
+    }
+    const hours = Math.floor(minutes / 60);
+    const rest = minutes % 60;
+    if (hours < 24) {
+      return rest ? `${hours}h ${rest}m ago` : `${hours}h ago`;
+    }
+    const days = Math.floor(hours / 24);
+    return `${days}d ago`;
   }
 
   compactNumber(value: number | null): string {
@@ -709,7 +743,8 @@ export class App implements OnDestroy, OnInit {
         slot: null,
         outcome: 'Unknown',
         outcomeCode: null,
-        lastEvent: 'Added live by operator'
+        lastEvent: 'Added live by operator',
+        ...this.emptyLastScrape()
       },
       ...rows
     ]);
@@ -755,7 +790,8 @@ export class App implements OnDestroy, OnInit {
         slot: null,
         outcome: 'Unknown' as const,
         outcomeCode: null,
-        lastEvent: 'Imported by operator'
+        lastEvent: 'Imported by operator',
+        ...this.emptyLastScrape()
       })),
       ...rows
     ]);
@@ -1069,6 +1105,7 @@ export class App implements OnDestroy, OnInit {
   }
 
   private checkLiveHealth(): void {
+    this.traceClock.set(Date.now());
     if (!this.liveEvents) {
       return;
     }
@@ -1272,6 +1309,74 @@ export class App implements OnDestroy, OnInit {
     URL.revokeObjectURL(url);
   }
 
+  private emptyLastScrape(): Pick<
+    InfluencerRow,
+    | 'lastScrapeRunId'
+    | 'lastScrapeStatus'
+    | 'lastPostsSeen'
+    | 'lastPostsStored'
+    | 'lastMentionsFound'
+    | 'lastScrapeStartedAt'
+    | 'lastScrapeFinishedAt'
+    | 'lastScrapeUpdatedAt'
+    | 'lastScrapeSessionName'
+    | 'lastScrapeProxyName'
+    | 'lastScrapeOutcomeMessage'
+    | 'lastScrapeErrorMessage'
+  > {
+    return {
+      lastScrapeRunId: null,
+      lastScrapeStatus: null,
+      lastPostsSeen: null,
+      lastPostsStored: null,
+      lastMentionsFound: null,
+      lastScrapeStartedAt: null,
+      lastScrapeFinishedAt: null,
+      lastScrapeUpdatedAt: null,
+      lastScrapeSessionName: null,
+      lastScrapeProxyName: null,
+      lastScrapeOutcomeMessage: null,
+      lastScrapeErrorMessage: null
+    };
+  }
+
+  private lastScrapeJobFromRow(row: InfluencerRow): JobHistoryRow | null {
+    const updatedAt = row.lastScrapeUpdatedAt ?? row.lastScrapeFinishedAt ?? row.lastScrapeStartedAt;
+    if (!updatedAt) {
+      return null;
+    }
+
+    const status = row.lastScrapeStatus ?? row.status;
+    const resource = [row.lastScrapeSessionName, row.lastScrapeProxyName].filter(Boolean).join(' · ') || 'unassigned';
+    return {
+      id: -this.stableUsernameId(row.username),
+      username: row.username,
+      runId: row.lastScrapeRunId ?? 0,
+      status,
+      attempt: '—',
+      slot: row.slot === null ? '—' : `S${row.slot}`,
+      resource,
+      outcome: row.outcomeCode || row.outcome,
+      counters: `${row.lastPostsStored ?? 0}/${row.lastPostsSeen ?? 0} posts · ${row.lastMentionsFound ?? 0} mentions`,
+      postsSeen: row.lastPostsSeen ?? 0,
+      postsStored: row.lastPostsStored ?? 0,
+      mentionsFound: row.lastMentionsFound ?? 0,
+      outcomeMessage: row.lastScrapeOutcomeMessage ?? row.lastEvent,
+      errorMessage: row.lastScrapeErrorMessage,
+      startedAt: row.lastScrapeStartedAt,
+      finishedAt: row.lastScrapeFinishedAt,
+      updatedAt
+    };
+  }
+
+  private stableUsernameId(username: string): number {
+    let hash = 0;
+    for (const char of username.toLowerCase()) {
+      hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
+    }
+    return Math.max(1, hash);
+  }
+
   private mapInfluencer(item: InfluencerJob): InfluencerRow {
     return {
       username: item.username,
@@ -1287,7 +1392,19 @@ export class App implements OnDestroy, OnInit {
       slot: item.slot,
       outcome: item.lastOutcome,
       outcomeCode: item.lastOutcomeCode,
-      lastEvent: item.lastEvent
+      lastEvent: item.lastEvent,
+      lastScrapeRunId: item.lastScrapeRunId ?? null,
+      lastScrapeStatus: item.lastScrapeStatus ? this.mapJobStatus(item.lastScrapeStatus) : null,
+      lastPostsSeen: item.lastPostsSeen ?? null,
+      lastPostsStored: item.lastPostsStored ?? null,
+      lastMentionsFound: item.lastMentionsFound ?? null,
+      lastScrapeStartedAt: item.lastScrapeStartedAt ?? null,
+      lastScrapeFinishedAt: item.lastScrapeFinishedAt ?? null,
+      lastScrapeUpdatedAt: item.lastScrapeUpdatedAt ?? null,
+      lastScrapeSessionName: item.lastScrapeSessionName ?? null,
+      lastScrapeProxyName: item.lastScrapeProxyName ?? null,
+      lastScrapeOutcomeMessage: item.lastScrapeOutcomeMessage ?? null,
+      lastScrapeErrorMessage: item.lastScrapeErrorMessage ?? null
     };
   }
 
