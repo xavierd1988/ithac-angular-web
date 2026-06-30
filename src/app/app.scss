@@ -252,12 +252,38 @@ button {
   font-variant-numeric: tabular-nums;
 }
 
+.page-numbers {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  max-width: min(460px, 42vw);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.page-numbers::-webkit-scrollbar {
+  display: none;
+}
+
 .pager button {
   height: 27px;
   border-radius: 7px;
   padding: 0 10px;
   font-size: 12px;
   font-weight: 760;
+}
+
+.page-numbers button {
+  min-width: 29px;
+  padding: 0 8px;
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.page-numbers button.active {
+  color: #061018;
+  background: var(--accent);
+  box-shadow: 0 0 0 1px rgba(52, 211, 153, 0.42), 0 0 18px rgba(52, 211, 153, 0.22);
 }
 
 .pager button:disabled {

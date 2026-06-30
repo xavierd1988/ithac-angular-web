@@ -66,6 +66,18 @@
         Previous
       </button>
       <strong>Page {{ effectivePageIndex() + 1 }} / {{ pageCount() }}</strong>
+      <div class="page-numbers" aria-label="Select page">
+        @for (page of pageButtons(); track page) {
+          <button
+            type="button"
+            [class.active]="page === effectivePageIndex()"
+            [attr.aria-current]="page === effectivePageIndex() ? 'page' : null"
+            (click)="goToPage(page)"
+          >
+            {{ page + 1 }}
+          </button>
+        }
+      </div>
       <button type="button" (click)="nextPage()" [disabled]="effectivePageIndex() >= pageCount() - 1">
         Next
       </button>

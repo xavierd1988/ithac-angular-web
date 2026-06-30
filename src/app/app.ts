@@ -48,7 +48,7 @@ export class App implements OnDestroy, OnInit {
   private activeRunTimer: ReturnType<typeof setInterval> | undefined;
   private liveEvents: EventSource | null = null;
   private lastLiveSignalAt = 0;
-  private snapshotLoading = false;
+  private snapshotRequestSeq = 0;
 
   readonly bulkActionRunning = signal(false);
   readonly mode = signal<RunMode>('Safe');
@@ -91,6 +91,7 @@ export class App implements OnDestroy, OnInit {
   readonly visibleCount = computed(() => this.filteredTotal());
   readonly pageCount = computed(() => Math.max(1, Math.ceil(this.visibleCount() / this.pageSize())));
   readonly effectivePageIndex = computed(() => Math.min(this.pageIndex(), this.pageCount() - 1));
+  readonly pageButtons = computed(() => Array.from({ length: this.pageCount() }, (_, index) => index));
   readonly pageStart = computed(() => this.effectivePageIndex() * this.pageSize());
   readonly pageEnd = computed(() => Math.min(this.pageStart() + this.pageSize(), this.visibleCount()));
   readonly pagedVisibleInfluencers = computed(() => this.visibleInfluencers());
@@ -698,16 +699,21 @@ export class App implements OnDestroy, OnInit {
   }
 
   previousPage(): void {
-    this.clearScheduledSnapshotLoad();
-    this.clearSelection();
-    this.pageIndex.update((value) => Math.max(0, value - 1));
-    void this.loadSnapshot();
+    this.goToPage(this.effectivePageIndex() - 1);
   }
 
   nextPage(): void {
+    this.goToPage(this.effectivePageIndex() + 1);
+  }
+
+  goToPage(pageIndex: number): void {
+    const nextPage = this.clampPageIndex(pageIndex, this.visibleCount(), this.pageSize());
+    if (nextPage === this.effectivePageIndex()) {
+      return;
+    }
     this.clearScheduledSnapshotLoad();
     this.clearSelection();
-    this.pageIndex.update((value) => Math.min(this.pageCount() - 1, value + 1));
+    this.pageIndex.set(nextPage);
     void this.loadSnapshot();
   }
 
@@ -1120,27 +1126,28 @@ export class App implements OnDestroy, OnInit {
   }
 
   private async loadSnapshot(): Promise<void> {
-    if (this.snapshotLoading) {
-      return;
-    }
-
-    this.snapshotLoading = true;
+    const requestId = ++this.snapshotRequestSeq;
+    const params = this.pageParams();
     const scrollState = this.captureScrollState();
     try {
-      const snapshot = await this.api.snapshot(this.pageParams());
+      const snapshot = await this.api.snapshot(params);
+      if (requestId !== this.snapshotRequestSeq) {
+        return;
+      }
       this.loadError.set(null);
-      this.applySnapshot(snapshot);
+      this.applySnapshot(snapshot, params);
       this.restoreScrollState(scrollState);
       if (this.status() === 'running' || this.activeScraper()) {
         this.startActiveRunWatch();
       }
       this.lastRefreshedAt.set(new Date().toISOString());
     } catch (error) {
+      if (requestId !== this.snapshotRequestSeq) {
+        return;
+      }
       const message = error instanceof Error ? error.message : 'Unable to load live scraper data';
       this.loadError.set(message);
       this.pushEvent('error', message);
-    } finally {
-      this.snapshotLoading = false;
     }
   }
 
@@ -1296,7 +1303,7 @@ export class App implements OnDestroy, OnInit {
     }
   }
 
-  private applySnapshot(snapshot: CockpitSnapshot): void {
+  private applySnapshot(snapshot: CockpitSnapshot, params: InfluencerPageParams): void {
     this.source.set(snapshot.source);
     this.mode.set(snapshot.run.mode);
     this.status.set(this.mapRunStatus(snapshot.run.status));
@@ -1307,8 +1314,8 @@ export class App implements OnDestroy, OnInit {
     this.running.set(snapshot.run.runningCount);
     this.failed.set(snapshot.run.failedCount);
     this.filteredTotal.set(snapshot.influencerPage.total);
-    this.pageIndex.set(snapshot.influencerPage.pageIndex);
     this.pageSize.set(snapshot.influencerPage.pageSize);
+    this.pageIndex.set(this.clampPageIndex(params.pageIndex, snapshot.influencerPage.total, snapshot.influencerPage.pageSize));
     this.influencers.set(snapshot.influencerPage.items.map((item) => this.mapInfluencer(item)));
     this.pruneSelectionToCurrentPage();
     this.slots.set(
@@ -1342,6 +1349,12 @@ export class App implements OnDestroy, OnInit {
       pageIndex: this.pageIndex(),
       pageSize: this.pageSize()
     };
+  }
+
+  private clampPageIndex(pageIndex: number, total: number, pageSize: number): number {
+    const safePageSize = Math.max(1, pageSize);
+    const pageCount = Math.max(1, Math.ceil(Math.max(0, total) / safePageSize));
+    return Math.min(Math.max(0, pageIndex), pageCount - 1);
   }
 
   private selectedCurrentPageUsernames(): string[] {
