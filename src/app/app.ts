@@ -194,6 +194,9 @@ export class App implements OnDestroy, OnInit {
     if (this.scannerBlocked() && eventUsername) {
       return `BLOCKED ON @${eventUsername}`;
     }
+    if ((this.status() === 'running' || this.latestRun()?.status === 'running') && eventUsername) {
+      return `POSITION @${eventUsername}`;
+    }
     if (this.status() === 'running' || this.latestRun()?.status === 'running') {
       return `RUNNING · ${this.completed()}/${this.total()} DONE`;
     }
