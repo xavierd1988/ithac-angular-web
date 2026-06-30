@@ -117,7 +117,7 @@ export class App implements OnDestroy, OnInit {
       ?? this.jobHistory().find((job) => this.isRecentScraperJob(job))
       ?? null);
   readonly scannerMode = computed<'live' | 'idle'>(() =>
-    this.activeScraper() || this.status() === 'running' || this.running() > 0 ? 'live' : 'idle');
+    this.activeScraper() || this.status() === 'running' || this.running() > 0 || this.scannerBlocked() ? 'live' : 'idle');
   readonly scannerModeLabel = computed(() => {
     return this.scannerMode() === 'live' ? 'scraping live' : 'scanner idle';
   });
@@ -125,12 +125,23 @@ export class App implements OnDestroy, OnInit {
   readonly activeScannerCount = computed(() => this.running() || (this.visibleScannerUsername() ? 1 : 0));
   readonly activeScannerLabel = computed(() => {
     const username = this.visibleScannerUsername();
-    return username ? `@${username}` : 'idle';
+    const eventUsername = this.latestEventUsername();
+    if (username) {
+      return `@${username}`;
+    }
+    if (this.scannerBlocked() && eventUsername) {
+      return `blocked @${eventUsername}`;
+    }
+    return 'idle';
   });
   readonly scannerPositionLabel = computed(() => {
     const job = this.activeScraper();
     if (job) {
       return `@${job.username}`;
+    }
+    const eventUsername = this.latestEventUsername();
+    if (this.scannerBlocked() && eventUsername) {
+      return `blocked @${eventUsername}`;
     }
     const run = this.latestRun();
     if (this.status() === 'running' || run?.status === 'running') {
@@ -142,8 +153,12 @@ export class App implements OnDestroy, OnInit {
     const job = this.activeScraper();
     if (!job) {
       const run = this.latestRun();
+      const event = this.latestEvent();
+      if (this.scannerBlocked() && event) {
+        return `${this.completed()}/${Math.max(this.total(), 1)} done · no available session/proxy · ${event.at}`;
+      }
       if (this.status() === 'running' || run?.status === 'running') {
-        return 'between accounts · waiting for next job';
+        return `${this.completed()}/${Math.max(this.total(), 1)} done · waiting for next job`;
       }
       return 'no active scrape';
     }
@@ -165,6 +180,49 @@ export class App implements OnDestroy, OnInit {
     [...this.sessions(), ...this.proxies()].filter((item) => item.health !== 'available').length);
   readonly latestRun = computed(() => this.runHistory()[0] ?? null);
   readonly latestEvent = computed(() => this.events()[0] ?? null);
+  readonly latestEventUsername = computed(() => this.usernameFromText(this.latestEvent()?.text ?? ''));
+  readonly scannerBlocked = computed(() => {
+    const event = this.latestEvent();
+    return Boolean(event?.text.toLowerCase().includes('no available session/proxy'));
+  });
+  readonly scannerMonitorTitle = computed(() => {
+    const job = this.activeScraper();
+    if (job?.status === 'running') {
+      return `SCRAPING @${job.username}`;
+    }
+    const eventUsername = this.latestEventUsername();
+    if (this.scannerBlocked() && eventUsername) {
+      return `BLOCKED ON @${eventUsername}`;
+    }
+    if (this.status() === 'running' || this.latestRun()?.status === 'running') {
+      return `RUNNING · ${this.completed()}/${this.total()} DONE`;
+    }
+    return 'SCANNER IDLE';
+  });
+  readonly scannerMonitorMeta = computed(() => {
+    const event = this.latestEvent();
+    const job = this.activeScraper();
+    const progress = `${this.completed()}/${Math.max(this.total(), 1)} done · ${this.queuedCount()} queued · ${this.failed()} failed`;
+    if (job?.status === 'running') {
+      return `${progress} · ${job.resource} · opened ${this.timeAgo(job.startedAt ?? job.updatedAt)}`;
+    }
+    if (this.scannerBlocked() && event) {
+      return `${progress} · ${event.text} · ${event.at}`;
+    }
+    if (event) {
+      return `${progress} · latest: ${event.text} · ${event.at}`;
+    }
+    return progress;
+  });
+  readonly scannerMonitorClass = computed(() => {
+    if (this.scannerBlocked()) {
+      return 'blocked';
+    }
+    if (this.scannerMode() === 'live') {
+      return 'live';
+    }
+    return 'idle';
+  });
   readonly latestRunLabel = computed(() => {
     const run = this.latestRun();
     return run ? `Run #${run.id}` : 'No run';
@@ -228,6 +286,11 @@ export class App implements OnDestroy, OnInit {
 
   scraperStateLabel(row: InfluencerRow): string {
     return this.isRowActivelyScraping(row) ? 'SCRAPING' : 'SCRAPED';
+  }
+
+  private usernameFromText(text: string): string | null {
+    const match = text.match(/@([A-Za-z0-9_]+)/);
+    return match?.[1] ?? null;
   }
 
   scraperDetailLabel(row: InfluencerRow): string {
