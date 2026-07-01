@@ -113,8 +113,11 @@ export class App implements OnDestroy, OnInit {
     this.proxies().find((item) => item.name === this.selectedProxyName()) ?? null);
   readonly queuedCount = computed(() =>
     Math.max(0, this.total() - this.completed() - this.running() - this.failed()));
+  readonly activeJob = computed(() => this.jobHistory().find((job) => job.status === 'running') ?? null);
+  readonly recentTerminalJob = computed(() =>
+    this.jobHistory().find((job) => this.jobTerminal(job)) ?? null);
   readonly activeScraper = computed(() =>
-    this.jobHistory().find((job) => job.status === 'running')
+    this.activeJob()
       ?? this.jobHistory().find((job) => this.isRecentScraperJob(job))
       ?? null);
   readonly scannerMode = computed<'live' | 'idle'>(() =>
@@ -122,27 +125,34 @@ export class App implements OnDestroy, OnInit {
   readonly scannerModeLabel = computed(() => {
     return this.scannerMode() === 'live' ? 'scraping live' : 'scanner idle';
   });
-  readonly visibleScannerUsername = computed(() => this.activeScraper()?.username ?? null);
-  readonly activeScannerCount = computed(() => this.running() || (this.visibleScannerUsername() ? 1 : 0));
+  readonly visibleScannerUsername = computed(() =>
+    this.activeJob()?.username ?? this.latestEventUsername() ?? this.recentTerminalJob()?.username ?? null);
+  readonly activeScannerCount = computed(() => this.running() || (this.activeJob() ? 1 : 0));
   readonly activeScannerLabel = computed(() => {
-    const username = this.visibleScannerUsername();
-    const eventUsername = this.latestEventUsername();
-    if (username) {
-      return `@${username}`;
+    const active = this.activeJob();
+    if (active) {
+      return `@${active.username}`;
     }
-    if (this.scannerBlocked() && eventUsername) {
-      return `blocked @${eventUsername}`;
+    const eventUsername = this.latestEventUsername();
+    if (this.scannerBlocked()) {
+      return eventUsername ? `blocked @${eventUsername}` : 'blocked';
+    }
+    if (this.status() === 'running' || this.latestRun()?.status === 'running') {
+      return eventUsername ? `last @${eventUsername}` : 'loop active';
     }
     return 'idle';
   });
   readonly scannerPositionLabel = computed(() => {
-    const job = this.activeScraper();
+    const job = this.activeJob();
     if (job) {
-      return `@${job.username}`;
+      return `now @${job.username}`;
     }
     const eventUsername = this.latestEventUsername();
     if (this.scannerBlocked() && eventUsername) {
       return `blocked @${eventUsername}`;
+    }
+    if (eventUsername) {
+      return `last @${eventUsername}`;
     }
     const run = this.latestRun();
     if (this.status() === 'running' || run?.status === 'running') {
@@ -151,15 +161,18 @@ export class App implements OnDestroy, OnInit {
     return 'idle';
   });
   readonly scannerPositionMeta = computed(() => {
-    const job = this.activeScraper();
+    const job = this.activeJob();
     if (!job) {
       const run = this.latestRun();
       const event = this.latestEvent();
       if (this.scannerBlocked() && event) {
         return `${this.completed()}/${Math.max(this.total(), 1)} done · no available session/proxy · ${event.at}`;
       }
+      if (event) {
+        return `${this.completed()}/${Math.max(this.total(), 1)} done · ${event.text} · ${event.at}`;
+      }
       if (this.status() === 'running' || run?.status === 'running') {
-        return `${this.completed()}/${Math.max(this.total(), 1)} done · waiting for next job`;
+        return `${this.completed()}/${Math.max(this.total(), 1)} done · waiting for next account`;
       }
       return 'no active scrape';
     }
@@ -187,7 +200,7 @@ export class App implements OnDestroy, OnInit {
     return Boolean(event?.text.toLowerCase().includes('no available session/proxy'));
   });
   readonly scannerMonitorTitle = computed(() => {
-    const job = this.activeScraper();
+    const job = this.activeJob();
     if (job?.status === 'running') {
       return `SCRAPING @${job.username}`;
     }
@@ -195,28 +208,27 @@ export class App implements OnDestroy, OnInit {
     if (this.scannerBlocked() && eventUsername) {
       return `BLOCKED ON @${eventUsername}`;
     }
-    if ((this.status() === 'running' || this.latestRun()?.status === 'running') && eventUsername) {
-      return `POSITION @${eventUsername}`;
-    }
-    if (this.status() === 'running' || this.latestRun()?.status === 'running') {
-      return `RUNNING · ${this.completed()}/${this.total()} DONE`;
+    const run = this.latestRun();
+    if (this.status() === 'running' || run?.status === 'running') {
+      return `RUN #${run?.id ?? '—'} · LOOP ACTIVE`;
     }
     return 'SCANNER IDLE';
   });
   readonly scannerMonitorMeta = computed(() => {
     const event = this.latestEvent();
-    const job = this.activeScraper();
-    const progress = `${this.completed()}/${Math.max(this.total(), 1)} done · ${this.queuedCount()} queued · ${this.failed()} failed`;
+    const job = this.activeJob();
+    const progress = `${this.completed()}/${Math.max(this.total(), 1)} done · ${this.running()} running · ${this.queuedCount()} queued · ${this.failed()} failed`;
+    const resources = `${this.availableSessions()}/${this.sessions().length} sessions · ${this.availableProxies()}/${this.proxies().length} proxies`;
     if (job?.status === 'running') {
-      return `${progress} · ${job.resource} · opened ${this.timeAgo(job.startedAt ?? job.updatedAt)}`;
+      return `${progress} · ${job.resource} · opened ${this.timeAgo(job.startedAt ?? job.updatedAt)} · ${resources}`;
     }
     if (this.scannerBlocked() && event) {
-      return `${progress} · ${event.text} · ${event.at}`;
+      return `${progress} · ${resources} · ${event.text} · ${event.at}`;
     }
     if (event) {
-      return `${progress} · latest: ${event.text} · ${event.at}`;
+      return `${progress} · ${resources} · latest: ${event.text} · ${event.at}`;
     }
-    return progress;
+    return `${progress} · ${resources}`;
   });
   readonly scannerMonitorClass = computed(() => {
     if (this.scannerBlocked()) {
@@ -574,16 +586,13 @@ export class App implements OnDestroy, OnInit {
   selectRow(row: InfluencerRow, event?: Event): void {
     event?.preventDefault();
     (event?.currentTarget as HTMLElement | null)?.blur();
-    const scrollState = this.captureScrollState();
 
     if (this.selectedUsername() === row.username) {
       this.selectedUsername.set(null);
-      this.restoreScrollState(scrollState);
       return;
     }
 
     this.selectedUsername.set(row.username);
-    this.restoreScrollState(scrollState);
     void this.loadPostsForInfluencer(row.username);
   }
 
@@ -696,6 +705,7 @@ export class App implements OnDestroy, OnInit {
   resetPage(): void {
     this.pageIndex.set(0);
     this.clearSelection();
+    this.scrollListToTop();
   }
 
   previousPage(): void {
@@ -714,6 +724,7 @@ export class App implements OnDestroy, OnInit {
     this.clearScheduledSnapshotLoad();
     this.clearSelection();
     this.pageIndex.set(nextPage);
+    this.scrollListToTop();
     void this.loadSnapshot();
   }
 
@@ -1128,7 +1139,6 @@ export class App implements OnDestroy, OnInit {
   private async loadSnapshot(): Promise<void> {
     const requestId = ++this.snapshotRequestSeq;
     const params = this.pageParams();
-    const scrollState = this.captureScrollState();
     try {
       const snapshot = await this.api.snapshot(params);
       if (requestId !== this.snapshotRequestSeq) {
@@ -1136,7 +1146,6 @@ export class App implements OnDestroy, OnInit {
       }
       this.loadError.set(null);
       this.applySnapshot(snapshot, params);
-      this.restoreScrollState(scrollState);
       if (this.status() === 'running' || this.activeScraper()) {
         this.startActiveRunWatch();
       }
@@ -1259,31 +1268,16 @@ export class App implements OnDestroy, OnInit {
     }, 250);
   }
 
-  private captureScrollState(): { listTop: number | null; windowX: number; windowY: number } {
-    if (typeof document === 'undefined' || typeof window === 'undefined') {
-      return { listTop: null, windowX: 0, windowY: 0 };
-    }
-
-    return {
-      listTop: document.querySelector<HTMLElement>('.list')?.scrollTop ?? null,
-      windowX: window.scrollX,
-      windowY: window.scrollY
-    };
-  }
-
-  private restoreScrollState(state: { listTop: number | null; windowX: number; windowY: number }): void {
-    if (typeof document === 'undefined' || typeof window === 'undefined') {
+  private scrollListToTop(): void {
+    if (typeof document === 'undefined') {
       return;
     }
 
     requestAnimationFrame(() => {
-      if (state.listTop !== null) {
-        const list = document.querySelector<HTMLElement>('.list');
-        if (list) {
-          list.scrollTop = state.listTop;
-        }
+      const list = document.querySelector<HTMLElement>('.list');
+      if (list) {
+        list.scrollTop = 0;
       }
-      window.scrollTo(state.windowX, state.windowY);
     });
   }
 
@@ -1569,7 +1563,6 @@ export class App implements OnDestroy, OnInit {
   }
 
   private async loadPostsForInfluencer(username: string): Promise<void> {
-    const scrollState = this.captureScrollState();
     try {
       const posts = await this.api.postsForInfluencer(username, 10);
       this.selectedPostsByUsername.update((current) => ({
@@ -1581,8 +1574,6 @@ export class App implements OnDestroy, OnInit {
         ...current,
         [username.toLowerCase()]: []
       }));
-    } finally {
-      this.restoreScrollState(scrollState);
     }
   }
 
