@@ -1,13 +1,74 @@
 <!doctype html>
-<html lang="en" data-beasties-container>
+<html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Ithac Live Scraper</title>
-  <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="icon" type="image/x-icon" href="favicon.ico">
-<style>:root{color-scheme:dark;--bg:#060811;--panel:rgba(255, 255, 255, .055);--panel-strong:rgba(255, 255, 255, .085);--line:rgba(255, 255, 255, .12);--line-strong:rgba(255, 255, 255, .2);--ink:#eef2fb;--muted:#8e99b8;--dim:#5f6b8e;--gold:#ffb020;--gold-2:#ff7a00;--green:#35d39e;--red:#ff5d6c;--blue:#68a8ff;--violet:#a78bfa;--radius:10px;font-family:Avenir Next,Helvetica Neue,Arial,sans-serif}*{box-sizing:border-box}body{margin:0;min-width:1120px;min-height:100vh;color:var(--ink);background:radial-gradient(720px 420px at 10% -5%,rgba(88,120,255,.18),transparent 65%),radial-gradient(780px 480px at 95% 0%,rgba(255,176,32,.12),transparent 62%),linear-gradient(180deg,#0b1026 0%,var(--bg) 58%,#03040a 100%);-webkit-font-smoothing:antialiased}</style><link rel="stylesheet" href="styles-VNKGKRQL.css" media="print" onload="this.media='all'"><noscript><link rel="stylesheet" href="styles-VNKGKRQL.css"></noscript></head>
+  <meta name="color-scheme" content="dark">
+  <title>Ithac Live Scraper</title>
+  <link rel="stylesheet" href="./styles.css?v=20260701-native1">
+</head>
 <body>
-  <app-root></app-root>
-<script src="main-N5IV4D3T.js" type="module"></script></body>
+  <main class="app-shell">
+    <header class="topbar">
+      <div>
+        <span class="eyebrow">Ithac scraper</span>
+        <h1>Live list</h1>
+      </div>
+      <section class="run-strip" aria-label="Live scraper state">
+        <div class="run-pill" id="runPill">
+          <i></i>
+          <strong id="runState">loading</strong>
+          <span id="runProgress">0/0</span>
+        </div>
+        <div class="position-card">
+          <span>Scanner position</span>
+          <strong id="scannerTitle">connecting</strong>
+          <em id="scannerMeta">waiting for live data</em>
+        </div>
+      </section>
+    </header>
+
+    <section class="loop-monitor" id="loopMonitor">
+      <strong id="loopTitle">Loading live loop</strong>
+      <span id="loopMeta">Connecting to backend...</span>
+    </section>
+
+    <section class="toolbar">
+      <form id="addForm" class="add-form">
+        <input id="handleInput" autocomplete="off" spellcheck="false" placeholder="@handle">
+        <button type="submit">Add</button>
+      </form>
+      <input id="searchInput" class="search" autocomplete="off" spellcheck="false" placeholder="Search">
+      <button id="scrapeButton" class="scrape-button" type="button">Scrape 40</button>
+    </section>
+
+    <section class="list-card">
+      <header class="list-head">
+        <span id="listRange">0 visible · 0 handles</span>
+        <span id="listStats">0 complete · 0 failed</span>
+      </header>
+
+      <nav class="pager" aria-label="Influencer pages">
+        <button id="prevPage" type="button">Previous</button>
+        <strong id="pageStatus">Page 1 / 1</strong>
+        <div class="page-numbers" id="pageNumbers"></div>
+        <button id="nextPage" type="button">Next</button>
+        <label>
+          Rows
+          <select id="pageSize">
+            <option value="100">100</option>
+            <option value="250" selected>250</option>
+            <option value="500">500</option>
+            <option value="1000">1000</option>
+          </select>
+        </label>
+      </nav>
+
+      <div id="loadError" class="load-error" hidden></div>
+      <div id="list" class="list" aria-live="polite"></div>
+    </section>
+  </main>
+
+  <script src="./app.js?v=20260701-native1" defer></script>
+</body>
 </html>
