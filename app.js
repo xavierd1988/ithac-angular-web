@@ -57,6 +57,8 @@
   document.addEventListener('DOMContentLoaded', init);
 
   function init() {
+    closeMenu();
+    window.addEventListener('pageshow', closeMenu);
     els.menuToggle.addEventListener('click', toggleMenu);
     els.menuClose.addEventListener('click', closeMenu);
     els.menuBackdrop.addEventListener('click', closeMenu);
