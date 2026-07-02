@@ -26,6 +26,11 @@
   };
 
   const els = {
+    menuToggle: byId('menuToggle'),
+    menuClose: byId('menuClose'),
+    menuBackdrop: byId('menuBackdrop'),
+    controlPopover: byId('controlPopover'),
+    menuSummary: byId('menuSummary'),
     runPill: byId('runPill'),
     runState: byId('runState'),
     runProgress: byId('runProgress'),
@@ -52,6 +57,12 @@
   document.addEventListener('DOMContentLoaded', init);
 
   function init() {
+    els.menuToggle.addEventListener('click', toggleMenu);
+    els.menuClose.addEventListener('click', closeMenu);
+    els.menuBackdrop.addEventListener('click', closeMenu);
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') closeMenu();
+    });
     els.addForm.addEventListener('submit', (event) => {
       event.preventDefault();
       void addInfluencer();
@@ -218,6 +229,9 @@
     els.runPill.className = `run-pill ${status}`;
     els.runState.textContent = status === 'running' ? 'scraping live' : status;
     els.runProgress.textContent = `${done}/${Math.max(total, 1)}`;
+    els.menuSummary.textContent = status === 'running'
+      ? `${done}/${Math.max(total, 1)} · ${running} running`
+      : `${done}/${Math.max(total, 1)} · ${status}`;
 
     if (active) {
       const rowPos = rowPosition(active.username);
@@ -267,6 +281,26 @@
     els.pageNumbers.replaceChildren(...pageButtonNodes(pageIndex, pageCount));
     els.loadError.hidden = !state.loadError;
     els.loadError.textContent = state.loadError ? `Live API not loaded: ${state.loadError}` : '';
+  }
+
+  function toggleMenu() {
+    if (els.controlPopover.hidden) {
+      openMenu();
+    } else {
+      closeMenu();
+    }
+  }
+
+  function openMenu() {
+    els.controlPopover.hidden = false;
+    els.menuBackdrop.hidden = false;
+    els.menuToggle.setAttribute('aria-expanded', 'true');
+  }
+
+  function closeMenu() {
+    els.controlPopover.hidden = true;
+    els.menuBackdrop.hidden = true;
+    els.menuToggle.setAttribute('aria-expanded', 'false');
   }
 
   function pageButtonNodes(activePage, pageCount) {

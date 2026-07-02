@@ -58,6 +58,97 @@ button {
   overflow-anchor: none;
 }
 
+.menu-toggle {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 30;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+  max-width: 360px;
+  min-height: 36px;
+  border: 1px solid rgba(255, 176, 32, 0.36);
+  border-radius: 999px;
+  padding: 0 13px;
+  color: var(--ink);
+  background: rgba(8, 11, 24, 0.92);
+  box-shadow: 0 16px 50px rgba(0, 0, 0, 0.38);
+  backdrop-filter: blur(16px);
+}
+
+.menu-toggle span {
+  color: var(--gold);
+  font-size: 12px;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.menu-toggle em {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 12px;
+  font-style: normal;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.menu-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  background: rgba(0, 0, 0, 0.34);
+}
+
+.control-popover {
+  position: fixed;
+  right: 18px;
+  bottom: 66px;
+  z-index: 31;
+  display: grid;
+  gap: 10px;
+  width: min(760px, calc(100vw - 28px));
+  max-height: calc(100vh - 86px);
+  overflow: auto;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 14px;
+  padding: 14px;
+  background:
+    radial-gradient(520px 260px at 100% 0%, rgba(255, 176, 32, 0.16), transparent 70%),
+    rgba(8, 11, 24, 0.96);
+  box-shadow: 0 24px 90px rgba(0, 0, 0, 0.58);
+  backdrop-filter: blur(18px);
+}
+
+.menu-close {
+  min-width: 72px;
+  min-height: 32px;
+  border-radius: 8px;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.09);
+  font-size: 12px;
+  font-weight: 760;
+}
+
+.menu-stats {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  padding: 8px 10px;
+  color: var(--muted);
+  background: rgba(0, 0, 0, 0.22);
+}
+
+.menu-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+}
+
 .topbar,
 .run-strip,
 .run-pill,
@@ -96,6 +187,11 @@ h1 {
   justify-content: flex-end;
   gap: 10px;
   min-width: 0;
+}
+
+.control-popover .run-strip {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
 }
 
 .run-pill {
@@ -140,7 +236,7 @@ h1 {
 .position-card {
   display: grid;
   gap: 2px;
-  min-width: 380px;
+  min-width: 0;
   max-width: 540px;
   min-height: 50px;
   border: 1px solid rgba(255, 176, 32, 0.25);
@@ -211,7 +307,7 @@ h1 {
 
 .toolbar {
   display: grid;
-  grid-template-columns: minmax(320px, 430px) minmax(220px, 280px) auto;
+  grid-template-columns: minmax(260px, 1fr) minmax(190px, 260px) auto;
   gap: 12px;
 }
 
@@ -261,7 +357,7 @@ select:focus {
 }
 
 .list-card {
-  min-height: 640px;
+  min-height: calc(100vh - 20px);
   border: 1px solid var(--line);
   border-radius: var(--radius);
   overflow: hidden;
@@ -332,8 +428,8 @@ select:focus {
 }
 
 .list {
-  height: calc(100vh - 245px);
-  min-height: 540px;
+  height: calc(100vh - 82px);
+  min-height: 640px;
   overflow-y: auto;
   overscroll-behavior: contain;
 }
