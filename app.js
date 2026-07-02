@@ -2,6 +2,7 @@
   'use strict';
 
   const API_BASE = resolveApiBaseUrl();
+  const FETCH_TIMEOUT_MS = 8_000;
   const state = {
     pageIndex: 0,
     pageSize: 250,
@@ -83,9 +84,10 @@
       void loadSnapshot({ resetListScroll: true });
     });
 
-    connectLiveEvents();
+    closeMenu();
     startClock();
     void loadSnapshot({ resetListScroll: false });
+    connectLiveEvents();
   }
 
   function resolveApiBaseUrl() {
@@ -109,25 +111,39 @@
 
   async function getJson(path) {
     const sep = path.includes('?') ? '&' : '?';
-    const response = await fetch(apiUrl(`${path}${sep}_=${Date.now()}`), {
-      cache: 'no-store',
-      headers: {
-        'Cache-Control': 'no-cache',
-        Pragma: 'no-cache'
-      }
-    });
-    if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
-    return response.json();
+    return fetchJson(apiUrl(`${path}${sep}_=${Date.now()}`));
   }
 
   async function postJson(path, body) {
-    const response = await fetch(apiUrl(path), {
+    return fetchJson(apiUrl(path), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body ?? {})
     });
-    if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
-    return response.json();
+  }
+
+  async function fetchJson(url, options = {}) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+    try {
+      const response = await fetch(url, {
+        cache: 'no-store',
+        ...options,
+        signal: controller.signal,
+        headers: {
+          'Cache-Control': 'no-cache',
+          Pragma: 'no-cache',
+          ...(options.headers ?? {})
+        }
+      });
+      if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
+      return response.json();
+    } catch (error) {
+      if (error?.name === 'AbortError') throw new Error(`timeout after ${Math.round(FETCH_TIMEOUT_MS / 1000)}s`);
+      throw error;
+    } finally {
+      clearTimeout(timer);
+    }
   }
 
   async function loadSnapshot(options = {}) {
@@ -163,8 +179,37 @@
       if (options.resetListScroll) els.list.scrollTop = 0;
     } catch (error) {
       if (requestId !== state.snapshotSeq) return;
+      const fallbackLoaded = await loadInfluencerFallback(requestId, error, options);
+      if (fallbackLoaded) return;
       state.loadError = error instanceof Error ? error.message : 'Unable to load live data';
       renderAll();
+    }
+  }
+
+  async function loadInfluencerFallback(requestId, originalError, options = {}) {
+    try {
+      const query = new URLSearchParams({
+        pageIndex: String(state.pageIndex),
+        pageSize: String(state.pageSize)
+      });
+      const items = await getJson(`/api/influencers?${query.toString()}`);
+      if (requestId !== state.snapshotSeq) return true;
+      const rows = Array.isArray(items) ? items : (items.items ?? []);
+      state.loadError = `Dashboard snapshot unavailable; showing direct influencer list (${originalError instanceof Error ? originalError.message : 'fallback'})`;
+      state.page = {
+        pageIndex: state.pageIndex,
+        pageSize: state.pageSize,
+        total: rows.length < state.pageSize ? state.pageIndex * state.pageSize + rows.length : Math.max(state.page.total, state.pageIndex * state.pageSize + rows.length),
+        items: rows
+      };
+      state.jobs = [];
+      state.events = [];
+      state.lastSnapshotAt = new Date();
+      renderAll();
+      if (options.resetListScroll) els.list.scrollTop = 0;
+      return true;
+    } catch {
+      return false;
     }
   }
 
