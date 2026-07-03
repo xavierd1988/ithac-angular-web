@@ -16,6 +16,9 @@
     liveTransport: 'connecting',
     lastSnapshotAt: null,
     selectedUsername: null,
+    selectedSignal: null,
+    selectedReputation: null,
+    activeTab: 'live',
     selectedPosts: new Map(),
     run: null,
     page: { pageIndex: 0, pageSize: 250, total: 0, items: [] },
@@ -23,6 +26,8 @@
     proxies: [],
     jobs: [],
     events: [],
+    timex: [],
+    reputation: [],
     loadError: null
   };
 
@@ -52,7 +57,10 @@
     nextPage: byId('nextPage'),
     pageSize: byId('pageSize'),
     loadError: byId('loadError'),
-    list: byId('list')
+    list: byId('list'),
+    mainTabs: document.querySelectorAll('[data-tab]'),
+    pager: document.querySelector('.pager'),
+    modalRoot: byId('modalRoot')
   };
 
   document.addEventListener('DOMContentLoaded', init);
@@ -82,6 +90,9 @@
       state.pageSize = Number(els.pageSize.value) || 250;
       state.pageIndex = 0;
       void loadSnapshot({ resetListScroll: true });
+    });
+    els.mainTabs.forEach((button) => {
+      button.addEventListener('click', () => setTab(button.dataset.tab || 'live'));
     });
 
     closeMenu();
@@ -162,6 +173,7 @@
         getJson('/api/posts/recent?take=160').catch(() => []),
         getJson('/api/jobs/recent?take=220').catch(() => [])
       ]);
+      void loadCryptoPanels();
       if (requestId !== state.snapshotSeq) return;
 
       state.loadError = null;
@@ -182,6 +194,22 @@
       const fallbackLoaded = await loadInfluencerFallback(requestId, error, options);
       if (fallbackLoaded) return;
       state.loadError = error instanceof Error ? error.message : 'Unable to load live data';
+      renderAll();
+    }
+  }
+
+  async function loadCryptoPanels() {
+    try {
+      const [timex, reputation] = await Promise.all([
+        getJson('/api/crypto/timex?take=160').catch(() => []),
+        getJson('/api/crypto/reputation?take=100').catch(() => [])
+      ]);
+      state.timex = Array.isArray(timex) ? timex : [];
+      state.reputation = Array.isArray(reputation) ? reputation : [];
+      renderAll();
+    } catch {
+      state.timex = [];
+      state.reputation = [];
       renderAll();
     }
   }
@@ -256,8 +284,29 @@
 
   function renderAll() {
     renderTop();
+    renderTabs();
     renderPager();
     renderList();
+    renderModal();
+  }
+
+  function setTab(tab) {
+    const next = ['live', 'timex', 'reputation'].includes(tab) ? tab : 'live';
+    if (state.activeTab === next) return;
+    state.activeTab = next;
+    state.selectedUsername = null;
+    state.selectedSignal = null;
+    state.selectedReputation = null;
+    renderAll();
+  }
+
+  function renderTabs() {
+    els.mainTabs.forEach((button) => {
+      const active = button.dataset.tab === state.activeTab;
+      button.classList.toggle('active', active);
+      if (active) button.setAttribute('aria-current', 'page');
+      else button.removeAttribute('aria-current');
+    });
   }
 
   function renderTop() {
@@ -310,6 +359,13 @@
   }
 
   function renderPager() {
+    els.pager.hidden = state.activeTab !== 'live';
+    if (state.activeTab !== 'live') {
+      els.listRange.textContent = state.activeTab === 'timex'
+        ? `${state.timex.length} signals`
+        : `${state.reputation.length} aliases`;
+      return;
+    }
     const total = state.page.total || 0;
     const pageSize = state.page.pageSize || state.pageSize;
     const pageCount = Math.max(1, Math.ceil(total / Math.max(pageSize, 1)));
@@ -385,6 +441,14 @@
   }
 
   function renderList() {
+    if (state.activeTab === 'timex') {
+      renderTimex();
+      return;
+    }
+    if (state.activeTab === 'reputation') {
+      renderReputation();
+      return;
+    }
     const rows = state.page.items ?? [];
     if (!rows.length) {
       const empty = document.createElement('article');
@@ -402,6 +466,76 @@
       }
     });
     els.list.replaceChildren(...nodes);
+  }
+
+  function renderTimex() {
+    const rows = state.timex;
+    if (!rows.length) {
+      els.list.replaceChildren(emptyNode('No TIMEX signal', 'Signals will appear when Groq extracts crypto mentions and the 1h window starts.'));
+      return;
+    }
+    els.list.replaceChildren(...rows.map((signal, index) => renderSignalRow(signal, index + 1)));
+  }
+
+  function renderSignalRow(signal, rank) {
+    const row = document.createElement('article');
+    row.className = `timex-row ${scoreClass(signal.score)} ${signal.status || ''}`;
+    const progress = Number(signal.window?.progressPct ?? 0);
+    row.innerHTML = `
+      <span class="rank">${rank}</span>
+      <section class="signal-main">
+        <div class="signal-line">
+          <strong>${escapeHtml(signal.serialRef || `#${signal.id}`)}</strong>
+          <em>@${escapeHtml(signal.username || '-')} · ${escapeHtml(signal.symbol || '-')}</em>
+        </div>
+        <div class="progress-track signal-progress"><span style="width:${Math.max(0, Math.min(100, progress))}%"></span></div>
+        <p>${escapeHtml(windowText(signal))}</p>
+      </section>
+      <span class="signal-score ${scoreClass(signal.score)}">${formatScore(signal.score)}</span>
+      <span class="signal-var ${scoreClass(signal.score)}">${formatVariation(signal.variationPct)}</span>
+    `;
+    row.addEventListener('click', () => {
+      state.selectedSignal = signal;
+      renderModal();
+    });
+    return row;
+  }
+
+  function renderReputation() {
+    const rows = state.reputation;
+    if (!rows.length) {
+      els.list.replaceChildren(emptyNode('No reputation yet', 'Reputation appears after scored 1h windows.'));
+      return;
+    }
+    els.list.replaceChildren(...rows.map((row, index) => renderReputationRow(row, index + 1)));
+  }
+
+  function renderReputationRow(item, rank) {
+    const row = document.createElement('article');
+    row.className = `reputation-row ${scoreClass(item.averageScore)}`;
+    row.innerHTML = `
+      <span class="rank">${rank}</span>
+      <section class="signal-main">
+        <div class="signal-line">
+          <strong>@${escapeHtml(item.username || '-')}</strong>
+          <em>${Number(item.scoredCount ?? 0)} scored · last ${escapeHtml(item.lastSymbol || '-')} · ${formatMinute(item.lastUpdatedAt)}</em>
+        </div>
+        <p>Average ${formatScore(item.averageScore)} · best ${formatScore(item.bestScore)} · last ${formatScore(item.lastScore)}</p>
+      </section>
+      <span class="signal-score ${scoreClass(item.averageScore)}">${formatScore(item.averageScore)}</span>
+    `;
+    row.addEventListener('click', () => {
+      state.selectedReputation = item;
+      renderModal();
+    });
+    return row;
+  }
+
+  function emptyNode(title, body) {
+    const empty = document.createElement('article');
+    empty.className = 'empty';
+    empty.innerHTML = `<strong>${escapeHtml(title)}</strong><br><span>${escapeHtml(body)}</span>`;
+    return empty;
   }
 
   function renderRow(row, rank) {
@@ -648,6 +782,166 @@
         <span>${escapeHtml(post.content || '')}</span>
       </a>
     `;
+  }
+
+  function renderModal() {
+    if (state.selectedSignal) {
+      els.modalRoot.replaceChildren(signalModal(state.selectedSignal));
+      return;
+    }
+    if (state.selectedReputation) {
+      els.modalRoot.replaceChildren(reputationModal(state.selectedReputation));
+      return;
+    }
+    els.modalRoot.replaceChildren();
+  }
+
+  function signalModal(signal) {
+    const backdrop = document.createElement('div');
+    backdrop.className = 'modal-backdrop';
+    backdrop.innerHTML = `
+      <section class="modal-card">
+        <header>
+          <div>
+            <span class="eyebrow">TIMEX</span>
+            <h2>${escapeHtml(signal.serialRef || `Signal #${signal.id}`)}</h2>
+          </div>
+          <button type="button" class="menu-close">Close</button>
+        </header>
+        <div class="signal-graph">
+          ${signalGraph(signal)}
+        </div>
+        <div class="modal-grid">
+          ${detailCard('Alias', `@${signal.username || '-'}`)}
+          ${detailCard('Coin', signal.symbol || '-')}
+          ${detailCard('Status', signal.status || '-')}
+          ${detailCard('Variation', formatVariation(signal.variationPct))}
+          ${detailCard('Score', formatScore(signal.score))}
+          ${detailCard('Window', windowText(signal))}
+        </div>
+      </section>
+    `;
+    backdrop.addEventListener('click', (event) => {
+      if (event.target === backdrop || event.target.closest('button')) {
+        state.selectedSignal = null;
+        renderModal();
+      }
+    });
+    return backdrop;
+  }
+
+  function reputationModal(row) {
+    const backdrop = document.createElement('div');
+    const history = Array.isArray(row.history) ? row.history : [];
+    backdrop.className = 'modal-backdrop';
+    backdrop.innerHTML = `
+      <section class="modal-card">
+        <header>
+          <div>
+            <span class="eyebrow">Reputation</span>
+            <h2>@${escapeHtml(row.username || '-')}</h2>
+          </div>
+          <button type="button" class="menu-close">Close</button>
+        </header>
+        <div class="modal-grid">
+          ${detailCard('Average', formatScore(row.averageScore))}
+          ${detailCard('Best', formatScore(row.bestScore))}
+          ${detailCard('Last', `${formatScore(row.lastScore)} · ${row.lastSymbol || '-'}`)}
+          ${detailCard('Scored windows', String(row.scoredCount ?? history.length))}
+        </div>
+        <div class="history-list">
+          ${history.length ? history.map(historyHtml).join('') : '<p class="empty-inline">No scored history.</p>'}
+        </div>
+      </section>
+    `;
+    backdrop.addEventListener('click', (event) => {
+      const historyButton = event.target.closest('[data-signal-id]');
+      if (historyButton) {
+        const signal = history.find((item) => String(item.id) === historyButton.dataset.signalId);
+        if (signal) {
+          state.selectedReputation = null;
+          state.selectedSignal = signal;
+          renderModal();
+        }
+        return;
+      }
+      if (event.target === backdrop || event.target.closest('button.menu-close')) {
+        state.selectedReputation = null;
+        renderModal();
+      }
+    });
+    return backdrop;
+  }
+
+  function historyHtml(signal) {
+    return `
+      <button class="history-row ${scoreClass(signal.score)}" type="button" data-signal-id="${escapeAttr(signal.id)}">
+        <strong>${escapeHtml(signal.serialRef || `#${signal.id}`)}</strong>
+        <span>${escapeHtml(signal.symbol || '-')} · ${formatVariation(signal.variationPct)}</span>
+        <em>${formatScore(signal.score)}</em>
+      </button>
+    `;
+  }
+
+  function signalGraph(signal) {
+    const start = Number(signal.startPriceUsd);
+    const end = Number(signal.endPriceUsd);
+    const hasEnd = Number.isFinite(end);
+    const min = Math.min(start || 0, hasEnd ? end : start || 0);
+    const max = Math.max(start || 0, hasEnd ? end : start || 0);
+    const range = Math.max(max - min, max * 0.01, 1);
+    const y1 = 90 - (((start || min) - min) / range) * 58;
+    const y2 = hasEnd ? 90 - ((end - min) / range) * 58 : 90;
+    const color = scoreClass(signal.score) === 'good' ? '#35d39e' : scoreClass(signal.score) === 'bad' ? '#ff5d6c' : '#ffb020';
+    return `
+      <svg viewBox="0 0 320 124" role="img" aria-label="One hour price window">
+        <line x1="28" y1="100" x2="292" y2="100"></line>
+        <polyline points="42,${y1.toFixed(1)} 278,${y2.toFixed(1)}" style="stroke:${color}"></polyline>
+        <circle cx="42" cy="${y1.toFixed(1)}" r="6"></circle>
+        <circle cx="278" cy="${y2.toFixed(1)}" r="6"></circle>
+        <text x="42" y="118">start ${formatPrice(start)}</text>
+        <text x="196" y="118">${hasEnd ? `end ${formatPrice(end)}` : 'waiting end price'}</text>
+      </svg>
+    `;
+  }
+
+  function windowText(signal) {
+    const window = signal.window || {};
+    if (signal.status === 'waiting_1h') {
+      return `${Math.round(Number(window.progressPct ?? 0))}% · ${Number(window.minutesRemaining ?? 0).toFixed(1)} min left`;
+    }
+    if (signal.status === 'scored') {
+      return `scored · ${formatMinute(signal.startPriceAt)} → ${formatMinute(signal.endPriceAt)}`;
+    }
+    return signal.status || 'pending';
+  }
+
+  function scoreClass(score) {
+    const value = Number(score);
+    if (!Number.isFinite(value)) return 'neutral';
+    if (value >= 55) return 'good';
+    if (value <= 45) return 'bad';
+    return 'neutral';
+  }
+
+  function formatScore(score) {
+    const value = Number(score);
+    return Number.isFinite(value) ? value.toFixed(1) : '-';
+  }
+
+  function formatVariation(value) {
+    const number = Number(value);
+    if (!Number.isFinite(number)) return '-';
+    const sign = number > 0 ? '+' : '';
+    return `${sign}${number.toFixed(2)}%`;
+  }
+
+  function formatPrice(value) {
+    const number = Number(value);
+    if (!Number.isFinite(number)) return '-';
+    if (number >= 100) return `$${number.toFixed(2)}`;
+    if (number >= 1) return `$${number.toFixed(4)}`;
+    return `$${number.toPrecision(4)}`;
   }
 
   function avatarHtml(row) {
