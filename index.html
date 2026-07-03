@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
   <title>Ithac Live Scraper</title>
-  <link rel="stylesheet" href="./styles.css?v=20260702-displayfix1">
+  <link rel="stylesheet" href="./styles.css?v=20260703-timex1">
 </head>
 <body>
   <button id="menuToggle" class="menu-toggle" type="button" aria-expanded="false" aria-controls="controlPopover">
@@ -59,6 +59,11 @@
 
   <main class="app-shell">
     <section class="list-card">
+      <nav class="main-tabs" aria-label="Scraper views">
+        <button class="active" type="button" data-tab="live">Live</button>
+        <button type="button" data-tab="timex">TIMEX</button>
+        <button type="button" data-tab="reputation">Reputation</button>
+      </nav>
       <nav class="pager" aria-label="Influencer pages">
         <button id="prevPage" type="button">Previous</button>
         <strong id="pageStatus">Page 1 / 1</strong>
@@ -79,7 +84,8 @@
       <div id="list" class="list" aria-live="polite"></div>
     </section>
   </main>
+  <div id="modalRoot"></div>
 
-  <script src="./app.js?v=20260702-displayfix1" defer></script>
+  <script src="./app.js?v=20260703-timex1" defer></script>
 </body>
 </html>
