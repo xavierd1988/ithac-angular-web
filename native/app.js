@@ -471,7 +471,7 @@
   function renderTimex() {
     const rows = state.timex;
     if (!rows.length) {
-      els.list.replaceChildren(emptyNode('No TIMEX signal', 'Signals will appear when Groq extracts crypto mentions and the 1h window starts.'));
+      els.list.replaceChildren(emptyNode('No TIMEX signal', 'Signals will appear when Groq extracts crypto mentions and the 6h window starts.'));
       return;
     }
     els.list.replaceChildren(...rows.map((signal, index) => renderSignalRow(signal, index + 1)));
@@ -504,7 +504,7 @@
   function renderReputation() {
     const rows = state.reputation;
     if (!rows.length) {
-      els.list.replaceChildren(emptyNode('No reputation yet', 'Reputation appears after scored 1h windows.'));
+      els.list.replaceChildren(emptyNode('No reputation yet', 'Reputation appears after scored 6h windows.'));
       return;
     }
     els.list.replaceChildren(...rows.map((row, index) => renderReputationRow(row, index + 1)));
@@ -894,7 +894,7 @@
     const y2 = hasEnd ? 90 - ((end - min) / range) * 58 : 90;
     const color = scoreClass(signal.score) === 'good' ? '#35d39e' : scoreClass(signal.score) === 'bad' ? '#ff5d6c' : '#ffb020';
     return `
-      <svg viewBox="0 0 320 124" role="img" aria-label="One hour price window">
+      <svg viewBox="0 0 320 124" role="img" aria-label="Six hour price window">
         <line x1="28" y1="100" x2="292" y2="100"></line>
         <polyline points="42,${y1.toFixed(1)} 278,${y2.toFixed(1)}" style="stroke:${color}"></polyline>
         <circle cx="42" cy="${y1.toFixed(1)}" r="6"></circle>
@@ -908,7 +908,9 @@
   function windowText(signal) {
     const window = signal.window || {};
     if (signal.status === 'waiting_1h') {
-      return `${Math.round(Number(window.progressPct ?? 0))}% · ${Number(window.minutesRemaining ?? 0).toFixed(1)} min left`;
+      const duration = Number(window.durationMinutes ?? 360);
+      const label = window.label || (duration >= 60 ? `${Math.round(duration / 60)}h` : `${duration}m`);
+      return `${label} window · ${Math.round(Number(window.progressPct ?? 0))}% · ${Number(window.minutesRemaining ?? 0).toFixed(1)} min left`;
     }
     if (signal.status === 'scored') {
       return `scored · ${formatMinute(signal.startPriceAt)} → ${formatMinute(signal.endPriceAt)}`;
