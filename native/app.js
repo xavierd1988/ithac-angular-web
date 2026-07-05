@@ -565,7 +565,8 @@
 
   function renderReputationRow(item, rank) {
     const row = document.createElement('article');
-    row.className = `reputation-row ${scoreClass(item.averageScore)}`;
+    const score = reputationScore(item);
+    row.className = `reputation-row ${scoreClass(score)}`;
     row.innerHTML = `
       <span class="rank">${rank}</span>
       <section class="signal-main">
@@ -573,9 +574,9 @@
           <strong>@${escapeHtml(item.username || '-')}</strong>
           <em>${reputationWindowLabel(item.window || state.reputationWindow)} · ${Number(item.scoredCount ?? 0)} scored · last ${escapeHtml(item.lastSymbol || '-')} · ${formatMinute(item.lastUpdatedAt)}</em>
         </div>
-        <p>Score ${formatScore(item.averageScore)} · best ${formatScore(item.bestScore)} · last ${formatScore(item.lastScore)} · window ${formatMinute(item.windowStart)} → ${formatMinute(item.windowEnd)}</p>
+        <p>Score ${formatScore(score)} · avg ${formatScore(item.averageScore)} · activity ${formatScore(item.activityScore)} · best ${formatScore(item.bestScore)}</p>
       </section>
-      <span class="signal-score ${scoreClass(item.averageScore)}">${formatScore(item.averageScore)}</span>
+      <span class="signal-score ${scoreClass(score)}">${formatScore(score)}</span>
     `;
     row.addEventListener('click', () => {
       state.selectedReputation = item;
@@ -898,7 +899,9 @@
         </header>
         <div class="modal-grid">
           ${detailCard('Competition', reputationWindowLabel(row.window || state.reputationWindow))}
+          ${detailCard('Score', formatScore(reputationScore(row)))}
           ${detailCard('Average', formatScore(row.averageScore))}
+          ${detailCard('Activity', formatScore(row.activityScore))}
           ${detailCard('Best', formatScore(row.bestScore))}
           ${detailCard('Last', `${formatScore(row.lastScore)} · ${row.lastSymbol || '-'}`)}
           ${detailCard('Scored windows', String(row.scoredCount ?? history.length))}
@@ -936,6 +939,11 @@
         <em>${formatScore(signal.score)}</em>
       </button>
     `;
+  }
+
+  function reputationScore(item) {
+    const value = Number(item.competitionScore);
+    return Number.isFinite(value) ? value : Number(item.averageScore);
   }
 
   function signalGraph(signal) {
