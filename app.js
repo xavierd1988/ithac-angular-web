@@ -487,7 +487,7 @@
   function renderTimex() {
     const rows = state.timex;
     if (!rows.length) {
-      els.list.replaceChildren(emptyNode('No TIMEX signal', 'Signals will appear when Groq extracts crypto mentions and the 6h window starts.'));
+      els.list.replaceChildren(emptyNode('No TIMEX signal', 'Signals will appear when Groq extracts crypto mentions and starts 1D / 1W / 1M windows.'));
       return;
     }
     els.list.replaceChildren(...rows.map((signal, index) => renderSignalRow(signal, index + 1)));
@@ -502,7 +502,7 @@
       <section class="signal-main">
         <div class="signal-line">
           <strong>${escapeHtml(signal.serialRef || `#${signal.id}`)}</strong>
-          <em>@${escapeHtml(signal.username || '-')} · ${escapeHtml(signal.symbol || '-')}</em>
+          <em>@${escapeHtml(signal.username || '-')} · ${escapeHtml(signal.symbol || '-')} · ${escapeHtml(signal.horizonLabel || signal.window?.label || '-')}</em>
         </div>
         <div class="progress-track signal-progress"><span style="width:${Math.max(0, Math.min(100, progress))}%"></span></div>
         <p>${escapeHtml(windowText(signal))}</p>
@@ -868,6 +868,7 @@
         <div class="modal-grid">
           ${detailCard('Alias', `@${signal.username || '-'}`)}
           ${detailCard('Coin', signal.symbol || '-')}
+          ${detailCard('Horizon', signal.horizonLabel || signal.window?.label || '-')}
           ${detailCard('Status', signal.status || '-')}
           ${detailCard('Variation', formatVariation(signal.variationPct))}
           ${detailCard('Score', formatScore(signal.score))}
@@ -970,10 +971,10 @@
 
   function windowText(signal) {
     const window = signal.window || {};
-    if (signal.status === 'waiting_1h') {
+    if (String(signal.status || '').startsWith('waiting_')) {
       const duration = Number(window.durationMinutes ?? 360);
       const label = window.label || (duration >= 60 ? `${Math.round(duration / 60)}h` : `${duration}m`);
-      return `${label} window · ${Math.round(Number(window.progressPct ?? 0))}% · ${Number(window.minutesRemaining ?? 0).toFixed(1)} min left`;
+      return `${label} window · ${Math.round(Number(window.progressPct ?? 0))}% · target ${formatMinute(window.targetAt)} · ${Number(window.minutesRemaining ?? 0).toFixed(1)} min left`;
     }
     if (signal.status === 'scored') {
       return `scored · ${formatMinute(signal.startPriceAt)} → ${formatMinute(signal.endPriceAt)}`;
