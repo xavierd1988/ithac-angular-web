@@ -3,6 +3,11 @@
 
   const API_BASE = resolveApiBaseUrl();
   const FETCH_TIMEOUT_MS = 8_000;
+  const REPUTATION_WINDOWS = [
+    { key: 'day', label: '1 DAY' },
+    { key: 'week', label: '1 WEEK' },
+    { key: 'month', label: '1 MONTH' }
+  ];
   const state = {
     pageIndex: 0,
     pageSize: 250,
@@ -27,7 +32,12 @@
     jobs: [],
     events: [],
     timex: [],
-    reputation: [],
+    reputationWindow: 'day',
+    reputation: {
+      day: [],
+      week: [],
+      month: []
+    },
     loadError: null
   };
 
@@ -200,16 +210,22 @@
 
   async function loadCryptoPanels() {
     try {
-      const [timex, reputation] = await Promise.all([
+      const [timex, repDay, repWeek, repMonth] = await Promise.all([
         getJson('/api/crypto/timex?take=160').catch(() => []),
-        getJson('/api/crypto/reputation?take=100').catch(() => [])
+        getJson('/api/crypto/reputation?window=day&take=160').catch(() => []),
+        getJson('/api/crypto/reputation?window=week&take=160').catch(() => []),
+        getJson('/api/crypto/reputation?window=month&take=160').catch(() => [])
       ]);
       state.timex = Array.isArray(timex) ? timex : [];
-      state.reputation = Array.isArray(reputation) ? reputation : [];
+      state.reputation = {
+        day: Array.isArray(repDay) ? repDay : [],
+        week: Array.isArray(repWeek) ? repWeek : [],
+        month: Array.isArray(repMonth) ? repMonth : []
+      };
       renderAll();
     } catch {
       state.timex = [];
-      state.reputation = [];
+      state.reputation = { day: [], week: [], month: [] };
       renderAll();
     }
   }
@@ -363,7 +379,7 @@
     if (state.activeTab !== 'live') {
       els.listRange.textContent = state.activeTab === 'timex'
         ? `${state.timex.length} signals`
-        : `${state.reputation.length} aliases`;
+        : `${currentReputationRows().length} aliases · ${reputationWindowLabel(state.reputationWindow)}`;
       return;
     }
     const total = state.page.total || 0;
@@ -502,12 +518,49 @@
   }
 
   function renderReputation() {
-    const rows = state.reputation;
+    const rows = currentReputationRows();
+    const nodes = [renderReputationSwitcher()];
     if (!rows.length) {
-      els.list.replaceChildren(emptyNode('No reputation yet', 'Reputation appears after scored 6h windows.'));
+      nodes.push(emptyNode('No reputation yet', `${reputationWindowLabel(state.reputationWindow)} competition will appear after scored crypto windows.`));
+      els.list.replaceChildren(...nodes);
       return;
     }
-    els.list.replaceChildren(...rows.map((row, index) => renderReputationRow(row, index + 1)));
+    els.list.replaceChildren(...nodes, ...rows.map((row, index) => renderReputationRow(row, row.rank || index + 1)));
+  }
+
+  function currentReputationRows() {
+    return state.reputation?.[state.reputationWindow] ?? [];
+  }
+
+  function reputationWindowLabel(key) {
+    return REPUTATION_WINDOWS.find((item) => item.key === key)?.label ?? '1 DAY';
+  }
+
+  function renderReputationSwitcher() {
+    const wrap = document.createElement('section');
+    wrap.className = 'reputation-switcher';
+    wrap.innerHTML = `
+      <div>
+        <strong>Reputation competitions</strong>
+        <span>Three independent rankings. Same influencer can compete in day, week and month at the same time.</span>
+      </div>
+      <div class="reputation-window-buttons">
+        ${REPUTATION_WINDOWS.map((item) => `
+          <button type="button" data-reputation-window="${escapeAttr(item.key)}" class="${state.reputationWindow === item.key ? 'active' : ''}">
+            ${escapeHtml(item.label)}
+            <em>${(state.reputation?.[item.key] ?? []).length}</em>
+          </button>
+        `).join('')}
+      </div>
+    `;
+    wrap.querySelectorAll('[data-reputation-window]').forEach((button) => {
+      button.addEventListener('click', () => {
+        state.reputationWindow = button.dataset.reputationWindow || 'day';
+        state.selectedReputation = null;
+        renderAll();
+      });
+    });
+    return wrap;
   }
 
   function renderReputationRow(item, rank) {
@@ -518,9 +571,9 @@
       <section class="signal-main">
         <div class="signal-line">
           <strong>@${escapeHtml(item.username || '-')}</strong>
-          <em>${Number(item.scoredCount ?? 0)} scored · last ${escapeHtml(item.lastSymbol || '-')} · ${formatMinute(item.lastUpdatedAt)}</em>
+          <em>${reputationWindowLabel(item.window || state.reputationWindow)} · ${Number(item.scoredCount ?? 0)} scored · last ${escapeHtml(item.lastSymbol || '-')} · ${formatMinute(item.lastUpdatedAt)}</em>
         </div>
-        <p>Average ${formatScore(item.averageScore)} · best ${formatScore(item.bestScore)} · last ${formatScore(item.lastScore)}</p>
+        <p>Score ${formatScore(item.averageScore)} · best ${formatScore(item.bestScore)} · last ${formatScore(item.lastScore)} · window ${formatMinute(item.windowStart)} → ${formatMinute(item.windowEnd)}</p>
       </section>
       <span class="signal-score ${scoreClass(item.averageScore)}">${formatScore(item.averageScore)}</span>
     `;
@@ -839,15 +892,17 @@
         <header>
           <div>
             <span class="eyebrow">Reputation</span>
-            <h2>@${escapeHtml(row.username || '-')}</h2>
+            <h2>#${escapeHtml(String(row.rank || '-'))} @${escapeHtml(row.username || '-')}</h2>
           </div>
           <button type="button" class="menu-close">Close</button>
         </header>
         <div class="modal-grid">
+          ${detailCard('Competition', reputationWindowLabel(row.window || state.reputationWindow))}
           ${detailCard('Average', formatScore(row.averageScore))}
           ${detailCard('Best', formatScore(row.bestScore))}
           ${detailCard('Last', `${formatScore(row.lastScore)} · ${row.lastSymbol || '-'}`)}
           ${detailCard('Scored windows', String(row.scoredCount ?? history.length))}
+          ${detailCard('Period', `${formatMinute(row.windowStart)} → ${formatMinute(row.windowEnd)}`)}
         </div>
         <div class="history-list">
           ${history.length ? history.map(historyHtml).join('') : '<p class="empty-inline">No scored history.</p>'}
