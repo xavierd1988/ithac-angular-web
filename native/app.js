@@ -828,14 +828,37 @@
   }
 
   function postHtml(post) {
-    const mentions = (post.mentions ?? []).map((item) => item.symbol ?? item).join(', ') || 'post';
+    const mentions = Array.isArray(post.mentions) ? post.mentions : [];
     return `
       <a class="post" href="${escapeAttr(post.url || '#')}" target="_blank" rel="noreferrer">
         <span>${escapeHtml(formatMinute(post.scrapedAt || post.postedAt))}</span>
-        <strong>${escapeHtml(mentions)}</strong>
+        <div class="post-mentions">${mentionChipsHtml(mentions)}</div>
         <span>${escapeHtml(post.content || '')}</span>
       </a>
     `;
+  }
+
+  function mentionChipsHtml(mentions) {
+    if (!mentions.length) return '<strong class="mention-chip plain">post</strong>';
+    return mentions.map((item) => {
+      const symbol = item?.symbol ?? item;
+      const direction = normalizeMentionDirection(item?.direction);
+      const thesis = item?.thesis ? ` title="${escapeAttr(item.thesis)}"` : '';
+      const label = direction === 'bearish' ? 'NEG' : direction === 'bullish' ? 'POS' : '';
+      return `
+        <strong class="mention-chip ${direction}"${thesis}>
+          <b>${escapeHtml(symbol || '-')}</b>
+          ${label ? `<em>${label}</em>` : ''}
+          ${item?.thesis ? `<span>${escapeHtml(item.thesis)}</span>` : ''}
+        </strong>
+      `;
+    }).join('');
+  }
+
+  function normalizeMentionDirection(direction) {
+    const value = String(direction || '').toLowerCase();
+    if (value === 'bullish' || value === 'bearish') return value;
+    return 'plain';
   }
 
   function renderModal() {

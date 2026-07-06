@@ -742,13 +742,68 @@ select:focus {
 
 .post {
   display: grid;
-  grid-template-columns: 140px 86px minmax(0, 1fr);
+  grid-template-columns: 140px minmax(190px, 320px) minmax(0, 1fr);
   gap: 10px;
   align-items: center;
   min-height: 38px;
   padding: 7px 10px;
   color: var(--muted);
   text-decoration: none;
+}
+
+.post-mentions {
+  display: flex;
+  gap: 6px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.mention-chip {
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+  min-width: 0;
+  max-width: 220px;
+  border: 1px solid rgba(53, 211, 158, 0.24);
+  border-radius: 999px;
+  padding: 3px 7px;
+  color: var(--green);
+  background: rgba(53, 211, 158, 0.08);
+  font-size: 11px;
+  line-height: 1.1;
+}
+
+.mention-chip.bearish {
+  border-color: rgba(255, 93, 108, 0.26);
+  color: var(--red);
+  background: rgba(255, 93, 108, 0.08);
+}
+
+.mention-chip.plain {
+  border-color: rgba(201, 151, 43, 0.24);
+  color: var(--gold);
+  background: rgba(201, 151, 43, 0.06);
+}
+
+.mention-chip b,
+.mention-chip em,
+.mention-chip span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mention-chip em {
+  color: currentColor;
+  font-size: 9px;
+  font-style: normal;
+  opacity: 0.78;
+}
+
+.mention-chip span {
+  color: var(--muted);
+  font-weight: 520;
 }
 
 .post strong {
