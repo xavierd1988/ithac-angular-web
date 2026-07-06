@@ -43,25 +43,9 @@
   };
 
   const els = {
-    menuToggle: byId('menuToggle'),
-    menuClose: byId('menuClose'),
-    menuBackdrop: byId('menuBackdrop'),
-    controlPopover: byId('controlPopover'),
-    menuSummary: byId('menuSummary'),
-    runPill: byId('runPill'),
-    runState: byId('runState'),
-    runProgress: byId('runProgress'),
+    livePositionBar: byId('livePositionBar'),
     scannerTitle: byId('scannerTitle'),
     scannerMeta: byId('scannerMeta'),
-    loopMonitor: byId('loopMonitor'),
-    loopTitle: byId('loopTitle'),
-    loopMeta: byId('loopMeta'),
-    addForm: byId('addForm'),
-    handleInput: byId('handleInput'),
-    searchInput: byId('searchInput'),
-    scrapeButton: byId('scrapeButton'),
-    listRange: byId('listRange'),
-    listStats: byId('listStats'),
     pageStatus: byId('pageStatus'),
     pageNumbers: byId('pageNumbers'),
     prevPage: byId('prevPage'),
@@ -77,24 +61,6 @@
   document.addEventListener('DOMContentLoaded', init);
 
   function init() {
-    closeMenu();
-    window.addEventListener('pageshow', closeMenu);
-    els.menuToggle.addEventListener('click', toggleMenu);
-    els.menuClose.addEventListener('click', closeMenu);
-    els.menuBackdrop.addEventListener('click', closeMenu);
-    document.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape') closeMenu();
-    });
-    els.addForm.addEventListener('submit', (event) => {
-      event.preventDefault();
-      void addInfluencer();
-    });
-    els.searchInput.addEventListener('input', debounce(() => {
-      state.query = els.searchInput.value.trim();
-      state.pageIndex = 0;
-      void loadSnapshot({ resetListScroll: true });
-    }, 220));
-    els.scrapeButton.addEventListener('click', () => void startRun());
     els.prevPage.addEventListener('click', () => goToPage(state.pageIndex - 1));
     els.nextPage.addEventListener('click', () => goToPage(state.pageIndex + 1));
     els.pageSize.addEventListener('change', () => {
@@ -107,7 +73,6 @@
       button.addEventListener('click', () => setTab(button.dataset.tab || 'live'));
     });
 
-    closeMenu();
     startClock();
     void loadSnapshot({ resetListScroll: false });
     connectLiveEvents();
@@ -362,20 +327,12 @@
     const eventUser = usernameFromText(event?.text);
     const resources = `${availableCount(state.sessions)}/${state.sessions.length} sessions · ${availableCount(state.proxies)}/${state.proxies.length} proxies`;
 
-    els.runPill.className = `run-pill ${status}`;
-    els.runState.textContent = status === 'running' ? 'scraping live' : status;
-    els.runProgress.textContent = `${done}/${Math.max(total, 1)}`;
-    els.menuSummary.textContent = status === 'running'
-      ? `${done}/${Math.max(total, 1)} · ${running} running`
-      : `${done}/${Math.max(total, 1)} · ${status}`;
+    els.livePositionBar.className = `live-position-bar ${status}`;
 
     if (active) {
       const rowPos = rowPosition(active.username);
       els.scannerTitle.textContent = `now @${active.username}`;
-      els.scannerMeta.textContent = `${rowPos} · ${resourceText(active)} · ${formatTime(active.startedAt || active.updatedAt)}`;
-      els.loopMonitor.className = 'loop-monitor running';
-      els.loopTitle.textContent = `SCRAPING @${active.username}`;
-      els.loopMeta.textContent = `${done}/${Math.max(total, 1)} done · ${running} running · ${queued} queued · ${failed} failed · ${resourceText(active)} · ${resources}`;
+      els.scannerMeta.textContent = `${rowPos} · ${done}/${Math.max(total, 1)} complete · ${running} running · ${queued} queued · ${failed} failed · ${resourceText(active)} · ${formatTime(active.startedAt || active.updatedAt)} · ${resources}`;
       return;
     }
 
@@ -383,27 +340,18 @@
       const label = eventUser ? `last @${eventUser}` : `Run #${run?.id ?? '-'} active`;
       els.scannerTitle.textContent = label;
       els.scannerMeta.textContent = event
-        ? `${done}/${Math.max(total, 1)} done · ${event.text} · ${event.at}`
-        : `${done}/${Math.max(total, 1)} done · waiting for next account`;
-      els.loopMonitor.className = 'loop-monitor running';
-      els.loopTitle.textContent = `RUN #${run?.id ?? '-'} · LOOP ACTIVE`;
-      els.loopMeta.textContent = `${done}/${Math.max(total, 1)} done · ${running} running · ${queued} queued · ${failed} failed · ${resources}${event ? ` · latest: ${event.text} · ${event.at}` : ''}`;
+        ? `${done}/${Math.max(total, 1)} complete · ${running} running · ${queued} queued · ${failed} failed · ${event.text} · ${event.at} · ${resources}`
+        : `${done}/${Math.max(total, 1)} complete · ${running} running · ${queued} queued · ${failed} failed · waiting for next account · ${resources}`;
       return;
     }
 
     els.scannerTitle.textContent = eventUser ? `last @${eventUser}` : 'idle';
     els.scannerMeta.textContent = event ? `${event.text} · ${event.at}` : 'no active scrape';
-    els.loopMonitor.className = 'loop-monitor';
-    els.loopTitle.textContent = 'SCANNER IDLE';
-    els.loopMeta.textContent = `${done}/${Math.max(total, 1)} done · ${failed} failed · ${resources}`;
   }
 
   function renderPager() {
     els.pager.hidden = state.activeTab !== 'live';
-    if (state.activeTab !== 'live') {
-      els.listRange.textContent = `${currentReputationRows().length} aliases · ${reputationWindowLabel(state.reputationWindow)}`;
-      return;
-    }
+    if (state.activeTab !== 'live') return;
     const total = state.page.total || 0;
     const pageSize = state.page.pageSize || state.pageSize;
     const pageCount = Math.max(1, Math.ceil(total / Math.max(pageSize, 1)));
@@ -412,9 +360,7 @@
     const end = Math.min(total, start + pageSize - 1);
     const run = state.run;
 
-    els.listRange.textContent = `${start}-${end} visible · ${total} handles`;
-    els.listStats.textContent = `${run?.successCount ?? 0} complete · ${run?.failedCount ?? 0} failed`;
-    els.pageStatus.textContent = `Page ${pageIndex + 1} / ${pageCount}`;
+    els.pageStatus.textContent = `Page ${pageIndex + 1} / ${pageCount} · ${start}-${end} of ${total} · ${run?.successCount ?? 0} complete · ${run?.failedCount ?? 0} failed`;
     els.prevPage.disabled = pageIndex <= 0;
     els.nextPage.disabled = pageIndex >= pageCount - 1;
     els.pageSize.value = String(pageSize);
@@ -422,26 +368,6 @@
     els.pageNumbers.replaceChildren(...pageButtonNodes(pageIndex, pageCount));
     els.loadError.hidden = !state.loadError;
     els.loadError.textContent = state.loadError ? `Live API not loaded: ${state.loadError}` : '';
-  }
-
-  function toggleMenu() {
-    if (els.controlPopover.hidden) {
-      openMenu();
-    } else {
-      closeMenu();
-    }
-  }
-
-  function openMenu() {
-    els.controlPopover.hidden = false;
-    els.menuBackdrop.hidden = false;
-    els.menuToggle.setAttribute('aria-expanded', 'true');
-  }
-
-  function closeMenu() {
-    els.controlPopover.hidden = true;
-    els.menuBackdrop.hidden = true;
-    els.menuToggle.setAttribute('aria-expanded', 'false');
   }
 
   function pageButtonNodes(activePage, pageCount) {
@@ -700,33 +626,6 @@
     state.pageIndex = next;
     state.selectedUsername = null;
     void loadSnapshot({ resetListScroll: true });
-  }
-
-  async function addInfluencer() {
-    const raw = els.handleInput.value.trim();
-    const username = raw.replace(/^@/, '');
-    if (!username) return;
-    try {
-      await postJson('/api/influencers', { username, priority: true });
-      els.handleInput.value = '';
-      state.query = '';
-      els.searchInput.value = '';
-      state.pageIndex = 0;
-      await loadSnapshot({ resetListScroll: true });
-    } catch (error) {
-      state.loadError = error instanceof Error ? error.message : 'Unable to add influencer';
-      renderAll();
-    }
-  }
-
-  async function startRun() {
-    try {
-      await postJson('/api/runs', { mode: 'Fast' });
-      await loadSnapshot({ resetListScroll: false });
-    } catch (error) {
-      state.loadError = error instanceof Error ? error.message : 'Unable to start run';
-      renderAll();
-    }
   }
 
   function activeJob() {
