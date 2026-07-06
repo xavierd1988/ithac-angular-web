@@ -63,6 +63,71 @@ button {
   overflow-anchor: none;
 }
 
+.live-position-bar {
+  position: sticky;
+  top: 8px;
+  z-index: 18;
+  display: grid;
+  grid-template-columns: auto auto auto minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  min-height: 44px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 0 14px;
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.92), rgba(8, 8, 8, 0.88)),
+    radial-gradient(340px 140px at 100% 0%, rgba(201, 151, 43, 0.16), transparent 75%);
+  box-shadow: 0 14px 48px rgba(0, 0, 0, 0.34);
+  backdrop-filter: blur(16px);
+}
+
+.live-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 14px rgba(53, 211, 158, 0.85);
+}
+
+.live-position-bar.idle .live-dot,
+.live-position-bar.paused .live-dot {
+  background: var(--gold);
+  box-shadow: 0 0 14px rgba(201, 151, 43, 0.75);
+}
+
+.live-position-bar.failed .live-dot,
+.live-position-bar.blocked .live-dot {
+  background: var(--red);
+  box-shadow: 0 0 14px rgba(239, 90, 98, 0.72);
+}
+
+.live-kicker {
+  color: var(--gold);
+  font-size: 11px;
+  font-weight: 850;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.live-position-bar strong {
+  overflow: hidden;
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 760;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.live-position-bar em {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 12px;
+  font-style: normal;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .menu-toggle {
   position: fixed;
   right: 18px;
