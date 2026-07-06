@@ -748,7 +748,6 @@ select:focus {
   min-height: 38px;
   padding: 7px 10px;
   color: var(--muted);
-  text-decoration: none;
 }
 
 .post-mentions {
@@ -771,12 +770,26 @@ select:focus {
   background: rgba(53, 211, 158, 0.08);
   font-size: 11px;
   line-height: 1.1;
+  cursor: pointer;
+  appearance: none;
+}
+
+.mention-chip:hover,
+.mention-chip.has-timex {
+  border-color: rgba(53, 211, 158, 0.46);
+  box-shadow: 0 0 0 1px rgba(53, 211, 158, 0.08);
 }
 
 .mention-chip.bearish {
   border-color: rgba(255, 93, 108, 0.26);
   color: var(--red);
   background: rgba(255, 93, 108, 0.08);
+}
+
+.mention-chip.bearish:hover,
+.mention-chip.bearish.has-timex {
+  border-color: rgba(255, 93, 108, 0.48);
+  box-shadow: 0 0 0 1px rgba(255, 93, 108, 0.08);
 }
 
 .mention-chip.plain {
@@ -806,15 +819,144 @@ select:focus {
   font-weight: 520;
 }
 
+.post-link {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--muted);
+  text-decoration: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.post-link:hover {
+  color: var(--ink);
+}
+
 .post strong {
   color: var(--gold);
   font-size: 12px;
 }
 
-.post span:last-child {
+.mention-timex-panel {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 10px;
+  border: 1px solid rgba(201, 151, 43, 0.28);
+  border-radius: 10px;
+  padding: 10px;
+  background:
+    linear-gradient(90deg, rgba(201, 151, 43, 0.11), transparent 64%),
+    rgba(0, 0, 0, 0.18);
+}
+
+.mention-timex-panel.bullish {
+  border-color: rgba(53, 211, 158, 0.28);
+}
+
+.mention-timex-panel.bearish {
+  border-color: rgba(255, 93, 108, 0.28);
+}
+
+.mention-timex-panel header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.mention-timex-panel header div {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.mention-timex-panel header span,
+.mention-timex-panel header small {
+  color: var(--gold);
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.mention-timex-panel header strong {
+  color: var(--ink);
+  font-size: 13px;
+}
+
+.mention-timex-panel header em {
+  color: var(--muted);
+  font-size: 12px;
+  font-style: normal;
+}
+
+.timex-bars {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.timex-mini {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 58px;
+  gap: 8px;
+  align-items: center;
+  min-height: 58px;
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  border-radius: 9px;
+  padding: 8px;
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.035);
+  text-align: left;
+}
+
+.timex-mini:not(:disabled) {
+  cursor: pointer;
+}
+
+.timex-mini:disabled {
+  opacity: 0.62;
+}
+
+.timex-mini:hover:not(:disabled) {
+  border-color: rgba(201, 151, 43, 0.5);
+  background: rgba(201, 151, 43, 0.08);
+}
+
+.timex-mini span {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.timex-mini b,
+.timex-mini em {
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.timex-mini b {
+  color: var(--ink);
+  font-size: 12px;
+}
+
+.timex-mini em {
+  color: var(--muted);
+  font-size: 11px;
+  font-style: normal;
+}
+
+.timex-mini > .progress-track {
+  grid-column: 1 / -1;
+  height: 5px;
+}
+
+.timex-mini > strong {
+  justify-self: end;
+  color: currentColor;
+  font-size: 12px;
 }
 
 .empty {

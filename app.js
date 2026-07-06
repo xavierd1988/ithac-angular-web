@@ -22,6 +22,7 @@
     lastSnapshotAt: null,
     selectedUsername: null,
     selectedSignal: null,
+    selectedMentionKey: null,
     selectedReputation: null,
     activeTab: 'live',
     selectedPosts: new Map(),
@@ -101,6 +102,7 @@
       state.pageIndex = 0;
       void loadSnapshot({ resetListScroll: true });
     });
+    els.list.addEventListener('click', handleListClick);
     els.mainTabs.forEach((button) => {
       button.addEventListener('click', () => setTab(button.dataset.tab || 'live'));
     });
@@ -211,7 +213,7 @@
   async function loadCryptoPanels() {
     try {
       const [timex, repDay, repWeek, repMonth] = await Promise.all([
-        getJson('/api/crypto/timex?take=160').catch(() => []),
+        getJson('/api/crypto/timex?take=500').catch(() => []),
         getJson('/api/crypto/reputation?window=day&take=160').catch(() => []),
         getJson('/api/crypto/reputation?window=week&take=160').catch(() => []),
         getJson('/api/crypto/reputation?window=month&take=160').catch(() => [])
@@ -306,12 +308,34 @@
     renderModal();
   }
 
+  function handleListClick(event) {
+    const signalButton = event.target.closest('[data-signal-id]');
+    if (signalButton?.dataset.signalId) {
+      event.preventDefault();
+      event.stopPropagation();
+      const signal = (state.timex || []).find((item) => String(item.id) === String(signalButton.dataset.signalId));
+      if (signal) {
+        state.selectedSignal = signal;
+        renderModal();
+      }
+      return;
+    }
+    const mention = event.target.closest('[data-mention-key]');
+    if (!mention) return;
+    event.preventDefault();
+    event.stopPropagation();
+    const key = mention.dataset.mentionKey || '';
+    state.selectedMentionKey = state.selectedMentionKey === key ? null : key;
+    renderList();
+  }
+
   function setTab(tab) {
-    const next = ['live', 'timex', 'reputation'].includes(tab) ? tab : 'live';
+    const next = ['live', 'reputation'].includes(tab) ? tab : 'live';
     if (state.activeTab === next) return;
     state.activeTab = next;
     state.selectedUsername = null;
     state.selectedSignal = null;
+    state.selectedMentionKey = null;
     state.selectedReputation = null;
     renderAll();
   }
@@ -377,9 +401,7 @@
   function renderPager() {
     els.pager.hidden = state.activeTab !== 'live';
     if (state.activeTab !== 'live') {
-      els.listRange.textContent = state.activeTab === 'timex'
-        ? `${state.timex.length} signals`
-        : `${currentReputationRows().length} aliases · ${reputationWindowLabel(state.reputationWindow)}`;
+      els.listRange.textContent = `${currentReputationRows().length} aliases · ${reputationWindowLabel(state.reputationWindow)}`;
       return;
     }
     const total = state.page.total || 0;
@@ -457,10 +479,6 @@
   }
 
   function renderList() {
-    if (state.activeTab === 'timex') {
-      renderTimex();
-      return;
-    }
     if (state.activeTab === 'reputation') {
       renderReputation();
       return;
@@ -830,29 +848,113 @@
   function postHtml(post) {
     const mentions = Array.isArray(post.mentions) ? post.mentions : [];
     return `
-      <a class="post" href="${escapeAttr(post.url || '#')}" target="_blank" rel="noreferrer">
+      <article class="post">
         <span>${escapeHtml(formatMinute(post.scrapedAt || post.postedAt))}</span>
-        <div class="post-mentions">${mentionChipsHtml(mentions)}</div>
-        <span>${escapeHtml(post.content || '')}</span>
-      </a>
+        <div class="post-mentions">${mentionChipsHtml(post, mentions)}</div>
+        <a class="post-link" href="${escapeAttr(post.url || '#')}" target="_blank" rel="noreferrer">${escapeHtml(post.content || '')}</a>
+        ${selectedMentionPanelHtml(post, mentions)}
+      </article>
     `;
   }
 
-  function mentionChipsHtml(mentions) {
+  function mentionChipsHtml(post, mentions) {
     if (!mentions.length) return '<strong class="mention-chip plain">post</strong>';
-    return mentions.map((item) => {
+    return mentions.map((item, index) => {
       const symbol = item?.symbol ?? item;
       const direction = normalizeMentionDirection(item?.direction);
       const thesis = item?.thesis ? ` title="${escapeAttr(item.thesis)}"` : '';
       const label = direction === 'bearish' ? 'NEG' : direction === 'bullish' ? 'POS' : '';
+      const windows = timexWindowsForMention(post, item);
+      const hasTimex = Object.values(windows).some(Boolean);
+      const key = mentionKey(post, item, index);
       return `
-        <strong class="mention-chip ${direction}"${thesis}>
+        <button type="button" class="mention-chip ${direction} ${hasTimex ? 'has-timex' : ''}" data-mention-key="${escapeAttr(key)}"${thesis}>
           <b>${escapeHtml(symbol || '-')}</b>
           ${label ? `<em>${label}</em>` : ''}
           ${item?.thesis ? `<span>${escapeHtml(item.thesis)}</span>` : ''}
-        </strong>
+        </button>
       `;
     }).join('');
+  }
+
+  function selectedMentionPanelHtml(post, mentions) {
+    const selected = mentions
+      .map((item, index) => ({ item, index, key: mentionKey(post, item, index) }))
+      .find((entry) => entry.key === state.selectedMentionKey);
+    if (!selected) return '';
+    return mentionTimexPanelHtml(post, selected.item, selected.index);
+  }
+
+  function mentionTimexPanelHtml(post, mention, index) {
+    const symbol = mention?.symbol ?? mention ?? '-';
+    const direction = normalizeMentionDirection(mention?.direction);
+    const windows = timexWindowsForMention(post, mention);
+    return `
+      <section class="mention-timex-panel ${direction}">
+        <header>
+          <div>
+            <span>Groq conclusion</span>
+            <strong>${escapeHtml(symbol)} · ${direction === 'bullish' ? 'POSITIVE' : direction === 'bearish' ? 'NEGATIVE' : 'waiting Groq'}</strong>
+            <em>${escapeHtml(mention?.thesis || 'No thesis yet')}</em>
+          </div>
+          <small>${escapeHtml(mentionKey(post, mention, index))}</small>
+        </header>
+        <div class="timex-bars">
+          ${REPUTATION_WINDOWS.map((window) => timexBarHtml(window, windows[window.key])).join('')}
+        </div>
+      </section>
+    `;
+  }
+
+  function timexBarHtml(window, signal) {
+    const progress = Number(signal?.window?.progressPct ?? 0);
+    const clamped = Math.max(0, Math.min(100, Number.isFinite(progress) ? progress : 0));
+    const status = signal?.status || 'not_started';
+    const score = signal?.score;
+    return `
+      <button type="button" class="timex-mini ${scoreClass(score)} ${status}" data-signal-id="${escapeAttr(signal?.id || '')}" ${signal ? '' : 'disabled'}>
+        <span>
+          <b>${escapeHtml(window.label)}</b>
+          <em>${escapeHtml(signal ? windowText(signal) : 'waiting for Timex window')}</em>
+        </span>
+        <i class="progress-track"><span style="width:${clamped}%"></span></i>
+        <strong>${signal ? formatScore(score) : '-'}</strong>
+      </button>
+    `;
+  }
+
+  function timexWindowsForMention(post, mention) {
+    const symbol = normalizeSymbol(mention?.symbol ?? mention);
+    const postId = String(post?.id ?? post?.postId ?? '');
+    const username = String(post?.username ?? '').toLowerCase();
+    const matches = (state.timex || []).filter((signal) => {
+      const signalSymbol = normalizeSymbol(signal.symbol);
+      if (!symbol || signalSymbol !== symbol) return false;
+      const signalPostId = String(signal.postId ?? signal.PostId ?? '');
+      if (postId && signalPostId && postId === signalPostId) return true;
+      return username && String(signal.username || '').toLowerCase() === username;
+    });
+    const byWindow = {};
+    for (const item of matches) {
+      const key = String(item.horizonKey || item.window?.horizon || '').toLowerCase();
+      if (!key) continue;
+      if (!byWindow[key] || new Date(item.updatedAt || 0) > new Date(byWindow[key].updatedAt || 0)) {
+        byWindow[key] = item;
+      }
+    }
+    return byWindow;
+  }
+
+  function mentionKey(post, mention, index = 0) {
+    return [
+      post?.id ?? post?.sourcePostId ?? 'post',
+      normalizeSymbol(mention?.symbol ?? mention) || 'crypto',
+      index
+    ].join(':');
+  }
+
+  function normalizeSymbol(symbol) {
+    return String(symbol || '').replace(/^\$/, '').trim().toUpperCase();
   }
 
   function normalizeMentionDirection(direction) {
