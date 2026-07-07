@@ -1131,6 +1131,26 @@ select:focus {
   grid-template-columns: 44px minmax(0, 1fr) 92px;
 }
 
+.reputation-main {
+  grid-template-columns: 38px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+}
+
+.reputation-copy {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.reputation-avatar {
+  align-self: center;
+}
+
+.reputation-identity strong {
+  color: var(--ink);
+}
+
 .paper-view {
   display: grid;
   gap: 12px;
