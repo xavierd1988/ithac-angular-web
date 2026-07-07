@@ -43,6 +43,7 @@
     paperSync: null,
     paperBusy: false,
     paperError: null,
+    scrapeNowBusy: new Set(),
     loadError: null
   };
 
@@ -531,6 +532,7 @@
     const username = String(item.username || '').trim();
     const profileUrl = xProfileUrl(username);
     const profileLabel = `Open @${username || 'profile'} on X`;
+    const busy = state.scrapeNowBusy.has(username.toLowerCase());
     row.className = `reputation-row ${scoreClass(score)}`;
     row.innerHTML = `
       <span class="rank">${rank}</span>
@@ -549,10 +551,15 @@
           <p>Ranking ${formatScore(score)} · trade avg ${formatScore(item.averageScore)} · activity ${formatScore(item.activityScore)} · best trade ${formatScore(item.bestScore)}</p>
         </div>
       </section>
+      <button class="scrape-now-button" type="button" data-scrape-username="${escapeAttr(username)}" ${busy ? 'disabled' : ''}>${busy ? 'Queued' : 'Scrape now'}</button>
       <span class="signal-score ${scoreClass(score)}">${formatScore(score)}</span>
     `;
     row.querySelectorAll('.x-profile-link').forEach((link) => {
       link.addEventListener('click', (event) => event.stopPropagation());
+    });
+    row.querySelector('.scrape-now-button')?.addEventListener('click', (event) => {
+      event.stopPropagation();
+      void scrapeInfluencerNow(username);
     });
     row.addEventListener('click', () => {
       state.selectedReputation = item;
@@ -638,6 +645,24 @@
       state.paperError = error instanceof Error ? error.message : 'Paper action failed';
     } finally {
       state.paperBusy = false;
+      renderAll();
+    }
+  }
+
+  async function scrapeInfluencerNow(username) {
+    const clean = String(username || '').trim();
+    const key = clean.toLowerCase();
+    if (!clean || state.scrapeNowBusy.has(key)) return;
+
+    state.scrapeNowBusy.add(key);
+    renderAll();
+    try {
+      await postJson(`/api/influencers/${encodeURIComponent(clean)}/retry`, {});
+      await loadSnapshot({ resetListScroll: false });
+    } catch (error) {
+      console.error(`Unable to queue @${clean} for scrape`, error);
+    } finally {
+      state.scrapeNowBusy.delete(key);
       renderAll();
     }
   }
