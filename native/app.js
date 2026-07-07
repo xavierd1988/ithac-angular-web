@@ -39,6 +39,10 @@
       week: [],
       month: []
     },
+    paper: null,
+    paperSync: null,
+    paperBusy: false,
+    paperError: null,
     loadError: null
   };
 
@@ -177,11 +181,12 @@
 
   async function loadCryptoPanels() {
     try {
-      const [timex, repDay, repWeek, repMonth] = await Promise.all([
+      const [timex, repDay, repWeek, repMonth, paper] = await Promise.all([
         getJson('/api/crypto/timex?take=500').catch(() => []),
         getJson('/api/crypto/reputation?window=day&take=160').catch(() => []),
         getJson('/api/crypto/reputation?window=week&take=160').catch(() => []),
-        getJson('/api/crypto/reputation?window=month&take=160').catch(() => [])
+        getJson('/api/crypto/reputation?window=month&take=160').catch(() => []),
+        getJson('/api/paper/summary?sync=false').catch(() => null)
       ]);
       state.timex = Array.isArray(timex) ? timex : [];
       state.reputation = {
@@ -189,6 +194,8 @@
         week: Array.isArray(repWeek) ? repWeek : [],
         month: Array.isArray(repMonth) ? repMonth : []
       };
+      if (paper) state.paper = paper;
+      state.paperError = null;
       renderAll();
     } catch {
       state.timex = [];
@@ -274,6 +281,12 @@
   }
 
   function handleListClick(event) {
+    const paperAction = event.target.closest('[data-paper-action]');
+    if (paperAction?.dataset.paperAction) {
+      event.preventDefault();
+      void runPaperAction(paperAction.dataset.paperAction);
+      return;
+    }
     const signalButton = event.target.closest('[data-signal-id]');
     if (signalButton?.dataset.signalId) {
       event.preventDefault();
@@ -295,7 +308,7 @@
   }
 
   function setTab(tab) {
-    const next = ['live', 'reputation'].includes(tab) ? tab : 'live';
+    const next = ['live', 'reputation', 'paper'].includes(tab) ? tab : 'live';
     if (state.activeTab === next) return;
     state.activeTab = next;
     state.selectedUsername = null;
@@ -303,6 +316,7 @@
     state.selectedMentionKey = null;
     state.selectedReputation = null;
     renderAll();
+    if (next === 'paper') void loadCryptoPanels();
   }
 
   function renderTabs() {
@@ -407,6 +421,10 @@
   function renderList() {
     if (state.activeTab === 'reputation') {
       renderReputation();
+      return;
+    }
+    if (state.activeTab === 'paper') {
+      renderPaper();
       return;
     }
     const rows = state.page.items ?? [];
@@ -527,6 +545,148 @@
       renderModal();
     });
     return row;
+  }
+
+  function renderPaper() {
+    const paper = state.paper;
+    if (!paper) {
+      els.list.replaceChildren(emptyNode('No paper state', state.paperError || 'Paper trading summary is not loaded yet.'));
+      return;
+    }
+
+    const run = paper.currentRun;
+    const totals = paper.totals || {};
+    const openTrades = paper.openTrades || [];
+    const closedTrades = paper.closedTrades || [];
+    const categories = paper.categories || [];
+    const topRanks = paper.topRanks || [];
+    const active = run?.status === 'active';
+    const view = document.createElement('section');
+    view.className = 'paper-view';
+    view.innerHTML = `
+      <article class="paper-hero">
+        <header>
+          <div>
+            <span class="label">Paper trading</span>
+            <strong>${run ? `Run #${escapeHtml(run.id)} · ${escapeHtml(run.status)}` : 'No active run'}</strong>
+            <em>${run ? `${formatMinute(run.startedAt)} · ${formatMoney(run.stakeUsd)} per call · ${formatSignedPct(run.roundTripCostPct)} cost` : 'Top reputation calls are waiting for a run.'}</em>
+          </div>
+          <div class="paper-actions">
+            <button type="button" data-paper-action="start" ${active || state.paperBusy ? 'disabled' : ''}>Start</button>
+            <button type="button" data-paper-action="sync" ${!run || state.paperBusy ? 'disabled' : ''}>Sync</button>
+            <button type="button" data-paper-action="stop" ${!active || state.paperBusy ? 'disabled' : ''}>Stop</button>
+          </div>
+        </header>
+        ${state.paperError ? `<p class="paper-error">${escapeHtml(state.paperError)}</p>` : ''}
+        <div class="paper-metrics">
+          ${paperMetric('Net PnL', formatMoney(totals.netPnlUsd), moneyClass(totals.netPnlUsd))}
+          ${paperMetric('Gross PnL', formatMoney(totals.grossPnlUsd), moneyClass(totals.grossPnlUsd))}
+          ${paperMetric('Costs', formatMoney(-(Number(totals.costUsd) || 0)), 'bad')}
+          ${paperMetric('Open', String(totals.openTrades ?? 0), '')}
+          ${paperMetric('Closed', String(totals.closedTrades ?? 0), '')}
+          ${paperMetric('Win rate', formatSignedPct(totals.winRatePct), scoreClass(totals.winRatePct))}
+        </div>
+      </article>
+      <section class="paper-grid">
+        ${paperPanel('Categories', categories.length ? categories.map(paperCategoryHtml).join('') : '<p class="empty-inline">No category trade yet.</p>', 'compact')}
+        ${paperPanel('Open trades', openTrades.length ? openTrades.map((trade) => paperTradeHtml(trade, false)).join('') : '<p class="empty-inline">No open trade yet.</p>')}
+        ${paperPanel('Closed trades', closedTrades.length ? closedTrades.map((trade) => paperTradeHtml(trade, true)).join('') : '<p class="empty-inline">No closed trade yet.</p>')}
+        ${paperPanel('Top ranks followed', topRanks.length ? topRanks.map(paperRankHtml).join('') : '<p class="empty-inline">No rank snapshot.</p>', 'compact')}
+      </section>
+    `;
+    els.list.replaceChildren(view);
+  }
+
+  async function runPaperAction(action) {
+    if (state.paperBusy) return;
+    state.paperBusy = true;
+    state.paperError = null;
+    renderAll();
+    try {
+      if (action === 'start') {
+        await postJson('/api/paper/runs', {
+          name: 'Reputation Top 10',
+          topNPerWindow: 10,
+          stakeUsd: 100,
+          feeBpsPerSide: 10,
+          spreadBps: 30,
+          slippageBps: 50,
+          maxSignalAgeMinutes: 180,
+          maxOpenPositions: 60
+        });
+      } else if (action === 'sync') {
+        state.paperSync = await postJson('/api/paper/sync', {});
+      } else if (action === 'stop') {
+        await postJson('/api/paper/runs/current/stop', {});
+      }
+      state.paper = await getJson('/api/paper/summary?sync=false');
+    } catch (error) {
+      state.paperError = error instanceof Error ? error.message : 'Paper action failed';
+    } finally {
+      state.paperBusy = false;
+      renderAll();
+    }
+  }
+
+  function paperMetric(label, value, className) {
+    return `
+      <span>
+        <small>${escapeHtml(label)}</small>
+        <strong class="${escapeAttr(className || 'neutral')}">${escapeHtml(value)}</strong>
+      </span>
+    `;
+  }
+
+  function paperPanel(title, content, modifier = '') {
+    return `
+      <article class="paper-panel ${escapeAttr(modifier)}">
+        <h2>${escapeHtml(title)}</h2>
+        <div class="paper-table">${content}</div>
+      </article>
+    `;
+  }
+
+  function paperCategoryHtml(category) {
+    const net = Number(category.netPnlUsd ?? 0);
+    return `
+      <div class="paper-table-row">
+        <strong>${escapeHtml(windowShortLabel(category.window))}</strong>
+        <span>${Number(category.openTrades ?? 0)} open · ${Number(category.closedTrades ?? 0)} closed</span>
+        <em class="${moneyClass(net)}">${formatMoney(net)}</em>
+      </div>
+    `;
+  }
+
+  function paperTradeHtml(trade, closed) {
+    const pnl = Number(trade.netPnlUsd ?? 0);
+    const returnPct = trade.netReturnPct ?? trade.grossReturnPct;
+    return `
+      <div class="paper-trade-row">
+        <strong>@${escapeHtml(trade.username || '-')} · ${escapeHtml(trade.symbol || '-')}</strong>
+        <span>${escapeHtml(windowShortLabel(trade.categoryWindow))} · #${escapeHtml(trade.rankPosition ?? '-')} · ${escapeHtml(trade.direction || '-')}</span>
+        <span>${formatMoney(trade.stakeUsd)} @ ${formatPrice(trade.entryPriceUsd)}</span>
+        <em>${closed ? formatMinute(trade.exitAt) : `target ${formatMinute(trade.targetExitAt)}`}</em>
+        <b class="${moneyClass(pnl)}">${closed ? `${formatMoney(pnl)} · ${formatSignedPct(returnPct)}` : 'open'}</b>
+      </div>
+    `;
+  }
+
+  function paperRankHtml(rank) {
+    return `
+      <div class="paper-table-row">
+        <strong>${escapeHtml(windowShortLabel(rank.window))} #${escapeHtml(rank.rank)}</strong>
+        <span>@${escapeHtml(rank.username || '-')}</span>
+        <em>${formatScore(rank.competitionScore)}</em>
+      </div>
+    `;
+  }
+
+  function windowShortLabel(key) {
+    const value = String(key || '').toLowerCase();
+    if (value === 'day') return '1D';
+    if (value === 'week') return '1W';
+    if (value === 'month') return '1M';
+    return value.toUpperCase() || '-';
   }
 
   function emptyNode(title, body) {
@@ -1024,6 +1184,26 @@
     if (!Number.isFinite(number)) return '-';
     const sign = number > 0 ? '+' : '';
     return `${sign}${number.toFixed(2)}%`;
+  }
+
+  function formatSignedPct(value) {
+    const number = Number(value);
+    if (!Number.isFinite(number)) return '-';
+    const sign = number > 0 ? '+' : '';
+    return `${sign}${number.toFixed(2)}%`;
+  }
+
+  function formatMoney(value) {
+    const number = Number(value);
+    if (!Number.isFinite(number)) return '-';
+    const sign = number > 0 ? '+' : number < 0 ? '-' : '';
+    return `${sign}$${Math.abs(number).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  }
+
+  function moneyClass(value) {
+    const number = Number(value);
+    if (!Number.isFinite(number) || number === 0) return 'neutral';
+    return number > 0 ? 'good' : 'bad';
   }
 
   function formatPrice(value) {
