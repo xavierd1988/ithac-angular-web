@@ -710,16 +710,20 @@
     const progress = rowProgress(row);
     const status = rowStatusLabel(row);
     const steps = scrapeSteps(row);
+    const profileUrl = xProfileUrl(row.username);
+    const profileLabel = `Open @${row.username} on X`;
     article.innerHTML = `
       ${isTraceRow(row) ? '<div class="scan-beam"></div>' : ''}
       <div class="row-main">
         <span class="rank">${rank}</span>
         <section class="identity">
-          ${avatarHtml(row)}
-          <span class="identity-text">
+          <a class="avatar-link x-profile-link" href="${escapeAttr(profileUrl)}" target="_blank" rel="noopener noreferrer" aria-label="${escapeAttr(profileLabel)}">
+            ${avatarHtml(row)}
+          </a>
+          <a class="identity-text x-profile-link" href="${escapeAttr(profileUrl)}" target="_blank" rel="noopener noreferrer" aria-label="${escapeAttr(profileLabel)}">
             <strong>${escapeHtml(row.displayName || `@${row.username}`)}</strong>
             <em>@${escapeHtml(row.username)} · ${formatFollowers(row.followersCount)}</em>
-          </span>
+          </a>
         </section>
         <section class="progress-cell">
           <div class="row-line">
@@ -733,6 +737,9 @@
         <span class="status-light ${normalizeJobStatus(row.status)}"><i></i>${status}</span>
       </div>
     `;
+    article.querySelectorAll('.x-profile-link').forEach((link) => {
+      link.addEventListener('click', (event) => event.stopPropagation());
+    });
     article.addEventListener('click', () => {
       const wasSelected = state.selectedUsername?.toLowerCase() === row.username.toLowerCase();
       state.selectedUsername = wasSelected ? null : row.username;
@@ -740,6 +747,11 @@
       if (!wasSelected) void loadPosts(row.username);
     });
     return article;
+  }
+
+  function xProfileUrl(username) {
+    const handle = String(username || '').trim().replace(/^@+/, '');
+    return `https://x.com/${encodeURIComponent(handle)}`;
   }
 
   function renderDetail(row) {
