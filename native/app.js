@@ -288,6 +288,13 @@
       void runPaperAction(paperAction.dataset.paperAction);
       return;
     }
+    const scrapeNowButton = event.target.closest('[data-scrape-username]');
+    if (scrapeNowButton?.dataset.scrapeUsername) {
+      event.preventDefault();
+      event.stopPropagation();
+      void scrapeInfluencerNow(scrapeNowButton.dataset.scrapeUsername);
+      return;
+    }
     const signalButton = event.target.closest('[data-signal-id]');
     if (signalButton?.dataset.signalId) {
       event.preventDefault();
@@ -532,7 +539,6 @@
     const username = String(item.username || '').trim();
     const profileUrl = xProfileUrl(username);
     const profileLabel = `Open @${username || 'profile'} on X`;
-    const busy = state.scrapeNowBusy.has(username.toLowerCase());
     row.className = `reputation-row ${scoreClass(score)}`;
     row.innerHTML = `
       <span class="rank">${rank}</span>
@@ -551,15 +557,10 @@
           <p>Ranking ${formatScore(score)} · trade avg ${formatScore(item.averageScore)} · activity ${formatScore(item.activityScore)} · best trade ${formatScore(item.bestScore)}</p>
         </div>
       </section>
-      <button class="scrape-now-button" type="button" data-scrape-username="${escapeAttr(username)}" ${busy ? 'disabled' : ''}>${busy ? 'Queued' : 'Scrape now'}</button>
       <span class="signal-score ${scoreClass(score)}">${formatScore(score)}</span>
     `;
     row.querySelectorAll('.x-profile-link').forEach((link) => {
       link.addEventListener('click', (event) => event.stopPropagation());
-    });
-    row.querySelector('.scrape-now-button')?.addEventListener('click', (event) => {
-      event.stopPropagation();
-      void scrapeInfluencerNow(username);
     });
     row.addEventListener('click', () => {
       state.selectedReputation = item;
@@ -633,7 +634,7 @@
           spreadBps: 30,
           slippageBps: 50,
           maxSignalAgeMinutes: 180,
-          maxOpenPositions: 60
+          maxOpenPositions: 90
         });
       } else if (action === 'sync') {
         state.paperSync = await postJson('/api/paper/sync', {});
@@ -699,10 +700,22 @@
   function paperTradeHtml(trade, closed) {
     const pnl = Number(trade.netPnlUsd ?? 0);
     const returnPct = trade.netReturnPct ?? trade.grossReturnPct;
+    const username = String(trade.username || '').trim();
+    const profileUrl = xProfileUrl(username);
+    const profileLabel = `Open @${username || 'profile'} on X`;
+    const rank = trade.rank ?? trade.rankPosition ?? '-';
     return `
       <div class="paper-trade-row">
-        <strong>@${escapeHtml(trade.username || '-')} · ${escapeHtml(trade.symbol || '-')}</strong>
-        <span>${escapeHtml(windowShortLabel(trade.categoryWindow))} · #${escapeHtml(trade.rankPosition ?? '-')} · ${escapeHtml(trade.direction || '-')}</span>
+        <section class="paper-identity">
+          <a class="avatar-link paper-avatar x-profile-link" href="${escapeAttr(profileUrl)}" target="_blank" rel="noopener noreferrer" aria-label="${escapeAttr(profileLabel)}">
+            ${avatarHtml({ ...trade, username })}
+          </a>
+          <span>
+            <strong>${escapeHtml(trade.displayName || `@${username || '-'}`)}</strong>
+            <em>@${escapeHtml(username || '-')} · ${escapeHtml(trade.symbol || '-')}</em>
+          </span>
+        </section>
+        <span>${escapeHtml(windowShortLabel(trade.categoryWindow))} · #${escapeHtml(rank)} · ${escapeHtml(trade.direction || '-')}</span>
         <span>${formatMoney(trade.stakeUsd)} @ ${formatPrice(trade.entryPriceUsd)}</span>
         <em>${closed ? formatMinute(trade.exitAt) : `target ${formatMinute(trade.targetExitAt)}`}</em>
         <b class="${moneyClass(pnl)}">${closed ? `${formatMoney(pnl)} · ${formatSignedPct(returnPct)}` : 'open'}</b>
@@ -711,10 +724,23 @@
   }
 
   function paperRankHtml(rank) {
+    const username = String(rank.username || '').trim();
+    const profileUrl = xProfileUrl(username);
+    const profileLabel = `Open @${username || 'profile'} on X`;
+    const busy = state.scrapeNowBusy.has(username.toLowerCase());
     return `
-      <div class="paper-table-row">
+      <div class="paper-table-row paper-rank-row">
         <strong>${escapeHtml(windowShortLabel(rank.window))} #${escapeHtml(rank.rank)}</strong>
-        <span>@${escapeHtml(rank.username || '-')}</span>
+        <section class="paper-identity">
+          <a class="avatar-link paper-avatar x-profile-link" href="${escapeAttr(profileUrl)}" target="_blank" rel="noopener noreferrer" aria-label="${escapeAttr(profileLabel)}">
+            ${avatarHtml({ ...rank, username })}
+          </a>
+          <span>
+            <strong>${escapeHtml(rank.displayName || `@${username || '-'}`)}</strong>
+            <em>@${escapeHtml(username || '-')} · ${formatFollowers(rank.followersCount)}</em>
+          </span>
+        </section>
+        <button class="scrape-now-button" type="button" data-scrape-username="${escapeAttr(username)}" ${busy ? 'disabled' : ''}>${busy ? 'Queued' : 'Scrape now'}</button>
         <em>${formatScore(rank.competitionScore)}</em>
       </div>
     `;

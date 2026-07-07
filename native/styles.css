@@ -1128,7 +1128,7 @@ select:focus {
 }
 
 .reputation-row {
-  grid-template-columns: 44px minmax(0, 1fr) 104px 92px;
+  grid-template-columns: 44px minmax(0, 1fr) 92px;
 }
 
 .reputation-main {
@@ -1349,6 +1349,34 @@ select:focus {
 
 .paper-trade-row {
   grid-template-columns: minmax(160px, 1.2fr) minmax(130px, 0.75fr) minmax(120px, 0.75fr) minmax(130px, 0.75fr) minmax(110px, 0.7fr);
+}
+
+.paper-rank-row {
+  grid-template-columns: 64px minmax(0, 1fr) 104px 82px;
+}
+
+.paper-identity {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+  min-width: 0;
+}
+
+.paper-identity span {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.paper-identity em {
+  color: var(--muted);
+  font-style: normal;
+  font-size: 11px;
+}
+
+.paper-avatar {
+  align-self: center;
 }
 
 .paper-table-row strong,
