@@ -4,65 +4,29 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#030303">
   <title>Ithac Live Scraper</title>
-  <link rel="stylesheet" href="./styles.css?v=20260703-timex1">
+  <link rel="icon" href="./favicon.ico?v=20260707-paper" sizes="any">
+  <link rel="shortcut icon" href="./favicon.ico?v=20260707-paper">
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg?v=20260707-paper">
+  <link rel="apple-touch-icon" href="./apple-touch-icon.png?v=20260707-paper">
+  <link rel="mask-icon" href="./safari-pinned-tab.svg?v=20260707-paper" color="#c9972b">
+  <link rel="stylesheet" href="./styles.css?v=20260707-paper">
 </head>
 <body>
-  <button id="menuToggle" class="menu-toggle" type="button" aria-expanded="false" aria-controls="controlPopover">
-    <span>Menu</span>
-    <em id="menuSummary">loading</em>
-  </button>
-  <div id="menuBackdrop" class="menu-backdrop" hidden></div>
-  <aside id="controlPopover" class="control-popover" hidden>
-    <header class="topbar">
-      <div>
-        <span class="eyebrow">Ithac scraper</span>
-        <h1>Control</h1>
-      </div>
-      <button id="menuClose" class="menu-close" type="button" aria-label="Close menu">Close</button>
+  <main class="app-shell">
+    <header id="livePositionBar" class="live-position-bar" aria-label="Live scraper position">
+      <span class="live-dot"></span>
+      <span class="live-kicker">Live position</span>
+      <strong id="scannerTitle">connecting</strong>
+      <em id="scannerMeta">waiting for live data</em>
     </header>
 
-    <section class="menu-stats" aria-label="Visible list state">
-      <span id="listRange">0 visible · 0 handles</span>
-      <span id="listStats">0 complete · 0 failed</span>
-    </section>
-
-    <section class="menu-grid">
-      <section class="run-strip" aria-label="Live scraper state">
-        <div class="run-pill" id="runPill">
-          <i></i>
-          <strong id="runState">loading</strong>
-          <span id="runProgress">0/0</span>
-        </div>
-        <div class="position-card">
-          <span>Scanner position</span>
-          <strong id="scannerTitle">connecting</strong>
-          <em id="scannerMeta">waiting for live data</em>
-        </div>
-      </section>
-
-      <section class="loop-monitor" id="loopMonitor">
-        <strong id="loopTitle">Loading live loop</strong>
-        <span id="loopMeta">Connecting to backend...</span>
-      </section>
-    </section>
-
-    <section class="toolbar">
-      <form id="addForm" class="add-form">
-        <input id="handleInput" autocomplete="off" spellcheck="false" placeholder="@handle">
-        <button type="submit">Add</button>
-      </form>
-      <input id="searchInput" class="search" autocomplete="off" spellcheck="false" placeholder="Search">
-      <button id="scrapeButton" class="scrape-button" type="button">Scrape 40</button>
-    </section>
-  </aside>
-
-  <main class="app-shell">
     <section class="list-card">
       <nav class="main-tabs" aria-label="Scraper views">
-        <button class="active" type="button" data-tab="live">Live</button>
-        <button type="button" data-tab="timex">TIMEX</button>
+        <button class="active" type="button" data-tab="live">Live scraper</button>
         <button type="button" data-tab="reputation">Reputation</button>
+        <button type="button" data-tab="paper">Paper</button>
       </nav>
       <nav class="pager" aria-label="Influencer pages">
         <button id="prevPage" type="button">Previous</button>
@@ -86,6 +50,6 @@
   </main>
   <div id="modalRoot"></div>
 
-  <script src="./app.js?v=20260703-timex1" defer></script>
+  <script src="./app.js?v=20260707-paper" defer></script>
 </body>
 </html>

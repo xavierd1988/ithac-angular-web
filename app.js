@@ -3,6 +3,11 @@
 
   const API_BASE = resolveApiBaseUrl();
   const FETCH_TIMEOUT_MS = 8_000;
+  const REPUTATION_WINDOWS = [
+    { key: 'day', label: '1 DAY' },
+    { key: 'week', label: '1 WEEK' },
+    { key: 'month', label: '1 MONTH' }
+  ];
   const state = {
     pageIndex: 0,
     pageSize: 250,
@@ -17,6 +22,7 @@
     lastSnapshotAt: null,
     selectedUsername: null,
     selectedSignal: null,
+    selectedMentionKey: null,
     selectedReputation: null,
     activeTab: 'live',
     selectedPosts: new Map(),
@@ -27,30 +33,23 @@
     jobs: [],
     events: [],
     timex: [],
-    reputation: [],
+    reputationWindow: 'day',
+    reputation: {
+      day: [],
+      week: [],
+      month: []
+    },
+    paper: null,
+    paperSync: null,
+    paperBusy: false,
+    paperError: null,
     loadError: null
   };
 
   const els = {
-    menuToggle: byId('menuToggle'),
-    menuClose: byId('menuClose'),
-    menuBackdrop: byId('menuBackdrop'),
-    controlPopover: byId('controlPopover'),
-    menuSummary: byId('menuSummary'),
-    runPill: byId('runPill'),
-    runState: byId('runState'),
-    runProgress: byId('runProgress'),
+    livePositionBar: byId('livePositionBar'),
     scannerTitle: byId('scannerTitle'),
     scannerMeta: byId('scannerMeta'),
-    loopMonitor: byId('loopMonitor'),
-    loopTitle: byId('loopTitle'),
-    loopMeta: byId('loopMeta'),
-    addForm: byId('addForm'),
-    handleInput: byId('handleInput'),
-    searchInput: byId('searchInput'),
-    scrapeButton: byId('scrapeButton'),
-    listRange: byId('listRange'),
-    listStats: byId('listStats'),
     pageStatus: byId('pageStatus'),
     pageNumbers: byId('pageNumbers'),
     prevPage: byId('prevPage'),
@@ -66,24 +65,6 @@
   document.addEventListener('DOMContentLoaded', init);
 
   function init() {
-    closeMenu();
-    window.addEventListener('pageshow', closeMenu);
-    els.menuToggle.addEventListener('click', toggleMenu);
-    els.menuClose.addEventListener('click', closeMenu);
-    els.menuBackdrop.addEventListener('click', closeMenu);
-    document.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape') closeMenu();
-    });
-    els.addForm.addEventListener('submit', (event) => {
-      event.preventDefault();
-      void addInfluencer();
-    });
-    els.searchInput.addEventListener('input', debounce(() => {
-      state.query = els.searchInput.value.trim();
-      state.pageIndex = 0;
-      void loadSnapshot({ resetListScroll: true });
-    }, 220));
-    els.scrapeButton.addEventListener('click', () => void startRun());
     els.prevPage.addEventListener('click', () => goToPage(state.pageIndex - 1));
     els.nextPage.addEventListener('click', () => goToPage(state.pageIndex + 1));
     els.pageSize.addEventListener('change', () => {
@@ -91,11 +72,11 @@
       state.pageIndex = 0;
       void loadSnapshot({ resetListScroll: true });
     });
+    els.list.addEventListener('click', handleListClick);
     els.mainTabs.forEach((button) => {
       button.addEventListener('click', () => setTab(button.dataset.tab || 'live'));
     });
 
-    closeMenu();
     startClock();
     void loadSnapshot({ resetListScroll: false });
     connectLiveEvents();
@@ -200,16 +181,25 @@
 
   async function loadCryptoPanels() {
     try {
-      const [timex, reputation] = await Promise.all([
-        getJson('/api/crypto/timex?take=160').catch(() => []),
-        getJson('/api/crypto/reputation?take=100').catch(() => [])
+      const [timex, repDay, repWeek, repMonth, paper] = await Promise.all([
+        getJson('/api/crypto/timex?take=500').catch(() => []),
+        getJson('/api/crypto/reputation?window=day&take=160').catch(() => []),
+        getJson('/api/crypto/reputation?window=week&take=160').catch(() => []),
+        getJson('/api/crypto/reputation?window=month&take=160').catch(() => []),
+        getJson('/api/paper/summary?sync=false').catch(() => null)
       ]);
       state.timex = Array.isArray(timex) ? timex : [];
-      state.reputation = Array.isArray(reputation) ? reputation : [];
+      state.reputation = {
+        day: Array.isArray(repDay) ? repDay : [],
+        week: Array.isArray(repWeek) ? repWeek : [],
+        month: Array.isArray(repMonth) ? repMonth : []
+      };
+      if (paper) state.paper = paper;
+      state.paperError = null;
       renderAll();
     } catch {
       state.timex = [];
-      state.reputation = [];
+      state.reputation = { day: [], week: [], month: [] };
       renderAll();
     }
   }
@@ -290,14 +280,43 @@
     renderModal();
   }
 
+  function handleListClick(event) {
+    const paperAction = event.target.closest('[data-paper-action]');
+    if (paperAction?.dataset.paperAction) {
+      event.preventDefault();
+      void runPaperAction(paperAction.dataset.paperAction);
+      return;
+    }
+    const signalButton = event.target.closest('[data-signal-id]');
+    if (signalButton?.dataset.signalId) {
+      event.preventDefault();
+      event.stopPropagation();
+      const signal = (state.timex || []).find((item) => String(item.id) === String(signalButton.dataset.signalId));
+      if (signal) {
+        state.selectedSignal = signal;
+        renderModal();
+      }
+      return;
+    }
+    const mention = event.target.closest('[data-mention-key]');
+    if (!mention) return;
+    event.preventDefault();
+    event.stopPropagation();
+    const key = mention.dataset.mentionKey || '';
+    state.selectedMentionKey = state.selectedMentionKey === key ? null : key;
+    renderList();
+  }
+
   function setTab(tab) {
-    const next = ['live', 'timex', 'reputation'].includes(tab) ? tab : 'live';
+    const next = ['live', 'reputation', 'paper'].includes(tab) ? tab : 'live';
     if (state.activeTab === next) return;
     state.activeTab = next;
     state.selectedUsername = null;
     state.selectedSignal = null;
+    state.selectedMentionKey = null;
     state.selectedReputation = null;
     renderAll();
+    if (next === 'paper') void loadCryptoPanels();
   }
 
   function renderTabs() {
@@ -322,20 +341,12 @@
     const eventUser = usernameFromText(event?.text);
     const resources = `${availableCount(state.sessions)}/${state.sessions.length} sessions · ${availableCount(state.proxies)}/${state.proxies.length} proxies`;
 
-    els.runPill.className = `run-pill ${status}`;
-    els.runState.textContent = status === 'running' ? 'scraping live' : status;
-    els.runProgress.textContent = `${done}/${Math.max(total, 1)}`;
-    els.menuSummary.textContent = status === 'running'
-      ? `${done}/${Math.max(total, 1)} · ${running} running`
-      : `${done}/${Math.max(total, 1)} · ${status}`;
+    els.livePositionBar.className = `live-position-bar ${status}`;
 
     if (active) {
       const rowPos = rowPosition(active.username);
       els.scannerTitle.textContent = `now @${active.username}`;
-      els.scannerMeta.textContent = `${rowPos} · ${resourceText(active)} · ${formatTime(active.startedAt || active.updatedAt)}`;
-      els.loopMonitor.className = 'loop-monitor running';
-      els.loopTitle.textContent = `SCRAPING @${active.username}`;
-      els.loopMeta.textContent = `${done}/${Math.max(total, 1)} done · ${running} running · ${queued} queued · ${failed} failed · ${resourceText(active)} · ${resources}`;
+      els.scannerMeta.textContent = `${rowPos} · ${done}/${Math.max(total, 1)} complete · ${running} running · ${queued} queued · ${failed} failed · ${resourceText(active)} · ${formatTime(active.startedAt || active.updatedAt)} · ${resources}`;
       return;
     }
 
@@ -343,29 +354,18 @@
       const label = eventUser ? `last @${eventUser}` : `Run #${run?.id ?? '-'} active`;
       els.scannerTitle.textContent = label;
       els.scannerMeta.textContent = event
-        ? `${done}/${Math.max(total, 1)} done · ${event.text} · ${event.at}`
-        : `${done}/${Math.max(total, 1)} done · waiting for next account`;
-      els.loopMonitor.className = 'loop-monitor running';
-      els.loopTitle.textContent = `RUN #${run?.id ?? '-'} · LOOP ACTIVE`;
-      els.loopMeta.textContent = `${done}/${Math.max(total, 1)} done · ${running} running · ${queued} queued · ${failed} failed · ${resources}${event ? ` · latest: ${event.text} · ${event.at}` : ''}`;
+        ? `${done}/${Math.max(total, 1)} complete · ${running} running · ${queued} queued · ${failed} failed · ${event.text} · ${event.at} · ${resources}`
+        : `${done}/${Math.max(total, 1)} complete · ${running} running · ${queued} queued · ${failed} failed · waiting for next account · ${resources}`;
       return;
     }
 
     els.scannerTitle.textContent = eventUser ? `last @${eventUser}` : 'idle';
     els.scannerMeta.textContent = event ? `${event.text} · ${event.at}` : 'no active scrape';
-    els.loopMonitor.className = 'loop-monitor';
-    els.loopTitle.textContent = 'SCANNER IDLE';
-    els.loopMeta.textContent = `${done}/${Math.max(total, 1)} done · ${failed} failed · ${resources}`;
   }
 
   function renderPager() {
     els.pager.hidden = state.activeTab !== 'live';
-    if (state.activeTab !== 'live') {
-      els.listRange.textContent = state.activeTab === 'timex'
-        ? `${state.timex.length} signals`
-        : `${state.reputation.length} aliases`;
-      return;
-    }
+    if (state.activeTab !== 'live') return;
     const total = state.page.total || 0;
     const pageSize = state.page.pageSize || state.pageSize;
     const pageCount = Math.max(1, Math.ceil(total / Math.max(pageSize, 1)));
@@ -374,9 +374,7 @@
     const end = Math.min(total, start + pageSize - 1);
     const run = state.run;
 
-    els.listRange.textContent = `${start}-${end} visible · ${total} handles`;
-    els.listStats.textContent = `${run?.successCount ?? 0} complete · ${run?.failedCount ?? 0} failed`;
-    els.pageStatus.textContent = `Page ${pageIndex + 1} / ${pageCount}`;
+    els.pageStatus.textContent = `Page ${pageIndex + 1} / ${pageCount} · ${start}-${end} of ${total} · ${run?.successCount ?? 0} complete · ${run?.failedCount ?? 0} failed`;
     els.prevPage.disabled = pageIndex <= 0;
     els.nextPage.disabled = pageIndex >= pageCount - 1;
     els.pageSize.value = String(pageSize);
@@ -384,26 +382,6 @@
     els.pageNumbers.replaceChildren(...pageButtonNodes(pageIndex, pageCount));
     els.loadError.hidden = !state.loadError;
     els.loadError.textContent = state.loadError ? `Live API not loaded: ${state.loadError}` : '';
-  }
-
-  function toggleMenu() {
-    if (els.controlPopover.hidden) {
-      openMenu();
-    } else {
-      closeMenu();
-    }
-  }
-
-  function openMenu() {
-    els.controlPopover.hidden = false;
-    els.menuBackdrop.hidden = false;
-    els.menuToggle.setAttribute('aria-expanded', 'true');
-  }
-
-  function closeMenu() {
-    els.controlPopover.hidden = true;
-    els.menuBackdrop.hidden = true;
-    els.menuToggle.setAttribute('aria-expanded', 'false');
   }
 
   function pageButtonNodes(activePage, pageCount) {
@@ -441,12 +419,12 @@
   }
 
   function renderList() {
-    if (state.activeTab === 'timex') {
-      renderTimex();
-      return;
-    }
     if (state.activeTab === 'reputation') {
       renderReputation();
+      return;
+    }
+    if (state.activeTab === 'paper') {
+      renderPaper();
       return;
     }
     const rows = state.page.items ?? [];
@@ -471,7 +449,7 @@
   function renderTimex() {
     const rows = state.timex;
     if (!rows.length) {
-      els.list.replaceChildren(emptyNode('No TIMEX signal', 'Signals will appear when Groq extracts crypto mentions and the 1h window starts.'));
+      els.list.replaceChildren(emptyNode('No TIMEX signal', 'Signals will appear when Groq extracts crypto mentions and starts 1D / 1W / 1M windows.'));
       return;
     }
     els.list.replaceChildren(...rows.map((signal, index) => renderSignalRow(signal, index + 1)));
@@ -486,7 +464,7 @@
       <section class="signal-main">
         <div class="signal-line">
           <strong>${escapeHtml(signal.serialRef || `#${signal.id}`)}</strong>
-          <em>@${escapeHtml(signal.username || '-')} · ${escapeHtml(signal.symbol || '-')}</em>
+          <em>@${escapeHtml(signal.username || '-')} · ${escapeHtml(signal.symbol || '-')} · ${escapeHtml(signal.horizonLabel || signal.window?.label || '-')}</em>
         </div>
         <div class="progress-track signal-progress"><span style="width:${Math.max(0, Math.min(100, progress))}%"></span></div>
         <p>${escapeHtml(windowText(signal))}</p>
@@ -502,33 +480,213 @@
   }
 
   function renderReputation() {
-    const rows = state.reputation;
+    const rows = currentReputationRows();
+    const nodes = [renderReputationSwitcher()];
     if (!rows.length) {
-      els.list.replaceChildren(emptyNode('No reputation yet', 'Reputation appears after scored 1h windows.'));
+      nodes.push(emptyNode('No reputation yet', `${reputationWindowLabel(state.reputationWindow)} competition will appear after scored crypto windows.`));
+      els.list.replaceChildren(...nodes);
       return;
     }
-    els.list.replaceChildren(...rows.map((row, index) => renderReputationRow(row, index + 1)));
+    els.list.replaceChildren(...nodes, ...rows.map((row, index) => renderReputationRow(row, row.rank || index + 1)));
+  }
+
+  function currentReputationRows() {
+    return state.reputation?.[state.reputationWindow] ?? [];
+  }
+
+  function reputationWindowLabel(key) {
+    return REPUTATION_WINDOWS.find((item) => item.key === key)?.label ?? '1 DAY';
+  }
+
+  function renderReputationSwitcher() {
+    const wrap = document.createElement('section');
+    wrap.className = 'reputation-switcher';
+    wrap.innerHTML = `
+      <div>
+        <strong>Reputation competitions</strong>
+        <span>Three independent rankings. Same influencer can compete in day, week and month at the same time.</span>
+      </div>
+      <div class="reputation-window-buttons">
+        ${REPUTATION_WINDOWS.map((item) => `
+          <button type="button" data-reputation-window="${escapeAttr(item.key)}" class="${state.reputationWindow === item.key ? 'active' : ''}">
+            ${escapeHtml(item.label)}
+            <em>${(state.reputation?.[item.key] ?? []).length}</em>
+          </button>
+        `).join('')}
+      </div>
+    `;
+    wrap.querySelectorAll('[data-reputation-window]').forEach((button) => {
+      button.addEventListener('click', () => {
+        state.reputationWindow = button.dataset.reputationWindow || 'day';
+        state.selectedReputation = null;
+        renderAll();
+      });
+    });
+    return wrap;
   }
 
   function renderReputationRow(item, rank) {
     const row = document.createElement('article');
-    row.className = `reputation-row ${scoreClass(item.averageScore)}`;
+    const score = reputationScore(item);
+    row.className = `reputation-row ${scoreClass(score)}`;
     row.innerHTML = `
       <span class="rank">${rank}</span>
       <section class="signal-main">
         <div class="signal-line">
           <strong>@${escapeHtml(item.username || '-')}</strong>
-          <em>${Number(item.scoredCount ?? 0)} scored · last ${escapeHtml(item.lastSymbol || '-')} · ${formatMinute(item.lastUpdatedAt)}</em>
+          <em>${reputationWindowLabel(item.window || state.reputationWindow)} · ${Number(item.scoredCount ?? 0)} scored · last ${escapeHtml(item.lastSymbol || '-')} · ${formatMinute(item.lastUpdatedAt)}</em>
         </div>
-        <p>Average ${formatScore(item.averageScore)} · best ${formatScore(item.bestScore)} · last ${formatScore(item.lastScore)}</p>
+        <p>Score ${formatScore(score)} · avg ${formatScore(item.averageScore)} · activity ${formatScore(item.activityScore)} · best ${formatScore(item.bestScore)}</p>
       </section>
-      <span class="signal-score ${scoreClass(item.averageScore)}">${formatScore(item.averageScore)}</span>
+      <span class="signal-score ${scoreClass(score)}">${formatScore(score)}</span>
     `;
     row.addEventListener('click', () => {
       state.selectedReputation = item;
       renderModal();
     });
     return row;
+  }
+
+  function renderPaper() {
+    const paper = state.paper;
+    if (!paper) {
+      els.list.replaceChildren(emptyNode('No paper state', state.paperError || 'Paper trading summary is not loaded yet.'));
+      return;
+    }
+
+    const run = paper.currentRun;
+    const totals = paper.totals || {};
+    const openTrades = paper.openTrades || [];
+    const closedTrades = paper.closedTrades || [];
+    const categories = paper.categories || [];
+    const topRanks = paper.topRanks || [];
+    const active = run?.status === 'active';
+    const view = document.createElement('section');
+    view.className = 'paper-view';
+    view.innerHTML = `
+      <article class="paper-hero">
+        <header>
+          <div>
+            <span class="label">Paper trading</span>
+            <strong>${run ? `Run #${escapeHtml(run.id)} · ${escapeHtml(run.status)}` : 'No active run'}</strong>
+            <em>${run ? `${formatMinute(run.startedAt)} · ${formatMoney(run.stakeUsd)} per call · ${formatSignedPct(run.roundTripCostPct)} cost` : 'Top reputation calls are waiting for a run.'}</em>
+          </div>
+          <div class="paper-actions">
+            <button type="button" data-paper-action="start" ${active || state.paperBusy ? 'disabled' : ''}>Start</button>
+            <button type="button" data-paper-action="sync" ${!run || state.paperBusy ? 'disabled' : ''}>Sync</button>
+            <button type="button" data-paper-action="stop" ${!active || state.paperBusy ? 'disabled' : ''}>Stop</button>
+          </div>
+        </header>
+        ${state.paperError ? `<p class="paper-error">${escapeHtml(state.paperError)}</p>` : ''}
+        <div class="paper-metrics">
+          ${paperMetric('Net PnL', formatMoney(totals.netPnlUsd), moneyClass(totals.netPnlUsd))}
+          ${paperMetric('Gross PnL', formatMoney(totals.grossPnlUsd), moneyClass(totals.grossPnlUsd))}
+          ${paperMetric('Costs', formatMoney(-(Number(totals.costUsd) || 0)), 'bad')}
+          ${paperMetric('Open', String(totals.openTrades ?? 0), '')}
+          ${paperMetric('Closed', String(totals.closedTrades ?? 0), '')}
+          ${paperMetric('Win rate', formatSignedPct(totals.winRatePct), scoreClass(totals.winRatePct))}
+        </div>
+      </article>
+      <section class="paper-grid">
+        ${paperPanel('Categories', categories.length ? categories.map(paperCategoryHtml).join('') : '<p class="empty-inline">No category trade yet.</p>', 'compact')}
+        ${paperPanel('Open trades', openTrades.length ? openTrades.map((trade) => paperTradeHtml(trade, false)).join('') : '<p class="empty-inline">No open trade yet.</p>')}
+        ${paperPanel('Closed trades', closedTrades.length ? closedTrades.map((trade) => paperTradeHtml(trade, true)).join('') : '<p class="empty-inline">No closed trade yet.</p>')}
+        ${paperPanel('Top ranks followed', topRanks.length ? topRanks.map(paperRankHtml).join('') : '<p class="empty-inline">No rank snapshot.</p>', 'compact')}
+      </section>
+    `;
+    els.list.replaceChildren(view);
+  }
+
+  async function runPaperAction(action) {
+    if (state.paperBusy) return;
+    state.paperBusy = true;
+    state.paperError = null;
+    renderAll();
+    try {
+      if (action === 'start') {
+        await postJson('/api/paper/runs', {
+          name: 'Reputation Top 10',
+          topNPerWindow: 10,
+          stakeUsd: 100,
+          feeBpsPerSide: 10,
+          spreadBps: 30,
+          slippageBps: 50,
+          maxSignalAgeMinutes: 180,
+          maxOpenPositions: 60
+        });
+      } else if (action === 'sync') {
+        state.paperSync = await postJson('/api/paper/sync', {});
+      } else if (action === 'stop') {
+        await postJson('/api/paper/runs/current/stop', {});
+      }
+      state.paper = await getJson('/api/paper/summary?sync=false');
+    } catch (error) {
+      state.paperError = error instanceof Error ? error.message : 'Paper action failed';
+    } finally {
+      state.paperBusy = false;
+      renderAll();
+    }
+  }
+
+  function paperMetric(label, value, className) {
+    return `
+      <span>
+        <small>${escapeHtml(label)}</small>
+        <strong class="${escapeAttr(className || 'neutral')}">${escapeHtml(value)}</strong>
+      </span>
+    `;
+  }
+
+  function paperPanel(title, content, modifier = '') {
+    return `
+      <article class="paper-panel ${escapeAttr(modifier)}">
+        <h2>${escapeHtml(title)}</h2>
+        <div class="paper-table">${content}</div>
+      </article>
+    `;
+  }
+
+  function paperCategoryHtml(category) {
+    const net = Number(category.netPnlUsd ?? 0);
+    return `
+      <div class="paper-table-row">
+        <strong>${escapeHtml(windowShortLabel(category.window))}</strong>
+        <span>${Number(category.openTrades ?? 0)} open · ${Number(category.closedTrades ?? 0)} closed</span>
+        <em class="${moneyClass(net)}">${formatMoney(net)}</em>
+      </div>
+    `;
+  }
+
+  function paperTradeHtml(trade, closed) {
+    const pnl = Number(trade.netPnlUsd ?? 0);
+    const returnPct = trade.netReturnPct ?? trade.grossReturnPct;
+    return `
+      <div class="paper-trade-row">
+        <strong>@${escapeHtml(trade.username || '-')} · ${escapeHtml(trade.symbol || '-')}</strong>
+        <span>${escapeHtml(windowShortLabel(trade.categoryWindow))} · #${escapeHtml(trade.rankPosition ?? '-')} · ${escapeHtml(trade.direction || '-')}</span>
+        <span>${formatMoney(trade.stakeUsd)} @ ${formatPrice(trade.entryPriceUsd)}</span>
+        <em>${closed ? formatMinute(trade.exitAt) : `target ${formatMinute(trade.targetExitAt)}`}</em>
+        <b class="${moneyClass(pnl)}">${closed ? `${formatMoney(pnl)} · ${formatSignedPct(returnPct)}` : 'open'}</b>
+      </div>
+    `;
+  }
+
+  function paperRankHtml(rank) {
+    return `
+      <div class="paper-table-row">
+        <strong>${escapeHtml(windowShortLabel(rank.window))} #${escapeHtml(rank.rank)}</strong>
+        <span>@${escapeHtml(rank.username || '-')}</span>
+        <em>${formatScore(rank.competitionScore)}</em>
+      </div>
+    `;
+  }
+
+  function windowShortLabel(key) {
+    const value = String(key || '').toLowerCase();
+    if (value === 'day') return '1D';
+    if (value === 'week') return '1W';
+    if (value === 'month') return '1M';
+    return value.toUpperCase() || '-';
   }
 
   function emptyNode(title, body) {
@@ -628,33 +786,6 @@
     state.pageIndex = next;
     state.selectedUsername = null;
     void loadSnapshot({ resetListScroll: true });
-  }
-
-  async function addInfluencer() {
-    const raw = els.handleInput.value.trim();
-    const username = raw.replace(/^@/, '');
-    if (!username) return;
-    try {
-      await postJson('/api/influencers', { username, priority: true });
-      els.handleInput.value = '';
-      state.query = '';
-      els.searchInput.value = '';
-      state.pageIndex = 0;
-      await loadSnapshot({ resetListScroll: true });
-    } catch (error) {
-      state.loadError = error instanceof Error ? error.message : 'Unable to add influencer';
-      renderAll();
-    }
-  }
-
-  async function startRun() {
-    try {
-      await postJson('/api/runs', { mode: 'Fast' });
-      await loadSnapshot({ resetListScroll: false });
-    } catch (error) {
-      state.loadError = error instanceof Error ? error.message : 'Unable to start run';
-      renderAll();
-    }
   }
 
   function activeJob() {
@@ -774,14 +905,121 @@
   }
 
   function postHtml(post) {
-    const mentions = (post.mentions ?? []).map((item) => item.symbol ?? item).join(', ') || 'post';
+    const mentions = Array.isArray(post.mentions) ? post.mentions : [];
     return `
-      <a class="post" href="${escapeAttr(post.url || '#')}" target="_blank" rel="noreferrer">
+      <article class="post">
         <span>${escapeHtml(formatMinute(post.scrapedAt || post.postedAt))}</span>
-        <strong>${escapeHtml(mentions)}</strong>
-        <span>${escapeHtml(post.content || '')}</span>
-      </a>
+        <div class="post-mentions">${mentionChipsHtml(post, mentions)}</div>
+        <a class="post-link" href="${escapeAttr(post.url || '#')}" target="_blank" rel="noreferrer">${escapeHtml(post.content || '')}</a>
+        ${selectedMentionPanelHtml(post, mentions)}
+      </article>
     `;
+  }
+
+  function mentionChipsHtml(post, mentions) {
+    if (!mentions.length) return '<strong class="mention-chip plain">post</strong>';
+    return mentions.map((item, index) => {
+      const symbol = item?.symbol ?? item;
+      const direction = normalizeMentionDirection(item?.direction);
+      const thesis = item?.thesis ? ` title="${escapeAttr(item.thesis)}"` : '';
+      const label = direction === 'bearish' ? 'NEG' : direction === 'bullish' ? 'POS' : '';
+      const windows = timexWindowsForMention(post, item);
+      const hasTimex = Object.values(windows).some(Boolean);
+      const key = mentionKey(post, item, index);
+      return `
+        <button type="button" class="mention-chip ${direction} ${hasTimex ? 'has-timex' : ''}" data-mention-key="${escapeAttr(key)}"${thesis}>
+          <b>${escapeHtml(symbol || '-')}</b>
+          ${label ? `<em>${label}</em>` : ''}
+          ${item?.thesis ? `<span>${escapeHtml(item.thesis)}</span>` : ''}
+        </button>
+      `;
+    }).join('');
+  }
+
+  function selectedMentionPanelHtml(post, mentions) {
+    const selected = mentions
+      .map((item, index) => ({ item, index, key: mentionKey(post, item, index) }))
+      .find((entry) => entry.key === state.selectedMentionKey);
+    if (!selected) return '';
+    return mentionTimexPanelHtml(post, selected.item, selected.index);
+  }
+
+  function mentionTimexPanelHtml(post, mention, index) {
+    const symbol = mention?.symbol ?? mention ?? '-';
+    const direction = normalizeMentionDirection(mention?.direction);
+    const windows = timexWindowsForMention(post, mention);
+    return `
+      <section class="mention-timex-panel ${direction}">
+        <header>
+          <div>
+            <span>Groq conclusion</span>
+            <strong>${escapeHtml(symbol)} · ${direction === 'bullish' ? 'POSITIVE' : direction === 'bearish' ? 'NEGATIVE' : 'waiting Groq'}</strong>
+            <em>${escapeHtml(mention?.thesis || 'No thesis yet')}</em>
+          </div>
+          <small>${escapeHtml(mentionKey(post, mention, index))}</small>
+        </header>
+        <div class="timex-bars">
+          ${REPUTATION_WINDOWS.map((window) => timexBarHtml(window, windows[window.key])).join('')}
+        </div>
+      </section>
+    `;
+  }
+
+  function timexBarHtml(window, signal) {
+    const progress = Number(signal?.window?.progressPct ?? 0);
+    const clamped = Math.max(0, Math.min(100, Number.isFinite(progress) ? progress : 0));
+    const status = signal?.status || 'not_started';
+    const score = signal?.score;
+    return `
+      <button type="button" class="timex-mini ${scoreClass(score)} ${status}" data-signal-id="${escapeAttr(signal?.id || '')}" ${signal ? '' : 'disabled'}>
+        <span>
+          <b>${escapeHtml(window.label)}</b>
+          <em>${escapeHtml(signal ? windowText(signal) : 'waiting for Timex window')}</em>
+        </span>
+        <i class="progress-track"><span style="width:${clamped}%"></span></i>
+        <strong>${signal ? formatScore(score) : '-'}</strong>
+      </button>
+    `;
+  }
+
+  function timexWindowsForMention(post, mention) {
+    const symbol = normalizeSymbol(mention?.symbol ?? mention);
+    const postId = String(post?.id ?? post?.postId ?? '');
+    const username = String(post?.username ?? '').toLowerCase();
+    const matches = (state.timex || []).filter((signal) => {
+      const signalSymbol = normalizeSymbol(signal.symbol);
+      if (!symbol || signalSymbol !== symbol) return false;
+      const signalPostId = String(signal.postId ?? signal.PostId ?? '');
+      if (postId && signalPostId && postId === signalPostId) return true;
+      return username && String(signal.username || '').toLowerCase() === username;
+    });
+    const byWindow = {};
+    for (const item of matches) {
+      const key = String(item.horizonKey || item.window?.horizon || '').toLowerCase();
+      if (!key) continue;
+      if (!byWindow[key] || new Date(item.updatedAt || 0) > new Date(byWindow[key].updatedAt || 0)) {
+        byWindow[key] = item;
+      }
+    }
+    return byWindow;
+  }
+
+  function mentionKey(post, mention, index = 0) {
+    return [
+      post?.id ?? post?.sourcePostId ?? 'post',
+      normalizeSymbol(mention?.symbol ?? mention) || 'crypto',
+      index
+    ].join(':');
+  }
+
+  function normalizeSymbol(symbol) {
+    return String(symbol || '').replace(/^\$/, '').trim().toUpperCase();
+  }
+
+  function normalizeMentionDirection(direction) {
+    const value = String(direction || '').toLowerCase();
+    if (value === 'bullish' || value === 'bearish') return value;
+    return 'plain';
   }
 
   function renderModal() {
@@ -814,6 +1052,7 @@
         <div class="modal-grid">
           ${detailCard('Alias', `@${signal.username || '-'}`)}
           ${detailCard('Coin', signal.symbol || '-')}
+          ${detailCard('Horizon', signal.horizonLabel || signal.window?.label || '-')}
           ${detailCard('Status', signal.status || '-')}
           ${detailCard('Variation', formatVariation(signal.variationPct))}
           ${detailCard('Score', formatScore(signal.score))}
@@ -839,15 +1078,19 @@
         <header>
           <div>
             <span class="eyebrow">Reputation</span>
-            <h2>@${escapeHtml(row.username || '-')}</h2>
+            <h2>#${escapeHtml(String(row.rank || '-'))} @${escapeHtml(row.username || '-')}</h2>
           </div>
           <button type="button" class="menu-close">Close</button>
         </header>
         <div class="modal-grid">
+          ${detailCard('Competition', reputationWindowLabel(row.window || state.reputationWindow))}
+          ${detailCard('Score', formatScore(reputationScore(row)))}
           ${detailCard('Average', formatScore(row.averageScore))}
+          ${detailCard('Activity', formatScore(row.activityScore))}
           ${detailCard('Best', formatScore(row.bestScore))}
           ${detailCard('Last', `${formatScore(row.lastScore)} · ${row.lastSymbol || '-'}`)}
           ${detailCard('Scored windows', String(row.scoredCount ?? history.length))}
+          ${detailCard('Period', `${formatMinute(row.windowStart)} → ${formatMinute(row.windowEnd)}`)}
         </div>
         <div class="history-list">
           ${history.length ? history.map(historyHtml).join('') : '<p class="empty-inline">No scored history.</p>'}
@@ -883,6 +1126,11 @@
     `;
   }
 
+  function reputationScore(item) {
+    const value = Number(item.competitionScore);
+    return Number.isFinite(value) ? value : Number(item.averageScore);
+  }
+
   function signalGraph(signal) {
     const start = Number(signal.startPriceUsd);
     const end = Number(signal.endPriceUsd);
@@ -894,7 +1142,7 @@
     const y2 = hasEnd ? 90 - ((end - min) / range) * 58 : 90;
     const color = scoreClass(signal.score) === 'good' ? '#35d39e' : scoreClass(signal.score) === 'bad' ? '#ff5d6c' : '#ffb020';
     return `
-      <svg viewBox="0 0 320 124" role="img" aria-label="One hour price window">
+      <svg viewBox="0 0 320 124" role="img" aria-label="Six hour price window">
         <line x1="28" y1="100" x2="292" y2="100"></line>
         <polyline points="42,${y1.toFixed(1)} 278,${y2.toFixed(1)}" style="stroke:${color}"></polyline>
         <circle cx="42" cy="${y1.toFixed(1)}" r="6"></circle>
@@ -907,8 +1155,10 @@
 
   function windowText(signal) {
     const window = signal.window || {};
-    if (signal.status === 'waiting_1h') {
-      return `${Math.round(Number(window.progressPct ?? 0))}% · ${Number(window.minutesRemaining ?? 0).toFixed(1)} min left`;
+    if (String(signal.status || '').startsWith('waiting_')) {
+      const duration = Number(window.durationMinutes ?? 360);
+      const label = window.label || (duration >= 60 ? `${Math.round(duration / 60)}h` : `${duration}m`);
+      return `${label} window · ${Math.round(Number(window.progressPct ?? 0))}% · target ${formatMinute(window.targetAt)} · ${Number(window.minutesRemaining ?? 0).toFixed(1)} min left`;
     }
     if (signal.status === 'scored') {
       return `scored · ${formatMinute(signal.startPriceAt)} → ${formatMinute(signal.endPriceAt)}`;
@@ -934,6 +1184,26 @@
     if (!Number.isFinite(number)) return '-';
     const sign = number > 0 ? '+' : '';
     return `${sign}${number.toFixed(2)}%`;
+  }
+
+  function formatSignedPct(value) {
+    const number = Number(value);
+    if (!Number.isFinite(number)) return '-';
+    const sign = number > 0 ? '+' : '';
+    return `${sign}${number.toFixed(2)}%`;
+  }
+
+  function formatMoney(value) {
+    const number = Number(value);
+    if (!Number.isFinite(number)) return '-';
+    const sign = number > 0 ? '+' : number < 0 ? '-' : '';
+    return `${sign}$${Math.abs(number).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  }
+
+  function moneyClass(value) {
+    const number = Number(value);
+    if (!Number.isFinite(number) || number === 0) return 'neutral';
+    return number > 0 ? 'good' : 'bad';
   }
 
   function formatPrice(value) {
