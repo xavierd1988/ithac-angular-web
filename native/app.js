@@ -546,7 +546,7 @@
             </a>
             <em>${reputationWindowLabel(item.window || state.reputationWindow)} · ${Number(item.scoredCount ?? 0)} scored · last ${escapeHtml(item.lastSymbol || '-')} · ${formatMinute(item.lastUpdatedAt)}</em>
           </div>
-          <p>Score ${formatScore(score)} · avg ${formatScore(item.averageScore)} · activity ${formatScore(item.activityScore)} · best ${formatScore(item.bestScore)}</p>
+          <p>Ranking ${formatScore(score)} · trade avg ${formatScore(item.averageScore)} · activity ${formatScore(item.activityScore)} · best trade ${formatScore(item.bestScore)}</p>
         </div>
       </section>
       <span class="signal-score ${scoreClass(score)}">${formatScore(score)}</span>
@@ -1110,11 +1110,11 @@
         </header>
         <div class="modal-grid">
           ${detailCard('Competition', reputationWindowLabel(row.window || state.reputationWindow))}
-          ${detailCard('Score', formatScore(reputationScore(row)))}
-          ${detailCard('Average', formatScore(row.averageScore))}
+          ${detailCard('Ranking', formatScore(reputationScore(row)))}
+          ${detailCard('Trade avg', formatScore(row.averageScore))}
           ${detailCard('Activity', formatScore(row.activityScore))}
-          ${detailCard('Best', formatScore(row.bestScore))}
-          ${detailCard('Last', `${formatScore(row.lastScore)} · ${row.lastSymbol || '-'}`)}
+          ${detailCard('Best trade', formatScore(row.bestScore))}
+          ${detailCard('Last trade', `${formatScore(row.lastScore)} · ${row.lastSymbol || '-'}`)}
           ${detailCard('Scored windows', String(row.scoredCount ?? history.length))}
           ${detailCard('Period', `${formatMinute(row.windowStart)} → ${formatMinute(row.windowEnd)}`)}
         </div>
