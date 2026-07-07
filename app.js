@@ -528,18 +528,32 @@
   function renderReputationRow(item, rank) {
     const row = document.createElement('article');
     const score = reputationScore(item);
+    const username = String(item.username || '').trim();
+    const profileUrl = xProfileUrl(username);
+    const profileLabel = `Open @${username || 'profile'} on X`;
     row.className = `reputation-row ${scoreClass(score)}`;
     row.innerHTML = `
       <span class="rank">${rank}</span>
-      <section class="signal-main">
-        <div class="signal-line">
-          <strong>@${escapeHtml(item.username || '-')}</strong>
-          <em>${reputationWindowLabel(item.window || state.reputationWindow)} · ${Number(item.scoredCount ?? 0)} scored · last ${escapeHtml(item.lastSymbol || '-')} · ${formatMinute(item.lastUpdatedAt)}</em>
+      <section class="signal-main reputation-main">
+        <a class="avatar-link reputation-avatar x-profile-link" href="${escapeAttr(profileUrl)}" target="_blank" rel="noopener noreferrer" aria-label="${escapeAttr(profileLabel)}">
+          ${avatarHtml({ ...item, username })}
+        </a>
+        <div class="reputation-copy">
+          <div class="signal-line">
+            <a class="identity-text reputation-identity x-profile-link" href="${escapeAttr(profileUrl)}" target="_blank" rel="noopener noreferrer" aria-label="${escapeAttr(profileLabel)}">
+              <strong>${escapeHtml(item.displayName || `@${username || '-'}`)}</strong>
+              <em>@${escapeHtml(username || '-')} · ${formatFollowers(item.followersCount)}</em>
+            </a>
+            <em>${reputationWindowLabel(item.window || state.reputationWindow)} · ${Number(item.scoredCount ?? 0)} scored · last ${escapeHtml(item.lastSymbol || '-')} · ${formatMinute(item.lastUpdatedAt)}</em>
+          </div>
+          <p>Score ${formatScore(score)} · avg ${formatScore(item.averageScore)} · activity ${formatScore(item.activityScore)} · best ${formatScore(item.bestScore)}</p>
         </div>
-        <p>Score ${formatScore(score)} · avg ${formatScore(item.averageScore)} · activity ${formatScore(item.activityScore)} · best ${formatScore(item.bestScore)}</p>
       </section>
       <span class="signal-score ${scoreClass(score)}">${formatScore(score)}</span>
     `;
+    row.querySelectorAll('.x-profile-link').forEach((link) => {
+      link.addEventListener('click', (event) => event.stopPropagation());
+    });
     row.addEventListener('click', () => {
       state.selectedReputation = item;
       renderModal();
