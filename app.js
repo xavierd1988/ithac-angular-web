@@ -39,6 +39,7 @@
       week: [],
       month: []
     },
+    selectedPaperTradeId: null,
     paper: null,
     paperSync: null,
     paperBusy: false,
@@ -288,6 +289,7 @@
       void runPaperAction(paperAction.dataset.paperAction);
       return;
     }
+    if (event.target.closest('.x-profile-link')) return;
     const scrapeNowButton = event.target.closest('[data-scrape-username]');
     if (scrapeNowButton?.dataset.scrapeUsername) {
       event.preventDefault();
@@ -304,6 +306,13 @@
         state.selectedSignal = signal;
         renderModal();
       }
+      return;
+    }
+    const paperTrade = event.target.closest('[data-paper-trade-id]');
+    if (paperTrade?.dataset.paperTradeId) {
+      event.preventDefault();
+      state.selectedPaperTradeId = paperTrade.dataset.paperTradeId;
+      renderList();
       return;
     }
     const mention = event.target.closest('[data-mention-key]');
@@ -581,8 +590,12 @@
     const totals = paper.totals || {};
     const openTrades = paper.openTrades || [];
     const closedTrades = paper.closedTrades || [];
-    const categories = paper.categories || [];
-    const topRanks = paper.topRanks || [];
+    const allTrades = [...openTrades, ...closedTrades];
+    const selectedTrade = allTrades.find((trade) => String(trade.id) === String(state.selectedPaperTradeId))
+      || openTrades[0]
+      || closedTrades[0]
+      || null;
+    if (selectedTrade) state.selectedPaperTradeId = String(selectedTrade.id);
     const active = run?.status === 'active';
     const view = document.createElement('section');
     view.className = 'paper-view';
@@ -610,11 +623,10 @@
           ${paperMetric('Win rate', formatSignedPct(totals.winRatePct), scoreClass(totals.winRatePct))}
         </div>
       </article>
+      ${paperSelectedTradeHtml(selectedTrade)}
       <section class="paper-grid">
-        ${paperPanel('categories', 'Categories', categories.length ? categories.map(paperCategoryHtml).join('') : '<p class="empty-inline">No category trade yet.</p>', 'compact')}
         ${paperPanel('open-trades', 'Open trades', openTrades.length ? openTrades.map((trade) => paperTradeHtml(trade, false)).join('') : '<p class="empty-inline">No open trade yet.</p>')}
         ${paperPanel('closed-trades', 'Closed trades', closedTrades.length ? closedTrades.map((trade) => paperTradeHtml(trade, true)).join('') : '<p class="empty-inline">No closed trade yet.</p>')}
-        ${paperPanel('top-ranks', 'Top ranks followed', topRanks.length ? topRanks.map(paperRankHtml).join('') : '<p class="empty-inline">No rank snapshot.</p>', 'compact')}
       </section>
     `;
     els.list.replaceChildren(view);
@@ -709,17 +721,6 @@
     });
   }
 
-  function paperCategoryHtml(category) {
-    const net = Number(category.netPnlUsd ?? 0);
-    return `
-      <div class="paper-table-row">
-        <strong>${escapeHtml(windowShortLabel(category.window))}</strong>
-        <span>${Number(category.openTrades ?? 0)} open · ${Number(category.closedTrades ?? 0)} closed</span>
-        <em class="${moneyClass(net)}">${formatMoney(net)}</em>
-      </div>
-    `;
-  }
-
   function paperTradeHtml(trade, closed) {
     const pnl = Number(trade.netPnlUsd ?? 0);
     const returnPct = trade.netReturnPct ?? trade.grossReturnPct;
@@ -727,8 +728,9 @@
     const profileUrl = xProfileUrl(username);
     const profileLabel = `Open @${username || 'profile'} on X`;
     const rank = trade.rank ?? trade.rankPosition ?? '-';
+    const selected = String(trade.id) === String(state.selectedPaperTradeId);
     return `
-      <div class="paper-trade-row">
+      <div class="paper-trade-row ${selected ? 'selected' : ''}" data-paper-trade-id="${escapeAttr(trade.id)}">
         <section class="paper-identity">
           <a class="avatar-link paper-avatar x-profile-link" href="${escapeAttr(profileUrl)}" target="_blank" rel="noopener noreferrer" aria-label="${escapeAttr(profileLabel)}">
             ${avatarHtml({ ...trade, username })}
@@ -744,6 +746,83 @@
         <b class="${moneyClass(pnl)}">${closed ? `${formatMoney(pnl)} · ${formatSignedPct(returnPct)}` : 'open'}</b>
       </div>
     `;
+  }
+
+  function paperSelectedTradeHtml(trade) {
+    if (!trade) {
+      return `
+        <article class="paper-focus-line empty">
+          <span class="label">Selected trade</span>
+          <strong>No trade selected</strong>
+          <em>Start a run or wait for a qualifying reputation signal.</em>
+        </article>
+      `;
+    }
+
+    const username = String(trade.username || '').trim();
+    const profileUrl = xProfileUrl(username);
+    const profileLabel = `Open @${username || 'profile'} on X`;
+    const closed = String(trade.status || '').toLowerCase() === 'closed' || Boolean(trade.exitAt);
+    const progress = paperTradeProgressPct(trade);
+    const result = closed ? paperTradeResult(trade) : 'waiting exit';
+    const resultClass = closed ? moneyClass(trade.netPnlUsd) : 'neutral';
+    return `
+      <article class="paper-focus-line ${closed ? 'closed' : 'open'}">
+        <section class="paper-focus-main">
+          <a class="avatar-link paper-avatar x-profile-link" href="${escapeAttr(profileUrl)}" target="_blank" rel="noopener noreferrer" aria-label="${escapeAttr(profileLabel)}">
+            ${avatarHtml({ ...trade, username })}
+          </a>
+          <span>
+            <small>Selected trade</small>
+            <strong>${escapeHtml(trade.displayName || `@${username || '-'}`)} · ${escapeHtml(trade.symbol || '-')}</strong>
+            <em>@${escapeHtml(username || '-')} · ${escapeHtml(windowShortLabel(trade.categoryWindow))} · #${escapeHtml(trade.rank ?? '-')} · ${escapeHtml(trade.direction || '-')}</em>
+          </span>
+        </section>
+        <section class="paper-focus-progress">
+          <span>${closed ? 'complete' : paperTradeProgressText(trade)}</span>
+          <div class="paper-progress-track"><i style="width:${progress}%"></i></div>
+        </section>
+        <span class="paper-focus-price">
+          <small>entry</small>
+          <strong>${formatPrice(trade.entryPriceUsd)}</strong>
+          <em>${formatMinute(trade.entryAt)}</em>
+        </span>
+        <span class="paper-focus-price">
+          <small>exit</small>
+          <strong>${closed ? formatPrice(trade.exitPriceUsd) : '-'}</strong>
+          <em>${closed ? formatMinute(trade.exitAt) : `target ${formatMinute(trade.targetExitAt)}`}</em>
+        </span>
+        <span class="paper-focus-result ${escapeAttr(resultClass)}">
+          <small>result</small>
+          <strong>${escapeHtml(result)}</strong>
+        </span>
+      </article>
+    `;
+  }
+
+  function paperTradeResult(trade) {
+    const pnl = Number(trade.netPnlUsd);
+    const pct = trade.netReturnPct ?? trade.grossReturnPct;
+    if (!Number.isFinite(pnl)) return 'closed';
+    return `${formatMoney(pnl)} · ${formatSignedPct(pct)}`;
+  }
+
+  function paperTradeProgressPct(trade) {
+    if (String(trade.status || '').toLowerCase() === 'closed' || trade.exitAt) return 100;
+    const entry = new Date(trade.entryAt).getTime();
+    const target = new Date(trade.targetExitAt).getTime();
+    if (!Number.isFinite(entry) || !Number.isFinite(target) || target <= entry) return 0;
+    const pct = ((Date.now() - entry) / (target - entry)) * 100;
+    return Math.max(0, Math.min(100, pct));
+  }
+
+  function paperTradeProgressText(trade) {
+    const pct = paperTradeProgressPct(trade);
+    const target = new Date(trade.targetExitAt).getTime();
+    const minutes = Number.isFinite(target) ? Math.max(0, Math.round((target - Date.now()) / 60000)) : null;
+    if (minutes == null) return `${Math.round(pct)}% to exit`;
+    if (minutes >= 120) return `${Math.round(pct)}% · ${Math.round(minutes / 60)}h left`;
+    return `${Math.round(pct)}% · ${minutes}m left`;
   }
 
   function paperRankHtml(rank) {
