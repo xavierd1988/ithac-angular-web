@@ -39,7 +39,6 @@
       week: [],
       month: []
     },
-    selectedPaperTradeId: null,
     paper: null,
     paperSync: null,
     paperBusy: false,
@@ -289,7 +288,6 @@
       void runPaperAction(paperAction.dataset.paperAction);
       return;
     }
-    if (event.target.closest('.x-profile-link')) return;
     const scrapeNowButton = event.target.closest('[data-scrape-username]');
     if (scrapeNowButton?.dataset.scrapeUsername) {
       event.preventDefault();
@@ -306,13 +304,6 @@
         state.selectedSignal = signal;
         renderModal();
       }
-      return;
-    }
-    const paperTrade = event.target.closest('[data-paper-trade-id]');
-    if (paperTrade?.dataset.paperTradeId) {
-      event.preventDefault();
-      state.selectedPaperTradeId = paperTrade.dataset.paperTradeId;
-      renderList();
       return;
     }
     const mention = event.target.closest('[data-mention-key]');
@@ -590,22 +581,17 @@
     const totals = paper.totals || {};
     const openTrades = paper.openTrades || [];
     const closedTrades = paper.closedTrades || [];
-    const allTrades = [...openTrades, ...closedTrades];
-    const selectedTrade = allTrades.find((trade) => String(trade.id) === String(state.selectedPaperTradeId))
-      || openTrades[0]
-      || closedTrades[0]
-      || null;
-    if (selectedTrade) state.selectedPaperTradeId = String(selectedTrade.id);
+    const allTrades = [...openTrades, ...closedTrades].sort(comparePaperTradesByProgress);
     const active = run?.status === 'active';
     const view = document.createElement('section');
     view.className = 'paper-view';
     view.innerHTML = `
-      <article class="paper-hero">
-        <header>
+      <section class="paper-list-card">
+        <header class="paper-list-head">
           <div>
             <span class="label">Paper trading</span>
             <strong>${run ? `Run #${escapeHtml(run.id)} · ${escapeHtml(run.status)}` : 'No active run'}</strong>
-            <em>${run ? `${formatMinute(run.startedAt)} · ${formatMoney(run.stakeUsd)} per call · ${formatSignedPct(run.roundTripCostPct)} cost` : 'Top reputation calls are waiting for a run.'}</em>
+            <em>${Number(totals.openTrades ?? openTrades.length)} open · ${Number(totals.closedTrades ?? closedTrades.length)} closed · net ${formatMoney(totals.netPnlUsd)}</em>
           </div>
           <div class="paper-actions">
             <button type="button" data-paper-action="start" ${active || state.paperBusy ? 'disabled' : ''}>Start</button>
@@ -614,19 +600,9 @@
           </div>
         </header>
         ${state.paperError ? `<p class="paper-error">${escapeHtml(state.paperError)}</p>` : ''}
-        <div class="paper-metrics">
-          ${paperMetric('Net PnL', formatMoney(totals.netPnlUsd), moneyClass(totals.netPnlUsd))}
-          ${paperMetric('Gross PnL', formatMoney(totals.grossPnlUsd), moneyClass(totals.grossPnlUsd))}
-          ${paperMetric('Costs', formatMoney(-(Number(totals.costUsd) || 0)), 'bad')}
-          ${paperMetric('Open', String(totals.openTrades ?? 0), '')}
-          ${paperMetric('Closed', String(totals.closedTrades ?? 0), '')}
-          ${paperMetric('Win rate', formatSignedPct(totals.winRatePct), scoreClass(totals.winRatePct))}
+        <div class="paper-progress-list">
+          ${allTrades.length ? allTrades.map(paperTradeProgressRowHtml).join('') : '<p class="empty-inline">No paper trade yet.</p>'}
         </div>
-      </article>
-      ${paperSelectedTradeHtml(selectedTrade)}
-      <section class="paper-grid">
-        ${paperPanel('open-trades', 'Open trades', openTrades.length ? openTrades.map((trade) => paperTradeHtml(trade, false)).join('') : '<p class="empty-inline">No open trade yet.</p>')}
-        ${paperPanel('closed-trades', 'Closed trades', closedTrades.length ? closedTrades.map((trade) => paperTradeHtml(trade, true)).join('') : '<p class="empty-inline">No closed trade yet.</p>')}
       </section>
     `;
     els.list.replaceChildren(view);
@@ -682,83 +658,18 @@
     }
   }
 
-  function paperMetric(label, value, className) {
-    return `
-      <span>
-        <small>${escapeHtml(label)}</small>
-        <strong class="${escapeAttr(className || 'neutral')}">${escapeHtml(value)}</strong>
-      </span>
-    `;
-  }
-
-  function paperPanel(key, title, content, modifier = '') {
-    return `
-      <article class="paper-panel ${escapeAttr(modifier)}">
-        <h2>${escapeHtml(title)}</h2>
-        <div class="paper-table" data-paper-scroll-key="${escapeAttr(key)}">${content}</div>
-      </article>
-    `;
-  }
-
   function capturePaperScroll() {
-    const panels = {};
-    els.list.querySelectorAll('[data-paper-scroll-key]').forEach((node) => {
-      panels[node.dataset.paperScrollKey] = node.scrollTop;
-    });
     return {
-      listTop: els.list.scrollTop,
-      panels
+      listTop: els.list.scrollTop
     };
   }
 
   function restorePaperScroll(scrollState) {
     if (!scrollState) return;
     els.list.scrollTop = scrollState.listTop || 0;
-    Object.entries(scrollState.panels || {}).forEach(([key, top]) => {
-      const node = Array.from(els.list.querySelectorAll('[data-paper-scroll-key]'))
-        .find((item) => item.dataset.paperScrollKey === key);
-      if (node) node.scrollTop = Number(top) || 0;
-    });
   }
 
-  function paperTradeHtml(trade, closed) {
-    const pnl = Number(trade.netPnlUsd ?? 0);
-    const returnPct = trade.netReturnPct ?? trade.grossReturnPct;
-    const username = String(trade.username || '').trim();
-    const profileUrl = xProfileUrl(username);
-    const profileLabel = `Open @${username || 'profile'} on X`;
-    const rank = trade.rank ?? trade.rankPosition ?? '-';
-    const selected = String(trade.id) === String(state.selectedPaperTradeId);
-    return `
-      <div class="paper-trade-row ${selected ? 'selected' : ''}" data-paper-trade-id="${escapeAttr(trade.id)}">
-        <section class="paper-identity">
-          <a class="avatar-link paper-avatar x-profile-link" href="${escapeAttr(profileUrl)}" target="_blank" rel="noopener noreferrer" aria-label="${escapeAttr(profileLabel)}">
-            ${avatarHtml({ ...trade, username })}
-          </a>
-          <span>
-            <strong>${escapeHtml(trade.displayName || `@${username || '-'}`)}</strong>
-            <em>@${escapeHtml(username || '-')} · ${escapeHtml(trade.symbol || '-')}</em>
-          </span>
-        </section>
-        <span>${escapeHtml(windowShortLabel(trade.categoryWindow))} · #${escapeHtml(rank)} · ${escapeHtml(trade.direction || '-')}</span>
-        <span>${formatMoney(trade.stakeUsd)} @ ${formatPrice(trade.entryPriceUsd)}</span>
-        <em>${closed ? formatMinute(trade.exitAt) : `target ${formatMinute(trade.targetExitAt)}`}</em>
-        <b class="${moneyClass(pnl)}">${closed ? `${formatMoney(pnl)} · ${formatSignedPct(returnPct)}` : 'open'}</b>
-      </div>
-    `;
-  }
-
-  function paperSelectedTradeHtml(trade) {
-    if (!trade) {
-      return `
-        <article class="paper-focus-line empty">
-          <span class="label">Selected trade</span>
-          <strong>No trade selected</strong>
-          <em>Start a run or wait for a qualifying reputation signal.</em>
-        </article>
-      `;
-    }
-
+  function paperTradeProgressRowHtml(trade) {
     const username = String(trade.username || '').trim();
     const profileUrl = xProfileUrl(username);
     const profileLabel = `Open @${username || 'profile'} on X`;
@@ -766,34 +677,25 @@
     const progress = paperTradeProgressPct(trade);
     const result = closed ? paperTradeResult(trade) : 'waiting exit';
     const resultClass = closed ? moneyClass(trade.netPnlUsd) : 'neutral';
+    const rank = trade.rank ?? trade.rankPosition ?? '-';
     return `
-      <article class="paper-focus-line ${closed ? 'closed' : 'open'}">
-        <section class="paper-focus-main">
+      <article class="paper-progress-row ${closed ? 'closed' : 'open'}">
+        <section class="paper-progress-trade">
           <a class="avatar-link paper-avatar x-profile-link" href="${escapeAttr(profileUrl)}" target="_blank" rel="noopener noreferrer" aria-label="${escapeAttr(profileLabel)}">
             ${avatarHtml({ ...trade, username })}
           </a>
           <span>
-            <small>Selected trade</small>
             <strong>${escapeHtml(trade.displayName || `@${username || '-'}`)} · ${escapeHtml(trade.symbol || '-')}</strong>
             <em>@${escapeHtml(username || '-')} · ${escapeHtml(windowShortLabel(trade.categoryWindow))} · #${escapeHtml(trade.rank ?? '-')} · ${escapeHtml(trade.direction || '-')}</em>
           </span>
         </section>
-        <section class="paper-focus-progress">
+        <section class="paper-progress-main">
           <span>${closed ? 'complete' : paperTradeProgressText(trade)}</span>
           <div class="paper-progress-track"><i style="width:${progress}%"></i></div>
+          <em>entry ${formatPrice(trade.entryPriceUsd)} · ${formatMinute(trade.entryAt)} → ${closed ? `exit ${formatPrice(trade.exitPriceUsd)} · ${formatMinute(trade.exitAt)}` : `target ${formatMinute(trade.targetExitAt)}`}</em>
         </section>
-        <span class="paper-focus-price">
-          <small>entry</small>
-          <strong>${formatPrice(trade.entryPriceUsd)}</strong>
-          <em>${formatMinute(trade.entryAt)}</em>
-        </span>
-        <span class="paper-focus-price">
-          <small>exit</small>
-          <strong>${closed ? formatPrice(trade.exitPriceUsd) : '-'}</strong>
-          <em>${closed ? formatMinute(trade.exitAt) : `target ${formatMinute(trade.targetExitAt)}`}</em>
-        </span>
-        <span class="paper-focus-result ${escapeAttr(resultClass)}">
-          <small>result</small>
+        <span class="paper-progress-result ${escapeAttr(resultClass)}">
+          <small>${closed ? 'result' : `rank #${escapeHtml(rank)}`}</small>
           <strong>${escapeHtml(result)}</strong>
         </span>
       </article>
@@ -825,27 +727,12 @@
     return `${Math.round(pct)}% · ${minutes}m left`;
   }
 
-  function paperRankHtml(rank) {
-    const username = String(rank.username || '').trim();
-    const profileUrl = xProfileUrl(username);
-    const profileLabel = `Open @${username || 'profile'} on X`;
-    const busy = state.scrapeNowBusy.has(username.toLowerCase());
-    return `
-      <div class="paper-table-row paper-rank-row">
-        <strong>${escapeHtml(windowShortLabel(rank.window))} #${escapeHtml(rank.rank)}</strong>
-        <section class="paper-identity">
-          <a class="avatar-link paper-avatar x-profile-link" href="${escapeAttr(profileUrl)}" target="_blank" rel="noopener noreferrer" aria-label="${escapeAttr(profileLabel)}">
-            ${avatarHtml({ ...rank, username })}
-          </a>
-          <span>
-            <strong>${escapeHtml(rank.displayName || `@${username || '-'}`)}</strong>
-            <em>@${escapeHtml(username || '-')} · ${formatFollowers(rank.followersCount)}</em>
-          </span>
-        </section>
-        <button class="scrape-now-button" type="button" data-scrape-username="${escapeAttr(username)}" ${busy ? 'disabled' : ''}>${busy ? 'Queued' : 'Scrape now'}</button>
-        <em>${formatScore(rank.competitionScore)}</em>
-      </div>
-    `;
+  function comparePaperTradesByProgress(a, b) {
+    const progress = paperTradeProgressPct(b) - paperTradeProgressPct(a);
+    if (Math.abs(progress) > 0.001) return progress;
+    const timeA = new Date(a.exitAt || a.targetExitAt || a.entryAt).getTime();
+    const timeB = new Date(b.exitAt || b.targetExitAt || b.entryAt).getTime();
+    return (Number.isFinite(timeA) ? timeA : 0) - (Number.isFinite(timeB) ? timeB : 0);
   }
 
   function windowShortLabel(key) {

@@ -1182,6 +1182,157 @@ select:focus {
   padding: 12px;
 }
 
+.paper-list-card {
+  overflow: hidden;
+  border: 1px solid rgba(201, 151, 43, 0.22);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.paper-list-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  min-height: 68px;
+  border-bottom: 1px solid rgba(201, 151, 43, 0.14);
+  padding: 12px 14px;
+}
+
+.paper-list-head div:first-child {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.paper-list-head strong,
+.paper-list-head em {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.paper-list-head em {
+  color: var(--muted);
+  font-size: 12px;
+  font-style: normal;
+}
+
+.paper-progress-list {
+  display: grid;
+}
+
+.paper-progress-row {
+  display: grid;
+  grid-template-columns: minmax(230px, 0.95fr) minmax(340px, 1.35fr) minmax(132px, 0.45fr);
+  gap: 12px;
+  align-items: center;
+  min-height: 72px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.065);
+  padding: 10px 14px;
+  background: rgba(0, 0, 0, 0.09);
+}
+
+.paper-progress-row:nth-child(even) {
+  background: rgba(255, 255, 255, 0.018);
+}
+
+.paper-progress-row.closed {
+  background: rgba(201, 151, 43, 0.055);
+}
+
+.paper-progress-row:last-child {
+  border-bottom: 0;
+}
+
+.paper-progress-trade {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  min-width: 0;
+}
+
+.paper-progress-trade span,
+.paper-progress-main,
+.paper-progress-result {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.paper-progress-trade strong,
+.paper-progress-main span,
+.paper-progress-result strong {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 850;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.paper-progress-trade em,
+.paper-progress-main em {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 11px;
+  font-style: normal;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.paper-progress-track {
+  overflow: hidden;
+  height: 9px;
+  border: 1px solid rgba(201, 151, 43, 0.2);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.paper-progress-track i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--gold), var(--green));
+  box-shadow: 0 0 18px rgba(201, 151, 43, 0.28);
+}
+
+.paper-progress-result {
+  justify-items: end;
+}
+
+.paper-progress-result small {
+  color: var(--gold);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.paper-progress-result strong {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 7px 9px;
+  background: rgba(255, 255, 255, 0.045);
+  font-variant-numeric: tabular-nums;
+}
+
+.paper-progress-result.good strong {
+  border-color: rgba(53, 211, 158, 0.28);
+  color: var(--green);
+  background: rgba(53, 211, 158, 0.08);
+}
+
+.paper-progress-result.bad strong {
+  border-color: rgba(255, 93, 108, 0.3);
+  color: #ff9ca7;
+  background: rgba(255, 93, 108, 0.08);
+}
+
 .paper-hero,
 .paper-panel {
   border: 1px solid rgba(255, 255, 255, 0.095);
@@ -1293,123 +1444,6 @@ select:focus {
   font-size: 22px;
   font-weight: 850;
   font-variant-numeric: tabular-nums;
-}
-
-.paper-focus-line {
-  display: grid;
-  grid-template-columns: minmax(220px, 1.05fr) minmax(260px, 1.15fr) minmax(120px, 0.56fr) minmax(140px, 0.62fr) minmax(130px, 0.58fr);
-  gap: 10px;
-  align-items: center;
-  min-height: 86px;
-  border: 1px solid rgba(201, 151, 43, 0.38);
-  border-radius: 8px;
-  padding: 12px;
-  background:
-    radial-gradient(circle at 16% 0%, rgba(201, 151, 43, 0.14), transparent 34%),
-    rgba(255, 255, 255, 0.035);
-}
-
-.paper-focus-line.empty {
-  grid-template-columns: 130px minmax(0, 1fr) minmax(0, 1fr);
-  color: var(--muted);
-}
-
-.paper-focus-main {
-  display: grid;
-  grid-template-columns: 42px minmax(0, 1fr);
-  gap: 10px;
-  align-items: center;
-  min-width: 0;
-}
-
-.paper-focus-main span,
-.paper-focus-price,
-.paper-focus-result {
-  display: grid;
-  gap: 3px;
-  min-width: 0;
-}
-
-.paper-focus-main small,
-.paper-focus-price small,
-.paper-focus-result small {
-  color: var(--gold);
-  font-size: 10px;
-  font-weight: 900;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.paper-focus-main strong,
-.paper-focus-price strong,
-.paper-focus-result strong {
-  min-width: 0;
-  overflow: hidden;
-  color: var(--ink);
-  font-size: 15px;
-  font-weight: 850;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.paper-focus-main em,
-.paper-focus-price em {
-  min-width: 0;
-  overflow: hidden;
-  color: var(--muted);
-  font-size: 11px;
-  font-style: normal;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.paper-focus-progress {
-  display: grid;
-  gap: 8px;
-  min-width: 0;
-}
-
-.paper-focus-progress span {
-  color: var(--muted);
-  font-size: 12px;
-  font-weight: 800;
-}
-
-.paper-progress-track {
-  overflow: hidden;
-  height: 10px;
-  border: 1px solid rgba(201, 151, 43, 0.22);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.07);
-}
-
-.paper-progress-track i {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
-  background: linear-gradient(90deg, var(--gold), var(--green));
-  box-shadow: 0 0 18px rgba(201, 151, 43, 0.28);
-}
-
-.paper-focus-result strong {
-  justify-self: start;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 8px;
-  padding: 7px 9px;
-  background: rgba(255, 255, 255, 0.045);
-  font-variant-numeric: tabular-nums;
-}
-
-.paper-focus-result.good strong {
-  border-color: rgba(53, 211, 158, 0.28);
-  color: var(--green);
-  background: rgba(53, 211, 158, 0.08);
-}
-
-.paper-focus-result.bad strong {
-  border-color: rgba(255, 93, 108, 0.3);
-  color: #ff9ca7;
-  background: rgba(255, 93, 108, 0.08);
 }
 
 .paper-grid {
