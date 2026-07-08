@@ -1242,6 +1242,10 @@ select:focus {
   background: rgba(201, 151, 43, 0.055);
 }
 
+.paper-progress-row.blocked {
+  background: rgba(255, 176, 32, 0.052);
+}
+
 .paper-progress-row:last-child {
   border-bottom: 0;
 }
@@ -1331,6 +1335,12 @@ select:focus {
   border-color: rgba(255, 93, 108, 0.3);
   color: #ff9ca7;
   background: rgba(255, 93, 108, 0.08);
+}
+
+.paper-progress-result.blocked strong {
+  border-color: rgba(201, 151, 43, 0.38);
+  color: var(--gold);
+  background: rgba(201, 151, 43, 0.1);
 }
 
 .paper-hero,

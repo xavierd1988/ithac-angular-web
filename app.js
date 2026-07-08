@@ -675,11 +675,13 @@
     const profileLabel = `Open @${username || 'profile'} on X`;
     const closed = String(trade.status || '').toLowerCase() === 'closed' || Boolean(trade.exitAt);
     const progress = paperTradeProgressPct(trade);
-    const result = closed ? paperTradeResult(trade) : 'waiting exit';
-    const resultClass = closed ? moneyClass(trade.netPnlUsd) : 'neutral';
+    const block = paperTradeBlock(trade);
+    const result = closed ? paperTradeResult(trade) : (block ? block.result : 'waiting exit');
+    const resultClass = closed ? moneyClass(trade.netPnlUsd) : (block ? 'blocked' : 'neutral');
+    const progressText = closed ? 'complete' : (block ? block.progress : paperTradeProgressText(trade));
     const rank = trade.rank ?? trade.rankPosition ?? '-';
     return `
-      <article class="paper-progress-row ${closed ? 'closed' : 'open'}">
+      <article class="paper-progress-row ${closed ? 'closed' : block ? 'blocked' : 'open'}">
         <section class="paper-progress-trade">
           <a class="avatar-link paper-avatar x-profile-link" href="${escapeAttr(profileUrl)}" target="_blank" rel="noopener noreferrer" aria-label="${escapeAttr(profileLabel)}">
             ${avatarHtml({ ...trade, username })}
@@ -690,16 +692,55 @@
           </span>
         </section>
         <section class="paper-progress-main">
-          <span>${closed ? 'complete' : paperTradeProgressText(trade)}</span>
+          <span>${escapeHtml(progressText)}</span>
           <div class="paper-progress-track"><i style="width:${progress}%"></i></div>
-          <em>entry ${formatPrice(trade.entryPriceUsd)} · ${formatMinute(trade.entryAt)} → ${closed ? `exit ${formatPrice(trade.exitPriceUsd)} · ${formatMinute(trade.exitAt)}` : `target ${formatMinute(trade.targetExitAt)}`}</em>
+          <em>entry ${formatPrice(trade.entryPriceUsd)} · ${formatMinute(trade.entryAt)} → ${closed ? `exit ${formatPrice(trade.exitPriceUsd)} · ${formatMinute(trade.exitAt)}` : block ? `${block.detail} · target ${formatMinute(trade.targetExitAt)}` : `target ${formatMinute(trade.targetExitAt)}`}</em>
         </section>
         <span class="paper-progress-result ${escapeAttr(resultClass)}">
-          <small>${closed ? 'result' : `rank #${escapeHtml(rank)}`}</small>
+          <small>${closed ? 'result' : block ? escapeHtml(block.label) : `rank #${escapeHtml(rank)}`}</small>
           <strong>${escapeHtml(result)}</strong>
         </span>
       </article>
     `;
+  }
+
+  function paperTradeBlock(trade) {
+    const closed = String(trade.status || '').toLowerCase() === 'closed' || Boolean(trade.exitAt);
+    if (closed) return null;
+    const status = String(trade.signalWindowStatus || '').trim().toLowerCase();
+    const error = String(trade.signalWindowError || '').trim().toLowerCase();
+    const due = paperTradeProgressPct(trade) >= 99.9 && new Date(trade.targetExitAt).getTime() <= Date.now();
+    if (!due && !status.includes('error') && !error) return null;
+    if (status.includes('price') || error.includes('coingecko') || error.includes('price')) {
+      return {
+        label: 'CoinGecko',
+        progress: 'price unavailable',
+        result: 'price missing',
+        detail: humanPaperTradeError(error || status)
+      };
+    }
+    if (status && status !== 'scored' && status !== 'closed') {
+      return {
+        label: 'Timex',
+        progress: status.replaceAll('_', ' '),
+        result: 'not scored',
+        detail: humanPaperTradeError(error || status)
+      };
+    }
+    return due ? {
+      label: 'Timex',
+      progress: 'waiting Timex',
+      result: 'waiting exit',
+      detail: 'Timex has not produced an exit price yet'
+    } : null;
+  }
+
+  function humanPaperTradeError(value) {
+    const clean = String(value || '').trim();
+    if (!clean) return 'Exit price unavailable';
+    if (clean === 'coingecko_history_start_unavailable') return 'CoinGecko history unavailable';
+    if (clean.includes('coingecko')) return clean.replaceAll('_', ' ');
+    return clean.replaceAll('_', ' ');
   }
 
   function paperTradeResult(trade) {
