@@ -576,6 +576,7 @@
       return;
     }
 
+    const scrollState = capturePaperScroll();
     const run = paper.currentRun;
     const totals = paper.totals || {};
     const openTrades = paper.openTrades || [];
@@ -610,13 +611,14 @@
         </div>
       </article>
       <section class="paper-grid">
-        ${paperPanel('Categories', categories.length ? categories.map(paperCategoryHtml).join('') : '<p class="empty-inline">No category trade yet.</p>', 'compact')}
-        ${paperPanel('Open trades', openTrades.length ? openTrades.map((trade) => paperTradeHtml(trade, false)).join('') : '<p class="empty-inline">No open trade yet.</p>')}
-        ${paperPanel('Closed trades', closedTrades.length ? closedTrades.map((trade) => paperTradeHtml(trade, true)).join('') : '<p class="empty-inline">No closed trade yet.</p>')}
-        ${paperPanel('Top ranks followed', topRanks.length ? topRanks.map(paperRankHtml).join('') : '<p class="empty-inline">No rank snapshot.</p>', 'compact')}
+        ${paperPanel('categories', 'Categories', categories.length ? categories.map(paperCategoryHtml).join('') : '<p class="empty-inline">No category trade yet.</p>', 'compact')}
+        ${paperPanel('open-trades', 'Open trades', openTrades.length ? openTrades.map((trade) => paperTradeHtml(trade, false)).join('') : '<p class="empty-inline">No open trade yet.</p>')}
+        ${paperPanel('closed-trades', 'Closed trades', closedTrades.length ? closedTrades.map((trade) => paperTradeHtml(trade, true)).join('') : '<p class="empty-inline">No closed trade yet.</p>')}
+        ${paperPanel('top-ranks', 'Top ranks followed', topRanks.length ? topRanks.map(paperRankHtml).join('') : '<p class="empty-inline">No rank snapshot.</p>', 'compact')}
       </section>
     `;
     els.list.replaceChildren(view);
+    restorePaperScroll(scrollState);
   }
 
   async function runPaperAction(action) {
@@ -677,13 +679,34 @@
     `;
   }
 
-  function paperPanel(title, content, modifier = '') {
+  function paperPanel(key, title, content, modifier = '') {
     return `
       <article class="paper-panel ${escapeAttr(modifier)}">
         <h2>${escapeHtml(title)}</h2>
-        <div class="paper-table">${content}</div>
+        <div class="paper-table" data-paper-scroll-key="${escapeAttr(key)}">${content}</div>
       </article>
     `;
+  }
+
+  function capturePaperScroll() {
+    const panels = {};
+    els.list.querySelectorAll('[data-paper-scroll-key]').forEach((node) => {
+      panels[node.dataset.paperScrollKey] = node.scrollTop;
+    });
+    return {
+      listTop: els.list.scrollTop,
+      panels
+    };
+  }
+
+  function restorePaperScroll(scrollState) {
+    if (!scrollState) return;
+    els.list.scrollTop = scrollState.listTop || 0;
+    Object.entries(scrollState.panels || {}).forEach(([key, top]) => {
+      const node = Array.from(els.list.querySelectorAll('[data-paper-scroll-key]'))
+        .find((item) => item.dataset.paperScrollKey === key);
+      if (node) node.scrollTop = Number(top) || 0;
+    });
   }
 
   function paperCategoryHtml(category) {
