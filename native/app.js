@@ -32,6 +32,8 @@
     proxies: [],
     jobs: [],
     events: [],
+    allInfluencers: [],
+    allInfluencersLoadedAt: 0,
     timex: [],
     reputationWindow: 'day',
     reputation: {
@@ -157,11 +159,13 @@
         getJson('/api/jobs/recent?take=220').catch(() => [])
       ]);
       void loadCryptoPanels();
+      void loadAllInfluencers(false);
       if (requestId !== state.snapshotSeq) return;
 
       state.loadError = null;
       state.run = snapshot.run;
       state.page = snapshot.influencerPage;
+      mergeInfluencerRows(snapshot.influencerPage?.items ?? []);
       state.pageIndex = clampPageIndex(snapshot.influencerPage.pageIndex, snapshot.influencerPage.total, snapshot.influencerPage.pageSize);
       state.pageSize = snapshot.influencerPage.pageSize;
       state.sessions = snapshot.sessions ?? [];
@@ -185,9 +189,9 @@
     try {
       const [timex, repDay, repWeek, repMonth, paper] = await Promise.all([
         getJson('/api/crypto/timex?take=500').catch(() => []),
-        getJson('/api/crypto/reputation?window=day&take=160').catch(() => []),
-        getJson('/api/crypto/reputation?window=week&take=160').catch(() => []),
-        getJson('/api/crypto/reputation?window=month&take=160').catch(() => []),
+        getJson('/api/crypto/reputation?window=day&take=500').catch(() => []),
+        getJson('/api/crypto/reputation?window=week&take=500').catch(() => []),
+        getJson('/api/crypto/reputation?window=month&take=500').catch(() => []),
         getJson('/api/paper/summary?sync=false').catch(() => null)
       ]);
       state.timex = Array.isArray(timex) ? timex : [];
@@ -203,6 +207,31 @@
       state.timex = [];
       state.reputation = { day: [], week: [], month: [] };
       renderAll();
+    }
+  }
+
+  async function loadAllInfluencers(force = false) {
+    const now = Date.now();
+    if (!force && state.allInfluencers.length && now - state.allInfluencersLoadedAt < 60_000) return;
+    try {
+      const rows = await getJson('/api/influencers');
+      if (!Array.isArray(rows)) return;
+      state.allInfluencers = rows;
+      state.allInfluencersLoadedAt = Date.now();
+      renderAll();
+    } catch {
+      // Snapshot paging remains usable when the full list endpoint is unavailable.
+    }
+  }
+
+  function mergeInfluencerRows(rows) {
+    if (!state.allInfluencers.length || !Array.isArray(rows) || !rows.length) return;
+    const byUser = new Map(state.allInfluencers.map((row, index) => [String(row.username || '').toLowerCase(), { row, index }]));
+    for (const row of rows) {
+      const key = String(row.username || '').toLowerCase();
+      const current = byUser.get(key);
+      if (!current) continue;
+      state.allInfluencers[current.index] = { ...current.row, ...row };
     }
   }
 
@@ -317,7 +346,7 @@
   }
 
   function setTab(tab) {
-    const next = ['live', 'reputation', 'paper'].includes(tab) ? tab : 'live';
+    const next = ['live', 'paper'].includes(tab) ? tab : 'live';
     if (state.activeTab === next) return;
     state.activeTab = next;
     state.selectedUsername = null;
@@ -375,8 +404,8 @@
   function renderPager() {
     els.pager.hidden = state.activeTab !== 'live';
     if (state.activeTab !== 'live') return;
-    const total = state.page.total || 0;
-    const pageSize = state.page.pageSize || state.pageSize;
+    const total = liveRows().length;
+    const pageSize = state.pageSize || state.page.pageSize || 250;
     const pageCount = Math.max(1, Math.ceil(total / Math.max(pageSize, 1)));
     const pageIndex = clampPageIndex(state.pageIndex, total, pageSize);
     const start = total ? pageIndex * pageSize + 1 : 0;
@@ -428,26 +457,25 @@
   }
 
   function renderList() {
-    if (state.activeTab === 'reputation') {
-      renderReputation();
-      return;
-    }
     if (state.activeTab === 'paper') {
       renderPaper();
       return;
     }
-    const rows = state.page.items ?? [];
+    const allRows = liveRows();
+    const pageSize = state.pageSize || state.page.pageSize || 250;
+    const pageIndex = clampPageIndex(state.pageIndex, allRows.length, pageSize);
+    const rows = allRows.slice(pageIndex * pageSize, pageIndex * pageSize + pageSize);
+    const nodes = [renderReputationSwitcher()];
     if (!rows.length) {
       const empty = document.createElement('article');
       empty.className = 'empty';
       empty.innerHTML = `<strong>No handle</strong><br><span>${escapeHtml(state.loadError ? 'The backend did not answer this browser yet.' : 'No influencer on this page.')}</span>`;
-      els.list.replaceChildren(empty);
+      els.list.replaceChildren(...nodes, empty);
       return;
     }
 
-    const nodes = [];
     rows.forEach((row, index) => {
-      nodes.push(renderRow(row, state.pageIndex * state.pageSize + index + 1));
+      nodes.push(renderRow(row, pageIndex * pageSize + index + 1));
       if (state.selectedUsername?.toLowerCase() === row.username.toLowerCase()) {
         nodes.push(renderDetail(row));
       }
@@ -488,19 +516,55 @@
     return row;
   }
 
-  function renderReputation() {
-    const rows = currentReputationRows();
-    const nodes = [renderReputationSwitcher()];
-    if (!rows.length) {
-      nodes.push(emptyNode('No reputation yet', `${reputationWindowLabel(state.reputationWindow)} competition will appear after scored crypto windows.`));
-      els.list.replaceChildren(...nodes);
-      return;
-    }
-    els.list.replaceChildren(...nodes, ...rows.map((row, index) => renderReputationRow(row, row.rank || index + 1)));
-  }
-
   function currentReputationRows() {
     return state.reputation?.[state.reputationWindow] ?? [];
+  }
+
+  function currentReputationMap() {
+    return new Map(currentReputationRows().map((row) => [String(row.username || '').toLowerCase(), row]));
+  }
+
+  function liveRows() {
+    const source = state.allInfluencers.length ? state.allInfluencers : (state.page.items ?? []);
+    const repMap = currentReputationMap();
+    const rows = source.map((row, index) => ({
+      ...row,
+      _sourceIndex: index,
+      _reputation: repMap.get(String(row.username || '').toLowerCase()) || null
+    })).filter(matchesLiveFilters);
+    rows.sort(compareLiveRows);
+    return rows;
+  }
+
+  function matchesLiveFilters(row) {
+    const query = String(state.query || '').trim().toLowerCase();
+    if (query) {
+      const haystack = `${row.username || ''} ${row.displayName || ''}`.toLowerCase();
+      if (!haystack.includes(query)) return false;
+    }
+    const status = String(state.status || 'all').toLowerCase();
+    if (status !== 'all' && normalizeJobStatus(row.status) !== status) return false;
+    if (state.priorityOnly && !row.priority) return false;
+    return true;
+  }
+
+  function compareLiveRows(a, b) {
+    const scoreA = reputationScore(a._reputation);
+    const scoreB = reputationScore(b._reputation);
+    const hasA = Number.isFinite(scoreA);
+    const hasB = Number.isFinite(scoreB);
+    if (hasA !== hasB) return hasA ? -1 : 1;
+    if (hasA && Math.abs(scoreB - scoreA) > 0.001) return scoreB - scoreA;
+    const rankA = Number(a._reputation?.rank);
+    const rankB = Number(b._reputation?.rank);
+    const safeRankA = Number.isFinite(rankA) ? rankA : Number.MAX_SAFE_INTEGER;
+    const safeRankB = Number.isFinite(rankB) ? rankB : Number.MAX_SAFE_INTEGER;
+    if (safeRankA !== safeRankB) return safeRankA - safeRankB;
+    if (isActiveRow(a) !== isActiveRow(b)) return isActiveRow(a) ? -1 : 1;
+    const scrapeA = Date.parse(a.lastScrapeFinishedAt || a.lastScrapeUpdatedAt || a.lastScrapeStartedAt || '') || 0;
+    const scrapeB = Date.parse(b.lastScrapeFinishedAt || b.lastScrapeUpdatedAt || b.lastScrapeStartedAt || '') || 0;
+    if (scrapeA !== scrapeB) return scrapeB - scrapeA;
+    return (a._sourceIndex ?? 0) - (b._sourceIndex ?? 0);
   }
 
   function reputationWindowLabel(key) {
@@ -509,11 +573,13 @@
 
   function renderReputationSwitcher() {
     const wrap = document.createElement('section');
-    wrap.className = 'reputation-switcher';
+    wrap.className = 'reputation-switcher merged-ranking-switcher';
+    const total = liveRows().length;
+    const scored = currentReputationRows().length;
     wrap.innerHTML = `
       <div>
-        <strong>Reputation competitions</strong>
-        <span>Three independent rankings. Same influencer can compete in day, week and month at the same time.</span>
+        <strong>Live ranking + scraper</strong>
+        <span>${scored} scored in ${reputationWindowLabel(state.reputationWindow)} · ${total} handles kept in the same scraper list.</span>
       </div>
       <div class="reputation-window-buttons">
         ${REPUTATION_WINDOWS.map((item) => `
@@ -528,47 +594,11 @@
       button.addEventListener('click', () => {
         state.reputationWindow = button.dataset.reputationWindow || 'day';
         state.selectedReputation = null;
+        state.pageIndex = 0;
         renderAll();
       });
     });
     return wrap;
-  }
-
-  function renderReputationRow(item, rank) {
-    const row = document.createElement('article');
-    const score = reputationScore(item);
-    const username = String(item.username || '').trim();
-    const profileUrl = xProfileUrl(username);
-    const profileLabel = `Open @${username || 'profile'} on X`;
-    row.className = `reputation-row ${scoreClass(score)}`;
-    row.innerHTML = `
-      <span class="rank">${rank}</span>
-      <section class="signal-main reputation-main">
-        <a class="avatar-link reputation-avatar x-profile-link" href="${escapeAttr(profileUrl)}" target="_blank" rel="noopener noreferrer" aria-label="${escapeAttr(profileLabel)}">
-          ${avatarHtml({ ...item, username })}
-        </a>
-        <div class="reputation-copy">
-          <div class="signal-line">
-            <a class="identity-text reputation-identity x-profile-link" href="${escapeAttr(profileUrl)}" target="_blank" rel="noopener noreferrer" aria-label="${escapeAttr(profileLabel)}">
-              <strong>${escapeHtml(item.displayName || `@${username || '-'}`)}</strong>
-              <em>@${escapeHtml(username || '-')} · ${formatFollowers(item.followersCount)}</em>
-            </a>
-            <em>${reputationWindowLabel(item.window || state.reputationWindow)} · ${Number(item.scoredCount ?? 0)} scored · last ${escapeHtml(item.lastSymbol || '-')} · ${formatMinute(item.lastUpdatedAt)}</em>
-          </div>
-          <p>Ranking ${formatScore(score)} · trade avg ${formatScore(item.averageScore)} · activity ${formatScore(item.activityScore)} · best trade ${formatScore(item.bestScore)}</p>
-        </div>
-      </section>
-      <span class="signal-score ${scoreClass(score)}">${formatScore(score)}</span>
-    `;
-    row.querySelectorAll('.x-profile-link').forEach((link) => {
-      link.addEventListener('click', (event) => event.stopPropagation());
-    });
-    row.addEventListener('click', () => {
-      state.selectedReputation = item;
-      renderModal();
-      void loadReputationDetail(item);
-    });
-    return row;
   }
 
   function renderPaper() {
@@ -809,6 +839,7 @@
     const steps = scrapeSteps(row);
     const profileUrl = xProfileUrl(row.username);
     const profileLabel = `Open @${row.username} on X`;
+    const reputation = row._reputation;
     article.innerHTML = `
       ${isTraceRow(row) ? '<div class="scan-beam"></div>' : ''}
       <div class="row-main">
@@ -831,12 +862,22 @@
           <div class="progress-track"><span class="${normalizeJobStatus(row.status) === 'failed' ? 'failed' : ''}" style="width:${progress}%"></span></div>
           <div class="steps">${steps.map(stageHtml).join('')}</div>
         </section>
-        <span class="status-light ${normalizeJobStatus(row.status)}"><i></i>${status}</span>
+        ${rankingCellHtml(row, reputation, status)}
       </div>
     `;
     article.querySelectorAll('.x-profile-link').forEach((link) => {
       link.addEventListener('click', (event) => event.stopPropagation());
     });
+    const reputationButton = article.querySelector('[data-reputation-username]');
+    if (reputationButton && reputation) {
+      reputationButton.addEventListener('click', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        state.selectedReputation = reputation;
+        renderModal();
+        void loadReputationDetail(reputation);
+      });
+    }
     article.addEventListener('click', () => {
       const wasSelected = state.selectedUsername?.toLowerCase() === row.username.toLowerCase();
       state.selectedUsername = wasSelected ? null : row.username;
@@ -844,6 +885,27 @@
       if (!wasSelected) void loadPosts(row.username);
     });
     return article;
+  }
+
+  function rankingCellHtml(row, reputation, status) {
+    if (reputation) {
+      const score = reputationScore(reputation);
+      const label = reputationWindowLabel(reputation.window || state.reputationWindow);
+      return `
+        <button type="button" class="ranking-cell ${scoreClass(score)}" data-reputation-username="${escapeAttr(row.username)}" title="Open reputation detail">
+          <small>#${escapeHtml(reputation.rank ?? '-')} · ${escapeHtml(label)}</small>
+          <strong>${formatScore(score)}</strong>
+          <em>${escapeHtml(reputation.lastSymbol || '-')} · ${Number(reputation.scoredCount ?? 0)} scored</em>
+        </button>
+      `;
+    }
+    return `
+      <span class="ranking-cell unrated">
+        <small>not rated</small>
+        <strong>-</strong>
+        <em>${escapeHtml(status)}</em>
+      </span>
+    `;
   }
 
   function xProfileUrl(username) {
@@ -918,12 +980,17 @@
   }
 
   function goToPage(pageIndex) {
-    const total = state.page.total || 0;
-    const pageSize = state.page.pageSize || state.pageSize;
+    const total = state.activeTab === 'live' ? liveRows().length : (state.page.total || 0);
+    const pageSize = state.pageSize || state.page.pageSize || 250;
     const next = clampPageIndex(pageIndex, total, pageSize);
     if (next === state.pageIndex) return;
     state.pageIndex = next;
     state.selectedUsername = null;
+    if (state.activeTab === 'live' && state.allInfluencers.length) {
+      renderAll();
+      els.list.scrollTop = 0;
+      return;
+    }
     void loadSnapshot({ resetListScroll: true });
   }
 
@@ -948,9 +1015,12 @@
 
   function rowPosition(username) {
     const lower = username.toLowerCase();
-    const index = (state.page.items ?? []).findIndex((row) => row.username.toLowerCase() === lower);
-    if (index >= 0) return `row ${state.pageIndex * state.pageSize + index + 1}/${state.page.total}`;
-    return `not on page ${state.pageIndex + 1}`;
+    const rows = liveRows();
+    const index = rows.findIndex((row) => row.username.toLowerCase() === lower);
+    if (index < 0) return `not in ranked list`;
+    const pageSize = state.pageSize || state.page.pageSize || 250;
+    const page = Math.floor(index / Math.max(pageSize, 1)) + 1;
+    return `ranked row ${index + 1}/${rows.length} · page ${page}`;
   }
 
   function isActiveRow(row) {
