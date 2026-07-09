@@ -191,12 +191,14 @@ button {
 
 .scanner-progress-track i {
   display: block;
-  width: 0%;
+  width: 100%;
   height: 100%;
   border-radius: inherit;
   background: linear-gradient(90deg, var(--gold), var(--green));
   box-shadow: 0 0 18px rgba(53, 211, 158, 0.42);
-  transition: width 0.3s ease;
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.3s ease;
 }
 
 .menu-toggle {
