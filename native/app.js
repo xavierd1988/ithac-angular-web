@@ -400,7 +400,7 @@
 
     els.livePositionBar.className = `live-position-bar ${status}`;
     els.scannerProgressText.textContent = `${Math.round(progress)}%`;
-    els.scannerProgressBar.style.width = `${progress.toFixed(1)}%`;
+    els.scannerProgressBar.style.transform = `scaleX(${(progress / 100).toFixed(3)})`;
     els.scannerDone.textContent = String(done);
     els.scannerRunning.textContent = String(running);
     els.scannerQueued.textContent = String(queued);
