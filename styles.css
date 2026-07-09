@@ -561,7 +561,7 @@ select:focus {
 .row-main {
   position: relative;
   display: grid;
-  grid-template-columns: 44px minmax(250px, 360px) minmax(420px, 1fr) 118px;
+  grid-template-columns: 44px minmax(250px, 360px) minmax(420px, 1fr) 158px;
   gap: 12px;
   align-items: center;
   min-height: 86px;
@@ -1125,6 +1125,69 @@ select:focus {
   font-size: 11px;
   font-style: normal;
   opacity: 0.75;
+}
+
+.merged-ranking-switcher {
+  position: sticky;
+  top: 0;
+  z-index: 4;
+}
+
+.ranking-cell {
+  display: grid;
+  justify-items: end;
+  gap: 2px;
+  min-height: 52px;
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  border-radius: 9px;
+  padding: 7px 9px;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.035);
+  text-align: right;
+  text-decoration: none;
+}
+
+button.ranking-cell {
+  cursor: pointer;
+}
+
+button.ranking-cell:hover {
+  border-color: rgba(201, 151, 43, 0.68);
+  background: rgba(201, 151, 43, 0.12);
+}
+
+.ranking-cell small,
+.ranking-cell em {
+  color: var(--muted);
+  font-size: 10px;
+  font-style: normal;
+  letter-spacing: 0.02em;
+}
+
+.ranking-cell strong {
+  color: currentColor;
+  font-size: 18px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.ranking-cell.good {
+  color: #35d39e;
+  border-color: rgba(53, 211, 158, 0.28);
+}
+
+.ranking-cell.bad {
+  color: #ff5d6c;
+  border-color: rgba(255, 93, 108, 0.28);
+}
+
+.ranking-cell.neutral {
+  color: var(--gold);
+  border-color: rgba(201, 151, 43, 0.28);
+}
+
+.ranking-cell.unrated {
+  color: var(--muted);
 }
 
 .reputation-row {
@@ -2018,7 +2081,7 @@ select:focus {
   }
 
   .row-main {
-    grid-template-columns: 36px minmax(210px, 280px) minmax(360px, 1fr) 98px;
+    grid-template-columns: 36px minmax(210px, 280px) minmax(360px, 1fr) 132px;
   }
 
   .position-card {
