@@ -206,9 +206,9 @@
     try {
       const [timex, repDay, repWeek, repMonth, paper] = await Promise.all([
         getJson('/api/crypto/timex?take=500').catch(() => []),
-        getJson('/api/crypto/reputation?window=day&take=500').catch(() => []),
-        getJson('/api/crypto/reputation?window=week&take=500').catch(() => []),
-        getJson('/api/crypto/reputation?window=month&take=500').catch(() => []),
+        getJson('/api/crypto/reputation?window=day&take=2500').catch(() => []),
+        getJson('/api/crypto/reputation?window=week&take=2500').catch(() => []),
+        getJson('/api/crypto/reputation?window=month&take=2500').catch(() => []),
         getJson('/api/paper/summary?sync=false').catch(() => null)
       ]);
       state.timex = Array.isArray(timex) ? timex : [];
@@ -636,13 +636,13 @@
     wrap.innerHTML = `
       <div>
         <strong>Live ranking + scraper</strong>
-        <span>${scored} scored in ${reputationWindowLabel(state.reputationWindow)} · ${total} handles kept in the same scraper list.</span>
+        <span>${scored} scored aliases in ${reputationWindowLabel(state.reputationWindow)} · ${total} total handles in this same live list.</span>
       </div>
       <div class="reputation-window-buttons">
         ${REPUTATION_WINDOWS.map((item) => `
           <button type="button" data-reputation-window="${escapeAttr(item.key)}" class="${state.reputationWindow === item.key ? 'active' : ''}">
             ${escapeHtml(item.label)}
-            <em>${(state.reputation?.[item.key] ?? []).length}</em>
+            <em>${(state.reputation?.[item.key] ?? []).length} scored</em>
           </button>
         `).join('')}
       </div>
