@@ -1580,8 +1580,8 @@
   }
 
   function reputationScore(item) {
-    const value = Number(item.competitionScore);
-    return Number.isFinite(value) ? value : Number(item.averageScore);
+    const value = Number(item?.competitionScore);
+    return Number.isFinite(value) ? value : Number(item?.averageScore);
   }
 
   function signalGraph(signal) {
