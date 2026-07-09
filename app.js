@@ -32,6 +32,8 @@
     proxies: [],
     jobs: [],
     events: [],
+    allInfluencers: [],
+    allInfluencersLoadedAt: 0,
     timex: [],
     reputationWindow: 'day',
     reputation: {
@@ -39,10 +41,12 @@
       week: [],
       month: []
     },
+    reputationDetails: new Map(),
     paper: null,
     paperSync: null,
     paperBusy: false,
     paperError: null,
+    scrapeNowBusy: new Set(),
     loadError: null
   };
 
@@ -50,6 +54,12 @@
     livePositionBar: byId('livePositionBar'),
     scannerTitle: byId('scannerTitle'),
     scannerMeta: byId('scannerMeta'),
+    scannerProgressText: byId('scannerProgressText'),
+    scannerProgressBar: byId('scannerProgressBar'),
+    scannerDone: byId('scannerDone'),
+    scannerRunning: byId('scannerRunning'),
+    scannerQueued: byId('scannerQueued'),
+    scannerResources: byId('scannerResources'),
     pageStatus: byId('pageStatus'),
     pageNumbers: byId('pageNumbers'),
     prevPage: byId('prevPage'),
@@ -62,7 +72,18 @@
     modalRoot: byId('modalRoot')
   };
 
-  document.addEventListener('DOMContentLoaded', init);
+  let didInit = false;
+  function boot() {
+    if (didInit) return;
+    didInit = true;
+    init();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot, { once: true });
+  } else {
+    boot();
+  }
 
   function init() {
     els.prevPage.addEventListener('click', () => goToPage(state.pageIndex - 1));
@@ -155,11 +176,13 @@
         getJson('/api/jobs/recent?take=220').catch(() => [])
       ]);
       void loadCryptoPanels();
+      void loadAllInfluencers(false);
       if (requestId !== state.snapshotSeq) return;
 
       state.loadError = null;
       state.run = snapshot.run;
       state.page = snapshot.influencerPage;
+      mergeInfluencerRows(snapshot.influencerPage?.items ?? []);
       state.pageIndex = clampPageIndex(snapshot.influencerPage.pageIndex, snapshot.influencerPage.total, snapshot.influencerPage.pageSize);
       state.pageSize = snapshot.influencerPage.pageSize;
       state.sessions = snapshot.sessions ?? [];
@@ -183,9 +206,9 @@
     try {
       const [timex, repDay, repWeek, repMonth, paper] = await Promise.all([
         getJson('/api/crypto/timex?take=500').catch(() => []),
-        getJson('/api/crypto/reputation?window=day&take=160').catch(() => []),
-        getJson('/api/crypto/reputation?window=week&take=160').catch(() => []),
-        getJson('/api/crypto/reputation?window=month&take=160').catch(() => []),
+        getJson('/api/crypto/reputation?window=day&take=2500').catch(() => []),
+        getJson('/api/crypto/reputation?window=week&take=2500').catch(() => []),
+        getJson('/api/crypto/reputation?window=month&take=2500').catch(() => []),
         getJson('/api/paper/summary?sync=false').catch(() => null)
       ]);
       state.timex = Array.isArray(timex) ? timex : [];
@@ -201,6 +224,31 @@
       state.timex = [];
       state.reputation = { day: [], week: [], month: [] };
       renderAll();
+    }
+  }
+
+  async function loadAllInfluencers(force = false) {
+    const now = Date.now();
+    if (!force && state.allInfluencers.length && now - state.allInfluencersLoadedAt < 60_000) return;
+    try {
+      const rows = await getJson('/api/influencers');
+      if (!Array.isArray(rows)) return;
+      state.allInfluencers = rows;
+      state.allInfluencersLoadedAt = Date.now();
+      renderAll();
+    } catch {
+      // Snapshot paging remains usable when the full list endpoint is unavailable.
+    }
+  }
+
+  function mergeInfluencerRows(rows) {
+    if (!state.allInfluencers.length || !Array.isArray(rows) || !rows.length) return;
+    const byUser = new Map(state.allInfluencers.map((row, index) => [String(row.username || '').toLowerCase(), { row, index }]));
+    for (const row of rows) {
+      const key = String(row.username || '').toLowerCase();
+      const current = byUser.get(key);
+      if (!current) continue;
+      state.allInfluencers[current.index] = { ...current.row, ...row };
     }
   }
 
@@ -287,6 +335,13 @@
       void runPaperAction(paperAction.dataset.paperAction);
       return;
     }
+    const scrapeNowButton = event.target.closest('[data-scrape-username]');
+    if (scrapeNowButton?.dataset.scrapeUsername) {
+      event.preventDefault();
+      event.stopPropagation();
+      void scrapeInfluencerNow(scrapeNowButton.dataset.scrapeUsername);
+      return;
+    }
     const signalButton = event.target.closest('[data-signal-id]');
     if (signalButton?.dataset.signalId) {
       event.preventDefault();
@@ -308,7 +363,7 @@
   }
 
   function setTab(tab) {
-    const next = ['live', 'reputation', 'paper'].includes(tab) ? tab : 'live';
+    const next = ['live', 'paper'].includes(tab) ? tab : 'live';
     if (state.activeTab === next) return;
     state.activeTab = next;
     state.selectedUsername = null;
@@ -339,14 +394,22 @@
     const active = activeJob();
     const event = latestEvent();
     const eventUser = usernameFromText(event?.text);
+    const resourcesShort = `${availableCount(state.sessions)}/${state.sessions.length} · ${availableCount(state.proxies)}/${state.proxies.length}`;
     const resources = `${availableCount(state.sessions)}/${state.sessions.length} sessions · ${availableCount(state.proxies)}/${state.proxies.length} proxies`;
+    const progress = total ? Math.max(0, Math.min(100, ((done + failed) / Math.max(total, 1)) * 100)) : 0;
 
     els.livePositionBar.className = `live-position-bar ${status}`;
+    els.scannerProgressText.textContent = `${Math.round(progress)}%`;
+    els.scannerProgressBar.style.transform = `scaleX(${(progress / 100).toFixed(3)})`;
+    els.scannerDone.textContent = String(done);
+    els.scannerRunning.textContent = String(running);
+    els.scannerQueued.textContent = String(queued);
+    els.scannerResources.textContent = resourcesShort;
 
     if (active) {
       const rowPos = rowPosition(active.username);
       els.scannerTitle.textContent = `now @${active.username}`;
-      els.scannerMeta.textContent = `${rowPos} · ${done}/${Math.max(total, 1)} complete · ${running} running · ${queued} queued · ${failed} failed · ${resourceText(active)} · ${formatTime(active.startedAt || active.updatedAt)} · ${resources}`;
+      els.scannerMeta.textContent = `${rowPos} · ${resourceText(active)} · started ${formatTime(active.startedAt || active.updatedAt)} · ${done}/${Math.max(total, 1)} complete · ${failed} failed · ${resources}`;
       return;
     }
 
@@ -354,20 +417,20 @@
       const label = eventUser ? `last @${eventUser}` : `Run #${run?.id ?? '-'} active`;
       els.scannerTitle.textContent = label;
       els.scannerMeta.textContent = event
-        ? `${done}/${Math.max(total, 1)} complete · ${running} running · ${queued} queued · ${failed} failed · ${event.text} · ${event.at} · ${resources}`
-        : `${done}/${Math.max(total, 1)} complete · ${running} running · ${queued} queued · ${failed} failed · waiting for next account · ${resources}`;
+        ? `${event.text} · ${event.at} · ${done}/${Math.max(total, 1)} complete · ${failed} failed · ${resources}`
+        : `between accounts · ${done}/${Math.max(total, 1)} complete · ${queued} queued · ${failed} failed · ${resources}`;
       return;
     }
 
     els.scannerTitle.textContent = eventUser ? `last @${eventUser}` : 'idle';
-    els.scannerMeta.textContent = event ? `${event.text} · ${event.at}` : 'no active scrape';
+    els.scannerMeta.textContent = event ? `${event.text} · ${event.at} · ${done}/${Math.max(total, 1)} complete · ${failed} failed · ${resources}` : `no active scrape · ${resources}`;
   }
 
   function renderPager() {
     els.pager.hidden = state.activeTab !== 'live';
     if (state.activeTab !== 'live') return;
-    const total = state.page.total || 0;
-    const pageSize = state.page.pageSize || state.pageSize;
+    const total = liveRows().length;
+    const pageSize = state.pageSize || state.page.pageSize || 250;
     const pageCount = Math.max(1, Math.ceil(total / Math.max(pageSize, 1)));
     const pageIndex = clampPageIndex(state.pageIndex, total, pageSize);
     const start = total ? pageIndex * pageSize + 1 : 0;
@@ -419,31 +482,62 @@
   }
 
   function renderList() {
-    if (state.activeTab === 'reputation') {
-      renderReputation();
-      return;
-    }
     if (state.activeTab === 'paper') {
       renderPaper();
       return;
     }
-    const rows = state.page.items ?? [];
+    const allRows = liveRows();
+    const pageSize = state.pageSize || state.page.pageSize || 250;
+    const pageIndex = clampPageIndex(state.pageIndex, allRows.length, pageSize);
+    const rows = allRows.slice(pageIndex * pageSize, pageIndex * pageSize + pageSize);
+    const nodes = [renderReputationSwitcher()];
+    const focus = scannerFocusRow(allRows);
+    if (focus) nodes.push(renderScannerFocus(focus));
     if (!rows.length) {
       const empty = document.createElement('article');
       empty.className = 'empty';
       empty.innerHTML = `<strong>No handle</strong><br><span>${escapeHtml(state.loadError ? 'The backend did not answer this browser yet.' : 'No influencer on this page.')}</span>`;
-      els.list.replaceChildren(empty);
+      els.list.replaceChildren(...nodes, empty);
       return;
     }
 
-    const nodes = [];
     rows.forEach((row, index) => {
-      nodes.push(renderRow(row, state.pageIndex * state.pageSize + index + 1));
+      nodes.push(renderRow(row, pageIndex * pageSize + index + 1));
       if (state.selectedUsername?.toLowerCase() === row.username.toLowerCase()) {
         nodes.push(renderDetail(row));
       }
     });
     els.list.replaceChildren(...nodes);
+  }
+
+  function scannerFocusRow(rows) {
+    const active = activeJob();
+    const eventUser = usernameFromText(latestEvent()?.text);
+    const target = active?.username || eventUser;
+    if (!target) return null;
+    const lower = target.toLowerCase();
+    const index = rows.findIndex((row) => row.username?.toLowerCase() === lower);
+    if (index < 0) return null;
+    return {
+      row: rows[index],
+      rank: index + 1,
+      active: Boolean(active?.username?.toLowerCase() === lower)
+    };
+  }
+
+  function renderScannerFocus(focus) {
+    const section = document.createElement('section');
+    section.className = `scanner-focus-panel ${focus.active ? 'active' : 'last'}`;
+    const header = document.createElement('header');
+    header.innerHTML = `
+      <span>${focus.active ? 'Scraping now' : 'Last scraped'}</span>
+      <strong>@${escapeHtml(focus.row.username)}</strong>
+      <em>${rowPosition(focus.row.username)}</em>
+    `;
+    const row = renderRow(focus.row, focus.rank);
+    row.classList.add('scanner-focus-row');
+    section.append(header, row);
+    return section;
   }
 
   function renderTimex() {
@@ -479,19 +573,55 @@
     return row;
   }
 
-  function renderReputation() {
-    const rows = currentReputationRows();
-    const nodes = [renderReputationSwitcher()];
-    if (!rows.length) {
-      nodes.push(emptyNode('No reputation yet', `${reputationWindowLabel(state.reputationWindow)} competition will appear after scored crypto windows.`));
-      els.list.replaceChildren(...nodes);
-      return;
-    }
-    els.list.replaceChildren(...nodes, ...rows.map((row, index) => renderReputationRow(row, row.rank || index + 1)));
-  }
-
   function currentReputationRows() {
     return state.reputation?.[state.reputationWindow] ?? [];
+  }
+
+  function currentReputationMap() {
+    return new Map(currentReputationRows().map((row) => [String(row.username || '').toLowerCase(), row]));
+  }
+
+  function liveRows() {
+    const source = state.allInfluencers.length ? state.allInfluencers : (state.page.items ?? []);
+    const repMap = currentReputationMap();
+    const rows = source.map((row, index) => ({
+      ...row,
+      _sourceIndex: index,
+      _reputation: repMap.get(String(row.username || '').toLowerCase()) || null
+    })).filter(matchesLiveFilters);
+    rows.sort(compareLiveRows);
+    return rows;
+  }
+
+  function matchesLiveFilters(row) {
+    const query = String(state.query || '').trim().toLowerCase();
+    if (query) {
+      const haystack = `${row.username || ''} ${row.displayName || ''}`.toLowerCase();
+      if (!haystack.includes(query)) return false;
+    }
+    const status = String(state.status || 'all').toLowerCase();
+    if (status !== 'all' && normalizeJobStatus(row.status) !== status) return false;
+    if (state.priorityOnly && !row.priority) return false;
+    return true;
+  }
+
+  function compareLiveRows(a, b) {
+    const scoreA = reputationScore(a._reputation);
+    const scoreB = reputationScore(b._reputation);
+    const hasA = Number.isFinite(scoreA);
+    const hasB = Number.isFinite(scoreB);
+    if (hasA !== hasB) return hasA ? -1 : 1;
+    if (hasA && Math.abs(scoreB - scoreA) > 0.001) return scoreB - scoreA;
+    const rankA = Number(a._reputation?.rank);
+    const rankB = Number(b._reputation?.rank);
+    const safeRankA = Number.isFinite(rankA) ? rankA : Number.MAX_SAFE_INTEGER;
+    const safeRankB = Number.isFinite(rankB) ? rankB : Number.MAX_SAFE_INTEGER;
+    if (safeRankA !== safeRankB) return safeRankA - safeRankB;
+    if (isActiveRow(a) !== isActiveRow(b)) return isActiveRow(a) ? -1 : 1;
+    const scrapeA = Date.parse(a.lastScrapeFinishedAt || a.lastScrapeUpdatedAt || a.lastScrapeStartedAt || '') || 0;
+    const scrapeB = Date.parse(b.lastScrapeFinishedAt || b.lastScrapeUpdatedAt || b.lastScrapeStartedAt || '') || 0;
+    if (scrapeA !== scrapeB) return scrapeB - scrapeA;
+    return (a._sourceIndex ?? 0) - (b._sourceIndex ?? 0);
   }
 
   function reputationWindowLabel(key) {
@@ -500,17 +630,19 @@
 
   function renderReputationSwitcher() {
     const wrap = document.createElement('section');
-    wrap.className = 'reputation-switcher';
+    wrap.className = 'reputation-switcher merged-ranking-switcher';
+    const total = liveRows().length;
+    const scored = currentReputationRows().length;
     wrap.innerHTML = `
       <div>
-        <strong>Reputation competitions</strong>
-        <span>Three independent rankings. Same influencer can compete in day, week and month at the same time.</span>
+        <strong>Live ranking + scraper</strong>
+        <span>${scored} scored aliases in ${reputationWindowLabel(state.reputationWindow)} · ${total} total handles in this same live list.</span>
       </div>
       <div class="reputation-window-buttons">
         ${REPUTATION_WINDOWS.map((item) => `
           <button type="button" data-reputation-window="${escapeAttr(item.key)}" class="${state.reputationWindow === item.key ? 'active' : ''}">
             ${escapeHtml(item.label)}
-            <em>${(state.reputation?.[item.key] ?? []).length}</em>
+            <em>${(state.reputation?.[item.key] ?? []).length} scored</em>
           </button>
         `).join('')}
       </div>
@@ -519,32 +651,11 @@
       button.addEventListener('click', () => {
         state.reputationWindow = button.dataset.reputationWindow || 'day';
         state.selectedReputation = null;
+        state.pageIndex = 0;
         renderAll();
       });
     });
     return wrap;
-  }
-
-  function renderReputationRow(item, rank) {
-    const row = document.createElement('article');
-    const score = reputationScore(item);
-    row.className = `reputation-row ${scoreClass(score)}`;
-    row.innerHTML = `
-      <span class="rank">${rank}</span>
-      <section class="signal-main">
-        <div class="signal-line">
-          <strong>@${escapeHtml(item.username || '-')}</strong>
-          <em>${reputationWindowLabel(item.window || state.reputationWindow)} · ${Number(item.scoredCount ?? 0)} scored · last ${escapeHtml(item.lastSymbol || '-')} · ${formatMinute(item.lastUpdatedAt)}</em>
-        </div>
-        <p>Score ${formatScore(score)} · avg ${formatScore(item.averageScore)} · activity ${formatScore(item.activityScore)} · best ${formatScore(item.bestScore)}</p>
-      </section>
-      <span class="signal-score ${scoreClass(score)}">${formatScore(score)}</span>
-    `;
-    row.addEventListener('click', () => {
-      state.selectedReputation = item;
-      renderModal();
-    });
-    return row;
   }
 
   function renderPaper() {
@@ -554,22 +665,22 @@
       return;
     }
 
+    const scrollState = capturePaperScroll();
     const run = paper.currentRun;
     const totals = paper.totals || {};
     const openTrades = paper.openTrades || [];
     const closedTrades = paper.closedTrades || [];
-    const categories = paper.categories || [];
-    const topRanks = paper.topRanks || [];
+    const allTrades = [...openTrades, ...closedTrades].sort(comparePaperTradesByProgress);
     const active = run?.status === 'active';
     const view = document.createElement('section');
     view.className = 'paper-view';
     view.innerHTML = `
-      <article class="paper-hero">
-        <header>
+      <section class="paper-list-card">
+        <header class="paper-list-head">
           <div>
             <span class="label">Paper trading</span>
             <strong>${run ? `Run #${escapeHtml(run.id)} · ${escapeHtml(run.status)}` : 'No active run'}</strong>
-            <em>${run ? `${formatMinute(run.startedAt)} · ${formatMoney(run.stakeUsd)} per call · ${formatSignedPct(run.roundTripCostPct)} cost` : 'Top reputation calls are waiting for a run.'}</em>
+            <em>${Number(totals.openTrades ?? openTrades.length)} open · ${Number(totals.closedTrades ?? closedTrades.length)} closed · net ${formatMoney(totals.netPnlUsd)}</em>
           </div>
           <div class="paper-actions">
             <button type="button" data-paper-action="start" ${active || state.paperBusy ? 'disabled' : ''}>Start</button>
@@ -578,23 +689,13 @@
           </div>
         </header>
         ${state.paperError ? `<p class="paper-error">${escapeHtml(state.paperError)}</p>` : ''}
-        <div class="paper-metrics">
-          ${paperMetric('Net PnL', formatMoney(totals.netPnlUsd), moneyClass(totals.netPnlUsd))}
-          ${paperMetric('Gross PnL', formatMoney(totals.grossPnlUsd), moneyClass(totals.grossPnlUsd))}
-          ${paperMetric('Costs', formatMoney(-(Number(totals.costUsd) || 0)), 'bad')}
-          ${paperMetric('Open', String(totals.openTrades ?? 0), '')}
-          ${paperMetric('Closed', String(totals.closedTrades ?? 0), '')}
-          ${paperMetric('Win rate', formatSignedPct(totals.winRatePct), scoreClass(totals.winRatePct))}
+        <div class="paper-progress-list">
+          ${allTrades.length ? allTrades.map(paperTradeProgressRowHtml).join('') : '<p class="empty-inline">No paper trade yet.</p>'}
         </div>
-      </article>
-      <section class="paper-grid">
-        ${paperPanel('Categories', categories.length ? categories.map(paperCategoryHtml).join('') : '<p class="empty-inline">No category trade yet.</p>', 'compact')}
-        ${paperPanel('Open trades', openTrades.length ? openTrades.map((trade) => paperTradeHtml(trade, false)).join('') : '<p class="empty-inline">No open trade yet.</p>')}
-        ${paperPanel('Closed trades', closedTrades.length ? closedTrades.map((trade) => paperTradeHtml(trade, true)).join('') : '<p class="empty-inline">No closed trade yet.</p>')}
-        ${paperPanel('Top ranks followed', topRanks.length ? topRanks.map(paperRankHtml).join('') : '<p class="empty-inline">No rank snapshot.</p>', 'compact')}
       </section>
     `;
     els.list.replaceChildren(view);
+    restorePaperScroll(scrollState);
   }
 
   async function runPaperAction(action) {
@@ -612,7 +713,7 @@
           spreadBps: 30,
           slippageBps: 50,
           maxSignalAgeMinutes: 180,
-          maxOpenPositions: 60
+          maxOpenPositions: 90
         });
       } else if (action === 'sync') {
         state.paperSync = await postJson('/api/paper/sync', {});
@@ -628,57 +729,140 @@
     }
   }
 
-  function paperMetric(label, value, className) {
-    return `
-      <span>
-        <small>${escapeHtml(label)}</small>
-        <strong class="${escapeAttr(className || 'neutral')}">${escapeHtml(value)}</strong>
-      </span>
-    `;
+  async function scrapeInfluencerNow(username) {
+    const clean = String(username || '').trim();
+    const key = clean.toLowerCase();
+    if (!clean || state.scrapeNowBusy.has(key)) return;
+
+    state.scrapeNowBusy.add(key);
+    renderAll();
+    try {
+      await postJson(`/api/influencers/${encodeURIComponent(clean)}/retry`, {});
+      await loadSnapshot({ resetListScroll: false });
+    } catch (error) {
+      console.error(`Unable to queue @${clean} for scrape`, error);
+    } finally {
+      state.scrapeNowBusy.delete(key);
+      renderAll();
+    }
   }
 
-  function paperPanel(title, content, modifier = '') {
+  function capturePaperScroll() {
+    return {
+      listTop: els.list.scrollTop
+    };
+  }
+
+  function restorePaperScroll(scrollState) {
+    if (!scrollState) return;
+    els.list.scrollTop = scrollState.listTop || 0;
+  }
+
+  function paperTradeProgressRowHtml(trade) {
+    const username = String(trade.username || '').trim();
+    const profileUrl = xProfileUrl(username);
+    const profileLabel = `Open @${username || 'profile'} on X`;
+    const closed = String(trade.status || '').toLowerCase() === 'closed' || Boolean(trade.exitAt);
+    const progress = paperTradeProgressPct(trade);
+    const block = paperTradeBlock(trade);
+    const result = closed ? paperTradeResult(trade) : (block ? block.result : 'waiting exit');
+    const resultClass = closed ? moneyClass(trade.netPnlUsd) : (block ? 'blocked' : 'neutral');
+    const progressText = closed ? 'complete' : (block ? block.progress : paperTradeProgressText(trade));
+    const rank = trade.rank ?? trade.rankPosition ?? '-';
     return `
-      <article class="paper-panel ${escapeAttr(modifier)}">
-        <h2>${escapeHtml(title)}</h2>
-        <div class="paper-table">${content}</div>
+      <article class="paper-progress-row ${closed ? 'closed' : block ? 'blocked' : 'open'}">
+        <section class="paper-progress-trade">
+          <a class="avatar-link paper-avatar x-profile-link" href="${escapeAttr(profileUrl)}" target="_blank" rel="noopener noreferrer" aria-label="${escapeAttr(profileLabel)}">
+            ${avatarHtml({ ...trade, username })}
+          </a>
+          <span>
+            <strong>${escapeHtml(trade.displayName || `@${username || '-'}`)} · ${escapeHtml(trade.symbol || '-')}</strong>
+            <em>@${escapeHtml(username || '-')} · ${escapeHtml(windowShortLabel(trade.categoryWindow))} · #${escapeHtml(trade.rank ?? '-')} · ${escapeHtml(trade.direction || '-')}</em>
+          </span>
+        </section>
+        <section class="paper-progress-main">
+          <span>${escapeHtml(progressText)}</span>
+          <div class="paper-progress-track"><i style="width:${progress}%"></i></div>
+          <em>entry ${formatPrice(trade.entryPriceUsd)} · ${formatMinute(trade.entryAt)} → ${closed ? `exit ${formatPrice(trade.exitPriceUsd)} · ${formatMinute(trade.exitAt)}` : block ? `${block.detail} · target ${formatMinute(trade.targetExitAt)}` : `target ${formatMinute(trade.targetExitAt)}`}</em>
+        </section>
+        <span class="paper-progress-result ${escapeAttr(resultClass)}">
+          <small>${closed ? 'result' : block ? escapeHtml(block.label) : `rank #${escapeHtml(rank)}`}</small>
+          <strong>${escapeHtml(result)}</strong>
+        </span>
       </article>
     `;
   }
 
-  function paperCategoryHtml(category) {
-    const net = Number(category.netPnlUsd ?? 0);
-    return `
-      <div class="paper-table-row">
-        <strong>${escapeHtml(windowShortLabel(category.window))}</strong>
-        <span>${Number(category.openTrades ?? 0)} open · ${Number(category.closedTrades ?? 0)} closed</span>
-        <em class="${moneyClass(net)}">${formatMoney(net)}</em>
-      </div>
-    `;
+  function paperTradeBlock(trade) {
+    const closed = String(trade.status || '').toLowerCase() === 'closed' || Boolean(trade.exitAt);
+    if (closed) return null;
+    const status = String(trade.signalWindowStatus || '').trim().toLowerCase();
+    const error = String(trade.signalWindowError || '').trim().toLowerCase();
+    const due = paperTradeProgressPct(trade) >= 99.9 && new Date(trade.targetExitAt).getTime() <= Date.now();
+    if (!due && !status.includes('error') && !error) return null;
+    if (status.includes('price') || error.includes('coingecko') || error.includes('price')) {
+      return {
+        label: 'CoinGecko',
+        progress: 'price unavailable',
+        result: 'price missing',
+        detail: humanPaperTradeError(error || status)
+      };
+    }
+    if (status && status !== 'scored' && status !== 'closed') {
+      return {
+        label: 'Timex',
+        progress: status.replaceAll('_', ' '),
+        result: 'not scored',
+        detail: humanPaperTradeError(error || status)
+      };
+    }
+    return due ? {
+      label: 'Timex',
+      progress: 'waiting Timex',
+      result: 'waiting exit',
+      detail: 'Timex has not produced an exit price yet'
+    } : null;
   }
 
-  function paperTradeHtml(trade, closed) {
-    const pnl = Number(trade.netPnlUsd ?? 0);
-    const returnPct = trade.netReturnPct ?? trade.grossReturnPct;
-    return `
-      <div class="paper-trade-row">
-        <strong>@${escapeHtml(trade.username || '-')} · ${escapeHtml(trade.symbol || '-')}</strong>
-        <span>${escapeHtml(windowShortLabel(trade.categoryWindow))} · #${escapeHtml(trade.rankPosition ?? '-')} · ${escapeHtml(trade.direction || '-')}</span>
-        <span>${formatMoney(trade.stakeUsd)} @ ${formatPrice(trade.entryPriceUsd)}</span>
-        <em>${closed ? formatMinute(trade.exitAt) : `target ${formatMinute(trade.targetExitAt)}`}</em>
-        <b class="${moneyClass(pnl)}">${closed ? `${formatMoney(pnl)} · ${formatSignedPct(returnPct)}` : 'open'}</b>
-      </div>
-    `;
+  function humanPaperTradeError(value) {
+    const clean = String(value || '').trim();
+    if (!clean) return 'Exit price unavailable';
+    if (clean === 'coingecko_history_start_unavailable') return 'CoinGecko history unavailable';
+    if (clean.includes('coingecko')) return clean.replaceAll('_', ' ');
+    return clean.replaceAll('_', ' ');
   }
 
-  function paperRankHtml(rank) {
-    return `
-      <div class="paper-table-row">
-        <strong>${escapeHtml(windowShortLabel(rank.window))} #${escapeHtml(rank.rank)}</strong>
-        <span>@${escapeHtml(rank.username || '-')}</span>
-        <em>${formatScore(rank.competitionScore)}</em>
-      </div>
-    `;
+  function paperTradeResult(trade) {
+    const pnl = Number(trade.netPnlUsd);
+    const pct = trade.netReturnPct ?? trade.grossReturnPct;
+    if (!Number.isFinite(pnl)) return 'closed';
+    return `${formatMoney(pnl)} · ${formatSignedPct(pct)}`;
+  }
+
+  function paperTradeProgressPct(trade) {
+    if (String(trade.status || '').toLowerCase() === 'closed' || trade.exitAt) return 100;
+    const entry = new Date(trade.entryAt).getTime();
+    const target = new Date(trade.targetExitAt).getTime();
+    if (!Number.isFinite(entry) || !Number.isFinite(target) || target <= entry) return 0;
+    const pct = ((Date.now() - entry) / (target - entry)) * 100;
+    return Math.max(0, Math.min(100, pct));
+  }
+
+  function paperTradeProgressText(trade) {
+    const pct = paperTradeProgressPct(trade);
+    const target = new Date(trade.targetExitAt).getTime();
+    const minutes = Number.isFinite(target) ? Math.max(0, Math.round((target - Date.now()) / 60000)) : null;
+    if (minutes == null) return `${Math.round(pct)}% to exit`;
+    if (minutes >= 120) return `${Math.round(pct)}% · ${Math.round(minutes / 60)}h left`;
+    return `${Math.round(pct)}% · ${minutes}m left`;
+  }
+
+  function comparePaperTradesByProgress(a, b) {
+    const progress = paperTradeProgressPct(b) - paperTradeProgressPct(a);
+    if (Math.abs(progress) > 0.001) return progress;
+    const timeA = new Date(a.exitAt || a.targetExitAt || a.entryAt).getTime();
+    const timeB = new Date(b.exitAt || b.targetExitAt || b.entryAt).getTime();
+    return (Number.isFinite(timeA) ? timeA : 0) - (Number.isFinite(timeB) ? timeB : 0);
   }
 
   function windowShortLabel(key) {
@@ -712,6 +896,7 @@
     const steps = scrapeSteps(row);
     const profileUrl = xProfileUrl(row.username);
     const profileLabel = `Open @${row.username} on X`;
+    const reputation = row._reputation;
     article.innerHTML = `
       ${isTraceRow(row) ? '<div class="scan-beam"></div>' : ''}
       <div class="row-main">
@@ -734,12 +919,22 @@
           <div class="progress-track"><span class="${normalizeJobStatus(row.status) === 'failed' ? 'failed' : ''}" style="width:${progress}%"></span></div>
           <div class="steps">${steps.map(stageHtml).join('')}</div>
         </section>
-        <span class="status-light ${normalizeJobStatus(row.status)}"><i></i>${status}</span>
+        ${rankingCellHtml(row, reputation, status)}
       </div>
     `;
     article.querySelectorAll('.x-profile-link').forEach((link) => {
       link.addEventListener('click', (event) => event.stopPropagation());
     });
+    const reputationButton = article.querySelector('[data-reputation-username]');
+    if (reputationButton && reputation) {
+      reputationButton.addEventListener('click', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        state.selectedReputation = reputation;
+        renderModal();
+        void loadReputationDetail(reputation);
+      });
+    }
     article.addEventListener('click', () => {
       const wasSelected = state.selectedUsername?.toLowerCase() === row.username.toLowerCase();
       state.selectedUsername = wasSelected ? null : row.username;
@@ -747,6 +942,27 @@
       if (!wasSelected) void loadPosts(row.username);
     });
     return article;
+  }
+
+  function rankingCellHtml(row, reputation, status) {
+    if (reputation) {
+      const score = reputationScore(reputation);
+      const label = reputationWindowLabel(reputation.window || state.reputationWindow);
+      return `
+        <button type="button" class="ranking-cell ${scoreClass(score)}" data-reputation-username="${escapeAttr(row.username)}" title="Open reputation detail">
+          <small>#${escapeHtml(reputation.rank ?? '-')} · ${escapeHtml(label)}</small>
+          <strong>${formatScore(score)}</strong>
+          <em>${escapeHtml(reputation.lastSymbol || '-')} · ${Number(reputation.scoredCount ?? 0)} scored</em>
+        </button>
+      `;
+    }
+    return `
+      <span class="ranking-cell unrated">
+        <small>not rated</small>
+        <strong>-</strong>
+        <em>${escapeHtml(status)}</em>
+      </span>
+    `;
   }
 
   function xProfileUrl(username) {
@@ -790,13 +1006,48 @@
     }
   }
 
+  async function loadReputationDetail(row) {
+    const key = reputationDetailKey(row);
+    const cached = state.reputationDetails.get(key);
+    if (cached?.loading || cached?.detail) return;
+
+    state.reputationDetails.set(key, { loading: true, error: null, detail: null });
+    renderModal();
+    try {
+      const username = String(row.username || '').trim();
+      const windowKey = row.window || state.reputationWindow;
+      const detail = await getJson(`/api/crypto/reputation/${encodeURIComponent(username)}/detail?window=${encodeURIComponent(windowKey)}&take=80`);
+      state.reputationDetails.set(key, { loading: false, error: null, detail });
+    } catch (error) {
+      state.reputationDetails.set(key, {
+        loading: false,
+        error: error instanceof Error ? error.message : 'Unable to load reputation detail',
+        detail: null
+      });
+    }
+    if (state.selectedReputation && reputationDetailKey(state.selectedReputation) === key) {
+      renderModal();
+    }
+  }
+
+  function reputationDetailKey(row) {
+    const username = String(row?.username || '').trim().toLowerCase();
+    const windowKey = String(row?.window || state.reputationWindow || 'day').toLowerCase();
+    return `${windowKey}:${username}`;
+  }
+
   function goToPage(pageIndex) {
-    const total = state.page.total || 0;
-    const pageSize = state.page.pageSize || state.pageSize;
+    const total = state.activeTab === 'live' ? liveRows().length : (state.page.total || 0);
+    const pageSize = state.pageSize || state.page.pageSize || 250;
     const next = clampPageIndex(pageIndex, total, pageSize);
     if (next === state.pageIndex) return;
     state.pageIndex = next;
     state.selectedUsername = null;
+    if (state.activeTab === 'live' && state.allInfluencers.length) {
+      renderAll();
+      els.list.scrollTop = 0;
+      return;
+    }
     void loadSnapshot({ resetListScroll: true });
   }
 
@@ -821,9 +1072,12 @@
 
   function rowPosition(username) {
     const lower = username.toLowerCase();
-    const index = (state.page.items ?? []).findIndex((row) => row.username.toLowerCase() === lower);
-    if (index >= 0) return `row ${state.pageIndex * state.pageSize + index + 1}/${state.page.total}`;
-    return `not on page ${state.pageIndex + 1}`;
+    const rows = liveRows();
+    const index = rows.findIndex((row) => row.username.toLowerCase() === lower);
+    if (index < 0) return `not in ranked list`;
+    const pageSize = state.pageSize || state.page.pageSize || 250;
+    const page = Math.floor(index / Math.max(pageSize, 1)) + 1;
+    return `ranked row ${index + 1}/${rows.length} · page ${page}`;
   }
 
   function isActiveRow(row) {
@@ -1083,10 +1337,18 @@
 
   function reputationModal(row) {
     const backdrop = document.createElement('div');
+    const detailState = state.reputationDetails.get(reputationDetailKey(row));
+    const detail = detailState?.detail;
+    const ranking = detail?.ranking || row;
     const history = Array.isArray(row.history) ? row.history : [];
+    const scored = Array.isArray(detail?.scored) ? detail.scored : history;
+    const waiting = Array.isArray(detail?.waiting) ? detail.waiting : [];
+    const rejected = Array.isArray(detail?.rejected) ? detail.rejected : [];
+    const rawMentions = Array.isArray(detail?.rawMentions) ? detail.rawMentions : [];
+    const coins = Array.isArray(detail?.coins) ? detail.coins : buildCoinLedger(scored, waiting, rejected, rawMentions);
     backdrop.className = 'modal-backdrop';
     backdrop.innerHTML = `
-      <section class="modal-card">
+      <section class="modal-card reputation-detail-card">
         <header>
           <div>
             <span class="eyebrow">Reputation</span>
@@ -1096,23 +1358,38 @@
         </header>
         <div class="modal-grid">
           ${detailCard('Competition', reputationWindowLabel(row.window || state.reputationWindow))}
-          ${detailCard('Score', formatScore(reputationScore(row)))}
-          ${detailCard('Average', formatScore(row.averageScore))}
-          ${detailCard('Activity', formatScore(row.activityScore))}
-          ${detailCard('Best', formatScore(row.bestScore))}
-          ${detailCard('Last', `${formatScore(row.lastScore)} · ${row.lastSymbol || '-'}`)}
-          ${detailCard('Scored windows', String(row.scoredCount ?? history.length))}
-          ${detailCard('Period', `${formatMinute(row.windowStart)} → ${formatMinute(row.windowEnd)}`)}
+          ${detailCard('Ranking', formatScore(reputationScore(ranking)))}
+          ${detailCard('Trade avg', formatScore(ranking.averageScore))}
+          ${detailCard('Activity', formatScore(ranking.activityScore))}
+          ${detailCard('Best trade', formatScore(ranking.bestScore))}
+          ${detailCard('Last trade', `${formatScore(ranking.lastScore)} · ${ranking.lastSymbol || '-'}`)}
+          ${detailCard('Scored windows', String(detail?.scoredCount ?? ranking.scoredCount ?? history.length))}
+          ${detailCard('Period', `${formatMinute(detail?.windowStart || row.windowStart)} → ${formatMinute(detail?.windowEnd || row.windowEnd)}`)}
         </div>
-        <div class="history-list">
-          ${history.length ? history.map(historyHtml).join('') : '<p class="empty-inline">No scored history.</p>'}
+        <div class="pipeline-summary">
+          <span><strong>${scored.length}</strong><em>scored</em></span>
+          <span><strong>${waiting.length}</strong><em>waiting</em></span>
+          <span><strong>${rejected.length}</strong><em>rejected</em></span>
+          <span><strong>${rawMentions.length}</strong><em>raw</em></span>
+        </div>
+        ${detailState?.loading ? '<p class="empty-inline">Loading full pipeline...</p>' : ''}
+        ${detailState?.error ? `<p class="paper-error">${escapeHtml(detailState.error)}</p>` : ''}
+        ${coinLedgerHtml(coins)}
+        <div class="pipeline-grid">
+          ${pipelineSectionHtml('Scored', 'scored', scored, 'No scored window.')}
+          ${pipelineSectionHtml('Waiting', 'waiting', waiting, 'No pending signal.')}
+          ${pipelineSectionHtml('Rejected', 'rejected', rejected, 'No rejected signal.')}
+          ${rawMentionSectionHtml(rawMentions)}
         </div>
       </section>
     `;
     backdrop.addEventListener('click', (event) => {
-      const historyButton = event.target.closest('[data-signal-id]');
-      if (historyButton) {
-        const signal = history.find((item) => String(item.id) === historyButton.dataset.signalId);
+      const pipelineButton = event.target.closest('[data-pipeline-kind]');
+      if (pipelineButton) {
+        const kind = pipelineButton.dataset.pipelineKind || '';
+        const index = Number(pipelineButton.dataset.pipelineIndex);
+        const lists = { scored, waiting, rejected };
+        const signal = Number.isFinite(index) ? lists[kind]?.[index] : null;
         if (signal) {
           state.selectedReputation = null;
           state.selectedSignal = signal;
@@ -1128,19 +1405,229 @@
     return backdrop;
   }
 
-  function historyHtml(signal) {
+  function pipelineSectionHtml(title, kind, signals, emptyText) {
     return `
-      <button class="history-row ${scoreClass(signal.score)}" type="button" data-signal-id="${escapeAttr(signal.id)}">
+      <section class="pipeline-section">
+        <header>
+          <strong>${escapeHtml(title)}</strong>
+          <em>${signals.length}</em>
+        </header>
+        <div class="history-list">
+          ${signals.length ? signals.map((signal, index) => pipelineSignalHtml(signal, kind, index)).join('') : `<p class="empty-inline">${escapeHtml(emptyText)}</p>`}
+        </div>
+      </section>
+    `;
+  }
+
+  function pipelineSignalHtml(signal, kind, index) {
+    const status = signalStatusText(signal);
+    const score = Number(signal.score);
+    const endValue = Number.isFinite(score) ? formatScore(score) : status;
+    return `
+      <button class="history-row pipeline-row ${scoreClass(signal.score)}" type="button" data-pipeline-kind="${escapeAttr(kind)}" data-pipeline-index="${index}">
         <strong>${escapeHtml(signal.serialRef || `#${signal.id}`)}</strong>
-        <span>${escapeHtml(signal.symbol || '-')} · ${formatVariation(signal.variationPct)}</span>
-        <em>${formatScore(signal.score)}</em>
+        <span>${escapeHtml(signalCompactMeta(signal))}</span>
+        <small>${escapeHtml(signalReasonText(signal))}</small>
+        <em>${escapeHtml(endValue)}</em>
       </button>
     `;
   }
 
+  function rawMentionSectionHtml(mentions) {
+    return `
+      <section class="pipeline-section raw-section">
+        <header>
+          <strong>Raw mentions</strong>
+          <em>${mentions.length}</em>
+        </header>
+        <div class="raw-mention-list">
+          ${mentions.length ? mentions.map(rawMentionHtml).join('') : '<p class="empty-inline">No raw mention.</p>'}
+        </div>
+      </section>
+    `;
+  }
+
+  function rawMentionHtml(mention) {
+    const source = `${mention.source || 'raw'} · ${confidenceText(mention.confidence)} · ${mention.reason || mention.status || '-'}`;
+    return `
+      <article class="raw-mention-row">
+        <strong>${escapeHtml(mention.symbol || '-')}</strong>
+        <span>${escapeHtml(source)}</span>
+        <em>${formatMinute(mention.postedAt || mention.mentionedAt)}</em>
+        <p>${escapeHtml(compactText(mention.content || ''))}</p>
+      </article>
+    `;
+  }
+
+  function coinLedgerHtml(coins) {
+    const rows = Array.isArray(coins) ? coins : [];
+    return `
+      <section class="coin-ledger">
+        <header>
+          <strong>Coins</strong>
+          <em>${rows.length}</em>
+        </header>
+        <div class="coin-ledger-list">
+          ${rows.length ? rows.map(coinRowHtml).join('') : '<p class="empty-inline">No coin yet.</p>'}
+        </div>
+      </section>
+    `;
+  }
+
+  function coinRowHtml(coin) {
+    const status = String(coin.status || 'raw').toLowerCase();
+    const score = Number(coin.score ?? coin.bestScore);
+    const hasScore = status === 'scored' && Number.isFinite(score);
+    const scoreText = hasScore ? formatScore(score) : coinStatusText(status);
+    const meta = coinMetaText(coin);
+    const note = coinNoteText(coin);
+    return `
+      <article class="coin-row ${escapeAttr(status)} ${hasScore ? scoreClass(score) : ''}">
+        <span class="coin-symbol">${escapeHtml(coin.symbol || '-')}</span>
+        <span class="coin-meta">
+          <strong>${escapeHtml(coin.coinId || 'unresolved')}</strong>
+          <em>${escapeHtml(meta)}</em>
+          ${note ? `<small>${escapeHtml(note)}</small>` : ''}
+        </span>
+        <b>${escapeHtml(scoreText)}</b>
+      </article>
+    `;
+  }
+
+  function coinStatusText(status) {
+    if (status === 'scored') return 'scored';
+    if (status === 'waiting') return 'waiting';
+    if (status === 'blocked') return 'blocked';
+    return 'raw';
+  }
+
+  function coinMetaText(coin) {
+    const pieces = [];
+    const scored = Number(coin.scoredCount || 0);
+    const waiting = Number(coin.waitingCount || 0);
+    const blocked = Number(coin.blockedCount || 0);
+    const raw = Number(coin.rawMentionCount || 0);
+    if (scored) pieces.push(`${scored} scored`);
+    if (waiting) pieces.push(`${waiting} waiting`);
+    if (blocked) pieces.push(`${blocked} blocked`);
+    if (raw) pieces.push(`${raw} raw`);
+    if (coin.direction) pieces.push(String(coin.direction));
+    return pieces.length ? pieces.join(' · ') : coinStatusText(coin.status);
+  }
+
+  function coinNoteText(coin) {
+    if (coin.status === 'blocked' && coin.reason) return coin.reason;
+    if (coin.status === 'waiting' && coin.lastSeenAt) return `target pending · ${formatMinute(coin.lastSeenAt)}`;
+    if (coin.status === 'scored') {
+      const avg = Number(coin.averageScore);
+      const best = Number(coin.bestScore);
+      if (Number.isFinite(avg) && Number.isFinite(best)) return `avg ${formatScore(avg)} · best ${formatScore(best)}`;
+    }
+    return compactText(coin.thesis || coin.reason || '');
+  }
+
+  function buildCoinLedger(scored, waiting, rejected, rawMentions) {
+    const map = new Map();
+    const get = (symbol, coinId) => {
+      const key = normalizeSymbol(symbol) || 'UNKNOWN';
+      if (!map.has(key)) {
+        map.set(key, {
+          symbol: key,
+          coinId: coinId || '',
+          status: 'raw',
+          scoredCount: 0,
+          waitingCount: 0,
+          blockedCount: 0,
+          rawMentionCount: 0,
+          totalMentions: 0
+        });
+      }
+      const row = map.get(key);
+      if (!row.coinId && coinId) row.coinId = coinId;
+      return row;
+    };
+    scored.forEach((signal) => {
+      const row = get(signal.symbol, signal.coinId);
+      row.status = 'scored';
+      row.scoredCount += 1;
+      row.score = signal.score;
+      row.bestScore = Math.max(Number(row.bestScore ?? signal.score), Number(signal.score));
+      row.averageScore = signal.score;
+      row.direction = signal.direction;
+      row.thesis = signal.thesis;
+      row.totalMentions += 1;
+    });
+    waiting.forEach((signal) => {
+      const row = get(signal.symbol, signal.coinId);
+      if (row.status !== 'scored') row.status = 'waiting';
+      row.waitingCount += 1;
+      row.direction = signal.direction;
+      row.thesis = signal.thesis;
+      row.lastSeenAt = signal.mentionedAt || signal.updatedAt;
+      row.totalMentions += 1;
+    });
+    rejected.forEach((signal) => {
+      const row = get(signal.symbol, signal.coinId);
+      if (row.status !== 'scored' && row.status !== 'waiting') row.status = 'blocked';
+      row.blockedCount += 1;
+      row.reason = signalReasonText(signal);
+      row.direction = signal.direction;
+      row.thesis = signal.thesis;
+      row.totalMentions += 1;
+    });
+    rawMentions.forEach((mention) => {
+      const row = get(mention.symbol, mention.coinId);
+      row.rawMentionCount += 1;
+      row.totalMentions += 1;
+      row.source = mention.source;
+      if (!row.direction && mention.direction) row.direction = mention.direction;
+      if (!row.thesis && mention.thesis) row.thesis = mention.thesis;
+    });
+    return [...map.values()].sort((a, b) => {
+      const statusRank = { scored: 0, waiting: 1, blocked: 2, raw: 3 };
+      return (statusRank[a.status] ?? 9) - (statusRank[b.status] ?? 9) ||
+        Number(b.score ?? b.bestScore ?? -1) - Number(a.score ?? a.bestScore ?? -1) ||
+        Number(b.totalMentions ?? 0) - Number(a.totalMentions ?? 0) ||
+        String(a.symbol).localeCompare(String(b.symbol));
+    });
+  }
+
+  function signalCompactMeta(signal) {
+    const symbol = signal.symbol || '-';
+    const variation = formatVariation(signal.variationPct);
+    const status = signalStatusText(signal);
+    const side = signal.direction ? ` · ${signal.direction}` : '';
+    return `${symbol} · ${variation} · ${status}${side}`;
+  }
+
+  function signalStatusText(signal) {
+    const status = String(signal.status || signal.window?.status || 'pending');
+    if (status.startsWith('waiting_')) {
+      return `${status.replaceAll('_', ' ')} · target ${formatMinute(signal.targetPriceAt || signal.window?.targetAt)}`;
+    }
+    return status.replaceAll('_', ' ');
+  }
+
+  function signalReasonText(signal) {
+    if (signal.error) return signal.error;
+    if (!signal.coinId) return 'coin unresolved';
+    if (signal.thesis) return signal.thesis;
+    return signal.source || '-';
+  }
+
+  function confidenceText(value) {
+    const number = Number(value);
+    return Number.isFinite(number) ? `${Math.round(number * 100)}%` : '-';
+  }
+
+  function compactText(value) {
+    const text = String(value || '').replace(/\s+/g, ' ').trim();
+    return text.length > 180 ? `${text.slice(0, 177)}...` : text;
+  }
+
   function reputationScore(item) {
-    const value = Number(item.competitionScore);
-    return Number.isFinite(value) ? value : Number(item.averageScore);
+    const value = Number(item?.competitionScore);
+    return Number.isFinite(value) ? value : Number(item?.averageScore);
   }
 
   function signalGraph(signal) {
