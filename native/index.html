@@ -11,15 +11,27 @@
   <link rel="icon" type="image/svg+xml" href="./favicon.svg?v=20260707-paper">
   <link rel="apple-touch-icon" href="./apple-touch-icon.png?v=20260707-paper">
   <link rel="mask-icon" href="./safari-pinned-tab.svg?v=20260707-paper" color="#c9972b">
-  <link rel="stylesheet" href="./styles.css?v=20260709-merged-ranking-nullsafe">
+  <link rel="stylesheet" href="./styles.css?v=20260709-scraper-status">
 </head>
 <body>
   <main class="app-shell">
     <header id="livePositionBar" class="live-position-bar" aria-label="Live scraper position">
-      <span class="live-dot"></span>
-      <span class="live-kicker">Live position</span>
-      <strong id="scannerTitle">connecting</strong>
-      <em id="scannerMeta">waiting for live data</em>
+      <section class="scanner-head">
+        <span class="live-dot"></span>
+        <span class="live-kicker">Live scraper</span>
+        <strong id="scannerTitle">connecting</strong>
+        <em id="scannerMeta">waiting for live data</em>
+      </section>
+      <section class="scanner-metrics" aria-label="Scraper counters">
+        <span><b id="scannerProgressText">0%</b><em>progress</em></span>
+        <span><b id="scannerDone">0</b><em>done</em></span>
+        <span><b id="scannerRunning">0</b><em>running</em></span>
+        <span><b id="scannerQueued">0</b><em>queued</em></span>
+        <span><b id="scannerResources">0/0 · 0/0</b><em>sessions · proxies</em></span>
+      </section>
+      <div class="scanner-progress-track" aria-hidden="true">
+        <i id="scannerProgressBar"></i>
+      </div>
     </header>
 
     <section class="list-card">
@@ -49,6 +61,6 @@
   </main>
   <div id="modalRoot"></div>
 
-  <script src="./app.js?v=20260709-merged-ranking-nullsafe" defer></script>
+  <script src="./app.js?v=20260709-scraper-status" defer></script>
 </body>
 </html>
