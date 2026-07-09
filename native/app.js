@@ -1350,11 +1350,12 @@
   function coinRowHtml(coin) {
     const status = String(coin.status || 'raw').toLowerCase();
     const score = Number(coin.score ?? coin.bestScore);
-    const scoreText = Number.isFinite(score) ? formatScore(score) : coinStatusText(status);
+    const hasScore = status === 'scored' && Number.isFinite(score);
+    const scoreText = hasScore ? formatScore(score) : coinStatusText(status);
     const meta = coinMetaText(coin);
     const note = coinNoteText(coin);
     return `
-      <article class="coin-row ${escapeAttr(status)} ${scoreClass(score)}">
+      <article class="coin-row ${escapeAttr(status)} ${hasScore ? scoreClass(score) : ''}">
         <span class="coin-symbol">${escapeHtml(coin.symbol || '-')}</span>
         <span class="coin-meta">
           <strong>${escapeHtml(coin.coinId || 'unresolved')}</strong>
