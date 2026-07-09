@@ -39,6 +39,7 @@
       week: [],
       month: []
     },
+    reputationDetails: new Map(),
     paper: null,
     paperSync: null,
     paperBusy: false,
@@ -565,6 +566,7 @@
     row.addEventListener('click', () => {
       state.selectedReputation = item;
       renderModal();
+      void loadReputationDetail(item);
     });
     return row;
   }
@@ -885,6 +887,36 @@
     }
   }
 
+  async function loadReputationDetail(row) {
+    const key = reputationDetailKey(row);
+    const cached = state.reputationDetails.get(key);
+    if (cached?.loading || cached?.detail) return;
+
+    state.reputationDetails.set(key, { loading: true, error: null, detail: null });
+    renderModal();
+    try {
+      const username = String(row.username || '').trim();
+      const windowKey = row.window || state.reputationWindow;
+      const detail = await getJson(`/api/crypto/reputation/${encodeURIComponent(username)}/detail?window=${encodeURIComponent(windowKey)}&take=80`);
+      state.reputationDetails.set(key, { loading: false, error: null, detail });
+    } catch (error) {
+      state.reputationDetails.set(key, {
+        loading: false,
+        error: error instanceof Error ? error.message : 'Unable to load reputation detail',
+        detail: null
+      });
+    }
+    if (state.selectedReputation && reputationDetailKey(state.selectedReputation) === key) {
+      renderModal();
+    }
+  }
+
+  function reputationDetailKey(row) {
+    const username = String(row?.username || '').trim().toLowerCase();
+    const windowKey = String(row?.window || state.reputationWindow || 'day').toLowerCase();
+    return `${windowKey}:${username}`;
+  }
+
   function goToPage(pageIndex) {
     const total = state.page.total || 0;
     const pageSize = state.page.pageSize || state.pageSize;
@@ -1178,10 +1210,17 @@
 
   function reputationModal(row) {
     const backdrop = document.createElement('div');
+    const detailState = state.reputationDetails.get(reputationDetailKey(row));
+    const detail = detailState?.detail;
+    const ranking = detail?.ranking || row;
     const history = Array.isArray(row.history) ? row.history : [];
+    const scored = Array.isArray(detail?.scored) ? detail.scored : history;
+    const waiting = Array.isArray(detail?.waiting) ? detail.waiting : [];
+    const rejected = Array.isArray(detail?.rejected) ? detail.rejected : [];
+    const rawMentions = Array.isArray(detail?.rawMentions) ? detail.rawMentions : [];
     backdrop.className = 'modal-backdrop';
     backdrop.innerHTML = `
-      <section class="modal-card">
+      <section class="modal-card reputation-detail-card">
         <header>
           <div>
             <span class="eyebrow">Reputation</span>
@@ -1191,23 +1230,37 @@
         </header>
         <div class="modal-grid">
           ${detailCard('Competition', reputationWindowLabel(row.window || state.reputationWindow))}
-          ${detailCard('Ranking', formatScore(reputationScore(row)))}
-          ${detailCard('Trade avg', formatScore(row.averageScore))}
-          ${detailCard('Activity', formatScore(row.activityScore))}
-          ${detailCard('Best trade', formatScore(row.bestScore))}
-          ${detailCard('Last trade', `${formatScore(row.lastScore)} · ${row.lastSymbol || '-'}`)}
-          ${detailCard('Scored windows', String(row.scoredCount ?? history.length))}
-          ${detailCard('Period', `${formatMinute(row.windowStart)} → ${formatMinute(row.windowEnd)}`)}
+          ${detailCard('Ranking', formatScore(reputationScore(ranking)))}
+          ${detailCard('Trade avg', formatScore(ranking.averageScore))}
+          ${detailCard('Activity', formatScore(ranking.activityScore))}
+          ${detailCard('Best trade', formatScore(ranking.bestScore))}
+          ${detailCard('Last trade', `${formatScore(ranking.lastScore)} · ${ranking.lastSymbol || '-'}`)}
+          ${detailCard('Scored windows', String(detail?.scoredCount ?? ranking.scoredCount ?? history.length))}
+          ${detailCard('Period', `${formatMinute(detail?.windowStart || row.windowStart)} → ${formatMinute(detail?.windowEnd || row.windowEnd)}`)}
         </div>
-        <div class="history-list">
-          ${history.length ? history.map(historyHtml).join('') : '<p class="empty-inline">No scored history.</p>'}
+        <div class="pipeline-summary">
+          <span><strong>${scored.length}</strong><em>scored</em></span>
+          <span><strong>${waiting.length}</strong><em>waiting</em></span>
+          <span><strong>${rejected.length}</strong><em>rejected</em></span>
+          <span><strong>${rawMentions.length}</strong><em>raw</em></span>
+        </div>
+        ${detailState?.loading ? '<p class="empty-inline">Loading full pipeline...</p>' : ''}
+        ${detailState?.error ? `<p class="paper-error">${escapeHtml(detailState.error)}</p>` : ''}
+        <div class="pipeline-grid">
+          ${pipelineSectionHtml('Scored', 'scored', scored, 'No scored window.')}
+          ${pipelineSectionHtml('Waiting', 'waiting', waiting, 'No pending signal.')}
+          ${pipelineSectionHtml('Rejected', 'rejected', rejected, 'No rejected signal.')}
+          ${rawMentionSectionHtml(rawMentions)}
         </div>
       </section>
     `;
     backdrop.addEventListener('click', (event) => {
-      const historyButton = event.target.closest('[data-signal-id]');
-      if (historyButton) {
-        const signal = history.find((item) => String(item.id) === historyButton.dataset.signalId);
+      const pipelineButton = event.target.closest('[data-pipeline-kind]');
+      if (pipelineButton) {
+        const kind = pipelineButton.dataset.pipelineKind || '';
+        const index = Number(pipelineButton.dataset.pipelineIndex);
+        const lists = { scored, waiting, rejected };
+        const signal = Number.isFinite(index) ? lists[kind]?.[index] : null;
         if (signal) {
           state.selectedReputation = null;
           state.selectedSignal = signal;
@@ -1223,14 +1276,91 @@
     return backdrop;
   }
 
-  function historyHtml(signal) {
+  function pipelineSectionHtml(title, kind, signals, emptyText) {
     return `
-      <button class="history-row ${scoreClass(signal.score)}" type="button" data-signal-id="${escapeAttr(signal.id)}">
+      <section class="pipeline-section">
+        <header>
+          <strong>${escapeHtml(title)}</strong>
+          <em>${signals.length}</em>
+        </header>
+        <div class="history-list">
+          ${signals.length ? signals.map((signal, index) => pipelineSignalHtml(signal, kind, index)).join('') : `<p class="empty-inline">${escapeHtml(emptyText)}</p>`}
+        </div>
+      </section>
+    `;
+  }
+
+  function pipelineSignalHtml(signal, kind, index) {
+    const status = signalStatusText(signal);
+    const score = Number(signal.score);
+    const endValue = Number.isFinite(score) ? formatScore(score) : status;
+    return `
+      <button class="history-row pipeline-row ${scoreClass(signal.score)}" type="button" data-pipeline-kind="${escapeAttr(kind)}" data-pipeline-index="${index}">
         <strong>${escapeHtml(signal.serialRef || `#${signal.id}`)}</strong>
-        <span>${escapeHtml(signal.symbol || '-')} · ${formatVariation(signal.variationPct)}</span>
-        <em>${formatScore(signal.score)}</em>
+        <span>${escapeHtml(signalCompactMeta(signal))}</span>
+        <small>${escapeHtml(signalReasonText(signal))}</small>
+        <em>${escapeHtml(endValue)}</em>
       </button>
     `;
+  }
+
+  function rawMentionSectionHtml(mentions) {
+    return `
+      <section class="pipeline-section raw-section">
+        <header>
+          <strong>Raw mentions</strong>
+          <em>${mentions.length}</em>
+        </header>
+        <div class="raw-mention-list">
+          ${mentions.length ? mentions.map(rawMentionHtml).join('') : '<p class="empty-inline">No raw mention.</p>'}
+        </div>
+      </section>
+    `;
+  }
+
+  function rawMentionHtml(mention) {
+    const source = `${mention.source || 'raw'} · ${confidenceText(mention.confidence)} · ${mention.reason || mention.status || '-'}`;
+    return `
+      <article class="raw-mention-row">
+        <strong>${escapeHtml(mention.symbol || '-')}</strong>
+        <span>${escapeHtml(source)}</span>
+        <em>${formatMinute(mention.postedAt || mention.mentionedAt)}</em>
+        <p>${escapeHtml(compactText(mention.content || ''))}</p>
+      </article>
+    `;
+  }
+
+  function signalCompactMeta(signal) {
+    const symbol = signal.symbol || '-';
+    const variation = formatVariation(signal.variationPct);
+    const status = signalStatusText(signal);
+    const side = signal.direction ? ` · ${signal.direction}` : '';
+    return `${symbol} · ${variation} · ${status}${side}`;
+  }
+
+  function signalStatusText(signal) {
+    const status = String(signal.status || signal.window?.status || 'pending');
+    if (status.startsWith('waiting_')) {
+      return `${status.replaceAll('_', ' ')} · target ${formatMinute(signal.targetPriceAt || signal.window?.targetAt)}`;
+    }
+    return status.replaceAll('_', ' ');
+  }
+
+  function signalReasonText(signal) {
+    if (signal.error) return signal.error;
+    if (!signal.coinId) return 'coin unresolved';
+    if (signal.thesis) return signal.thesis;
+    return signal.source || '-';
+  }
+
+  function confidenceText(value) {
+    const number = Number(value);
+    return Number.isFinite(number) ? `${Math.round(number * 100)}%` : '-';
+  }
+
+  function compactText(value) {
+    const text = String(value || '').replace(/\s+/g, ' ').trim();
+    return text.length > 180 ? `${text.slice(0, 177)}...` : text;
   }
 
   function reputationScore(item) {
