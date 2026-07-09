@@ -54,6 +54,12 @@
     livePositionBar: byId('livePositionBar'),
     scannerTitle: byId('scannerTitle'),
     scannerMeta: byId('scannerMeta'),
+    scannerProgressText: byId('scannerProgressText'),
+    scannerProgressBar: byId('scannerProgressBar'),
+    scannerDone: byId('scannerDone'),
+    scannerRunning: byId('scannerRunning'),
+    scannerQueued: byId('scannerQueued'),
+    scannerResources: byId('scannerResources'),
     pageStatus: byId('pageStatus'),
     pageNumbers: byId('pageNumbers'),
     prevPage: byId('prevPage'),
@@ -388,14 +394,22 @@
     const active = activeJob();
     const event = latestEvent();
     const eventUser = usernameFromText(event?.text);
+    const resourcesShort = `${availableCount(state.sessions)}/${state.sessions.length} · ${availableCount(state.proxies)}/${state.proxies.length}`;
     const resources = `${availableCount(state.sessions)}/${state.sessions.length} sessions · ${availableCount(state.proxies)}/${state.proxies.length} proxies`;
+    const progress = total ? Math.max(0, Math.min(100, ((done + failed) / Math.max(total, 1)) * 100)) : 0;
 
     els.livePositionBar.className = `live-position-bar ${status}`;
+    els.scannerProgressText.textContent = `${Math.round(progress)}%`;
+    els.scannerProgressBar.style.width = `${progress.toFixed(1)}%`;
+    els.scannerDone.textContent = String(done);
+    els.scannerRunning.textContent = String(running);
+    els.scannerQueued.textContent = String(queued);
+    els.scannerResources.textContent = resourcesShort;
 
     if (active) {
       const rowPos = rowPosition(active.username);
       els.scannerTitle.textContent = `now @${active.username}`;
-      els.scannerMeta.textContent = `${rowPos} · ${done}/${Math.max(total, 1)} complete · ${running} running · ${queued} queued · ${failed} failed · ${resourceText(active)} · ${formatTime(active.startedAt || active.updatedAt)} · ${resources}`;
+      els.scannerMeta.textContent = `${rowPos} · ${resourceText(active)} · started ${formatTime(active.startedAt || active.updatedAt)} · ${done}/${Math.max(total, 1)} complete · ${failed} failed · ${resources}`;
       return;
     }
 
@@ -403,13 +417,13 @@
       const label = eventUser ? `last @${eventUser}` : `Run #${run?.id ?? '-'} active`;
       els.scannerTitle.textContent = label;
       els.scannerMeta.textContent = event
-        ? `${done}/${Math.max(total, 1)} complete · ${running} running · ${queued} queued · ${failed} failed · ${event.text} · ${event.at} · ${resources}`
-        : `${done}/${Math.max(total, 1)} complete · ${running} running · ${queued} queued · ${failed} failed · waiting for next account · ${resources}`;
+        ? `${event.text} · ${event.at} · ${done}/${Math.max(total, 1)} complete · ${failed} failed · ${resources}`
+        : `between accounts · ${done}/${Math.max(total, 1)} complete · ${queued} queued · ${failed} failed · ${resources}`;
       return;
     }
 
     els.scannerTitle.textContent = eventUser ? `last @${eventUser}` : 'idle';
-    els.scannerMeta.textContent = event ? `${event.text} · ${event.at}` : 'no active scrape';
+    els.scannerMeta.textContent = event ? `${event.text} · ${event.at} · ${done}/${Math.max(total, 1)} complete · ${failed} failed · ${resources}` : `no active scrape · ${resources}`;
   }
 
   function renderPager() {
