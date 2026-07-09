@@ -1218,6 +1218,7 @@
     const waiting = Array.isArray(detail?.waiting) ? detail.waiting : [];
     const rejected = Array.isArray(detail?.rejected) ? detail.rejected : [];
     const rawMentions = Array.isArray(detail?.rawMentions) ? detail.rawMentions : [];
+    const coins = Array.isArray(detail?.coins) ? detail.coins : buildCoinLedger(scored, waiting, rejected, rawMentions);
     backdrop.className = 'modal-backdrop';
     backdrop.innerHTML = `
       <section class="modal-card reputation-detail-card">
@@ -1246,6 +1247,7 @@
         </div>
         ${detailState?.loading ? '<p class="empty-inline">Loading full pipeline...</p>' : ''}
         ${detailState?.error ? `<p class="paper-error">${escapeHtml(detailState.error)}</p>` : ''}
+        ${coinLedgerHtml(coins)}
         <div class="pipeline-grid">
           ${pipelineSectionHtml('Scored', 'scored', scored, 'No scored window.')}
           ${pipelineSectionHtml('Waiting', 'waiting', waiting, 'No pending signal.')}
@@ -1328,6 +1330,138 @@
         <p>${escapeHtml(compactText(mention.content || ''))}</p>
       </article>
     `;
+  }
+
+  function coinLedgerHtml(coins) {
+    const rows = Array.isArray(coins) ? coins : [];
+    return `
+      <section class="coin-ledger">
+        <header>
+          <strong>Coins</strong>
+          <em>${rows.length}</em>
+        </header>
+        <div class="coin-ledger-list">
+          ${rows.length ? rows.map(coinRowHtml).join('') : '<p class="empty-inline">No coin yet.</p>'}
+        </div>
+      </section>
+    `;
+  }
+
+  function coinRowHtml(coin) {
+    const status = String(coin.status || 'raw').toLowerCase();
+    const score = Number(coin.score ?? coin.bestScore);
+    const scoreText = Number.isFinite(score) ? formatScore(score) : coinStatusText(status);
+    const meta = coinMetaText(coin);
+    const note = coinNoteText(coin);
+    return `
+      <article class="coin-row ${escapeAttr(status)} ${scoreClass(score)}">
+        <span class="coin-symbol">${escapeHtml(coin.symbol || '-')}</span>
+        <span class="coin-meta">
+          <strong>${escapeHtml(coin.coinId || 'unresolved')}</strong>
+          <em>${escapeHtml(meta)}</em>
+          ${note ? `<small>${escapeHtml(note)}</small>` : ''}
+        </span>
+        <b>${escapeHtml(scoreText)}</b>
+      </article>
+    `;
+  }
+
+  function coinStatusText(status) {
+    if (status === 'scored') return 'scored';
+    if (status === 'waiting') return 'waiting';
+    if (status === 'blocked') return 'blocked';
+    return 'raw';
+  }
+
+  function coinMetaText(coin) {
+    const pieces = [];
+    const scored = Number(coin.scoredCount || 0);
+    const waiting = Number(coin.waitingCount || 0);
+    const blocked = Number(coin.blockedCount || 0);
+    const raw = Number(coin.rawMentionCount || 0);
+    if (scored) pieces.push(`${scored} scored`);
+    if (waiting) pieces.push(`${waiting} waiting`);
+    if (blocked) pieces.push(`${blocked} blocked`);
+    if (raw) pieces.push(`${raw} raw`);
+    if (coin.direction) pieces.push(String(coin.direction));
+    return pieces.length ? pieces.join(' · ') : coinStatusText(coin.status);
+  }
+
+  function coinNoteText(coin) {
+    if (coin.status === 'blocked' && coin.reason) return coin.reason;
+    if (coin.status === 'waiting' && coin.lastSeenAt) return `target pending · ${formatMinute(coin.lastSeenAt)}`;
+    if (coin.status === 'scored') {
+      const avg = Number(coin.averageScore);
+      const best = Number(coin.bestScore);
+      if (Number.isFinite(avg) && Number.isFinite(best)) return `avg ${formatScore(avg)} · best ${formatScore(best)}`;
+    }
+    return compactText(coin.thesis || coin.reason || '');
+  }
+
+  function buildCoinLedger(scored, waiting, rejected, rawMentions) {
+    const map = new Map();
+    const get = (symbol, coinId) => {
+      const key = normalizeSymbol(symbol) || 'UNKNOWN';
+      if (!map.has(key)) {
+        map.set(key, {
+          symbol: key,
+          coinId: coinId || '',
+          status: 'raw',
+          scoredCount: 0,
+          waitingCount: 0,
+          blockedCount: 0,
+          rawMentionCount: 0,
+          totalMentions: 0
+        });
+      }
+      const row = map.get(key);
+      if (!row.coinId && coinId) row.coinId = coinId;
+      return row;
+    };
+    scored.forEach((signal) => {
+      const row = get(signal.symbol, signal.coinId);
+      row.status = 'scored';
+      row.scoredCount += 1;
+      row.score = signal.score;
+      row.bestScore = Math.max(Number(row.bestScore ?? signal.score), Number(signal.score));
+      row.averageScore = signal.score;
+      row.direction = signal.direction;
+      row.thesis = signal.thesis;
+      row.totalMentions += 1;
+    });
+    waiting.forEach((signal) => {
+      const row = get(signal.symbol, signal.coinId);
+      if (row.status !== 'scored') row.status = 'waiting';
+      row.waitingCount += 1;
+      row.direction = signal.direction;
+      row.thesis = signal.thesis;
+      row.lastSeenAt = signal.mentionedAt || signal.updatedAt;
+      row.totalMentions += 1;
+    });
+    rejected.forEach((signal) => {
+      const row = get(signal.symbol, signal.coinId);
+      if (row.status !== 'scored' && row.status !== 'waiting') row.status = 'blocked';
+      row.blockedCount += 1;
+      row.reason = signalReasonText(signal);
+      row.direction = signal.direction;
+      row.thesis = signal.thesis;
+      row.totalMentions += 1;
+    });
+    rawMentions.forEach((mention) => {
+      const row = get(mention.symbol, mention.coinId);
+      row.rawMentionCount += 1;
+      row.totalMentions += 1;
+      row.source = mention.source;
+      if (!row.direction && mention.direction) row.direction = mention.direction;
+      if (!row.thesis && mention.thesis) row.thesis = mention.thesis;
+    });
+    return [...map.values()].sort((a, b) => {
+      const statusRank = { scored: 0, waiting: 1, blocked: 2, raw: 3 };
+      return (statusRank[a.status] ?? 9) - (statusRank[b.status] ?? 9) ||
+        Number(b.score ?? b.bestScore ?? -1) - Number(a.score ?? a.bestScore ?? -1) ||
+        Number(b.totalMentions ?? 0) - Number(a.totalMentions ?? 0) ||
+        String(a.symbol).localeCompare(String(b.symbol));
+    });
   }
 
   function signalCompactMeta(signal) {
