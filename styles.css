@@ -1131,6 +1131,119 @@ select:focus {
   grid-template-columns: 44px minmax(0, 1fr) 92px;
 }
 
+.coin-ledger {
+  display: grid;
+  gap: 0;
+  overflow: hidden;
+  border: 1px solid rgba(201, 151, 43, 0.18);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.026);
+}
+
+.coin-ledger header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  min-height: 44px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.075);
+  padding: 0 12px;
+}
+
+.coin-ledger header strong {
+  color: var(--ink);
+  font-size: 13px;
+}
+
+.coin-ledger header em {
+  color: var(--muted);
+  font-size: 12px;
+  font-style: normal;
+}
+
+.coin-ledger-list {
+  display: grid;
+  max-height: 300px;
+  overflow: auto;
+}
+
+.coin-row {
+  display: grid;
+  grid-template-columns: 74px minmax(0, 1fr) 78px;
+  gap: 10px;
+  align-items: center;
+  min-height: 58px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 8px 12px;
+}
+
+.coin-row:last-child {
+  border-bottom: 0;
+}
+
+.coin-row.scored {
+  background: rgba(53, 211, 158, 0.045);
+}
+
+.coin-row.waiting {
+  background: rgba(255, 176, 32, 0.045);
+}
+
+.coin-row.blocked {
+  background: rgba(255, 93, 108, 0.045);
+}
+
+.coin-symbol {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  height: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  color: var(--ink);
+  background: rgba(0, 0, 0, 0.18);
+  font-size: 12px;
+  font-weight: 850;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.coin-meta {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.coin-meta strong,
+.coin-meta em,
+.coin-meta small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.coin-meta strong {
+  color: var(--ink);
+  font-size: 12px;
+}
+
+.coin-meta em,
+.coin-meta small {
+  color: var(--muted);
+  font-size: 11px;
+  font-style: normal;
+}
+
+.coin-row > b {
+  justify-self: end;
+  color: currentColor;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
 .reputation-main {
   grid-template-columns: 42px minmax(0, 1fr);
   gap: 8px;
