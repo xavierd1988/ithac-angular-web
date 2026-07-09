@@ -491,6 +491,8 @@
     const pageIndex = clampPageIndex(state.pageIndex, allRows.length, pageSize);
     const rows = allRows.slice(pageIndex * pageSize, pageIndex * pageSize + pageSize);
     const nodes = [renderReputationSwitcher()];
+    const focus = scannerFocusRow(allRows);
+    if (focus) nodes.push(renderScannerFocus(focus));
     if (!rows.length) {
       const empty = document.createElement('article');
       empty.className = 'empty';
@@ -506,6 +508,36 @@
       }
     });
     els.list.replaceChildren(...nodes);
+  }
+
+  function scannerFocusRow(rows) {
+    const active = activeJob();
+    const eventUser = usernameFromText(latestEvent()?.text);
+    const target = active?.username || eventUser;
+    if (!target) return null;
+    const lower = target.toLowerCase();
+    const index = rows.findIndex((row) => row.username?.toLowerCase() === lower);
+    if (index < 0) return null;
+    return {
+      row: rows[index],
+      rank: index + 1,
+      active: Boolean(active?.username?.toLowerCase() === lower)
+    };
+  }
+
+  function renderScannerFocus(focus) {
+    const section = document.createElement('section');
+    section.className = `scanner-focus-panel ${focus.active ? 'active' : 'last'}`;
+    const header = document.createElement('header');
+    header.innerHTML = `
+      <span>${focus.active ? 'Scraping now' : 'Last scraped'}</span>
+      <strong>@${escapeHtml(focus.row.username)}</strong>
+      <em>${rowPosition(focus.row.username)}</em>
+    `;
+    const row = renderRow(focus.row, focus.rank);
+    row.classList.add('scanner-focus-row');
+    section.append(header, row);
+    return section;
   }
 
   function renderTimex() {
