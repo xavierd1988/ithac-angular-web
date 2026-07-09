@@ -66,7 +66,18 @@
     modalRoot: byId('modalRoot')
   };
 
-  document.addEventListener('DOMContentLoaded', init);
+  let didInit = false;
+  function boot() {
+    if (didInit) return;
+    didInit = true;
+    init();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot, { once: true });
+  } else {
+    boot();
+  }
 
   function init() {
     els.prevPage.addEventListener('click', () => goToPage(state.pageIndex - 1));
