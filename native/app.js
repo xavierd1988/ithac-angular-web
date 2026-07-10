@@ -1349,70 +1349,54 @@
     const backdrop = document.createElement('div');
     const detailState = state.reputationDetails.get(reputationDetailKey(row));
     const detail = detailState?.detail;
-    const ranking = detail?.ranking || row;
     const history = Array.isArray(row.history) ? row.history : [];
     const scored = Array.isArray(detail?.scored) ? detail.scored : history;
-    const waiting = Array.isArray(detail?.waiting) ? detail.waiting : [];
-    const rejected = Array.isArray(detail?.rejected) ? detail.rejected : [];
-    const rawMentions = Array.isArray(detail?.rawMentions) ? detail.rawMentions : [];
-    const coins = Array.isArray(detail?.coins) ? detail.coins : buildCoinLedger(scored, waiting, rejected, rawMentions);
+    const label = reputationWindowLabel(row.window || state.reputationWindow);
     backdrop.className = 'modal-backdrop';
     backdrop.innerHTML = `
       <section class="modal-card reputation-detail-card">
         <header>
           <div>
-            <span class="eyebrow">Reputation</span>
-            <h2>#${escapeHtml(String(row.rank || '-'))} @${escapeHtml(row.username || '-')}</h2>
+            <span class="eyebrow">Scored only</span>
+            <h2>@${escapeHtml(row.username || '-')} · ${escapeHtml(label)}</h2>
           </div>
           <button type="button" class="menu-close">Close</button>
         </header>
-        <div class="modal-grid">
-          ${detailCard('Competition', reputationWindowLabel(row.window || state.reputationWindow))}
-          ${detailCard('Ranking', formatScore(reputationScore(ranking)))}
-          ${detailCard('Trade avg', formatScore(ranking.averageScore))}
-          ${detailCard('Activity', formatScore(ranking.activityScore))}
-          ${detailCard('Best trade', formatScore(ranking.bestScore))}
-          ${detailCard('Last trade', `${formatScore(ranking.lastScore)} · ${ranking.lastSymbol || '-'}`)}
-          ${detailCard('Scored windows', String(detail?.scoredCount ?? ranking.scoredCount ?? history.length))}
-          ${detailCard('Period', `${formatMinute(detail?.windowStart || row.windowStart)} → ${formatMinute(detail?.windowEnd || row.windowEnd)}`)}
-        </div>
-        <div class="pipeline-summary">
-          <span><strong>${scored.length}</strong><em>scored</em></span>
-          <span><strong>${waiting.length}</strong><em>waiting</em></span>
-          <span><strong>${rejected.length}</strong><em>rejected</em></span>
-          <span><strong>${rawMentions.length}</strong><em>raw</em></span>
-        </div>
         ${detailState?.loading ? '<p class="empty-inline">Loading full pipeline...</p>' : ''}
         ${detailState?.error ? `<p class="paper-error">${escapeHtml(detailState.error)}</p>` : ''}
-        ${coinLedgerHtml(coins)}
-        <div class="pipeline-grid">
-          ${pipelineSectionHtml('Scored', 'scored', scored, 'No scored window.')}
-          ${pipelineSectionHtml('Waiting', 'waiting', waiting, 'No pending signal.')}
-          ${pipelineSectionHtml('Rejected', 'rejected', rejected, 'No rejected signal.')}
-          ${rawMentionSectionHtml(rawMentions)}
-        </div>
+        <section class="scored-only-panel">
+          <header>
+            <strong>Scored calls</strong>
+            <em>${scored.length}</em>
+          </header>
+          <div class="scored-only-list">
+            ${scored.length ? scored.map(scoredOnlySignalHtml).join('') : '<p class="empty-inline">No scored call in this ranking.</p>'}
+          </div>
+        </section>
       </section>
     `;
     backdrop.addEventListener('click', (event) => {
-      const pipelineButton = event.target.closest('[data-pipeline-kind]');
-      if (pipelineButton) {
-        const kind = pipelineButton.dataset.pipelineKind || '';
-        const index = Number(pipelineButton.dataset.pipelineIndex);
-        const lists = { scored, waiting, rejected };
-        const signal = Number.isFinite(index) ? lists[kind]?.[index] : null;
-        if (signal) {
-          state.selectedReputation = null;
-          state.selectedSignal = signal;
-          renderModal();
-        }
-        return;
-      }
       if (event.target === backdrop || event.target.closest('button.menu-close')) {
         state.selectedReputation = null;
         renderModal();
       }
     });
     return backdrop;
+  }
+
+  function scoredOnlySignalHtml(signal) {
+    const score = Number(signal.score);
+    const meta = signalCompactMeta(signal);
+    const reason = signalReasonText(signal);
+    const scoreText = Number.isFinite(score) ? formatScore(score) : '-';
+    return `
+      <article class="scored-only-row ${scoreClass(score)}">
+        <strong>${escapeHtml(signal.serialRef || `#${signal.id || '-'}`)}</strong>
+        <span>${escapeHtml(meta)}</span>
+        <small>${escapeHtml(reason)}</small>
+        <em>${escapeHtml(scoreText)}</em>
+      </article>
+    `;
   }
 
   function pipelineSectionHtml(title, kind, signals, emptyText) {

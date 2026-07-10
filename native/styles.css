@@ -1971,7 +1971,7 @@ button.ranking-cell:hover {
 }
 
 .reputation-detail-card {
-  width: min(1120px, calc(100vw - 48px));
+  width: min(920px, calc(100vw - 48px));
 }
 
 .modal-card header {
@@ -2119,6 +2119,66 @@ button.ranking-cell:hover {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.scored-only-panel {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.scored-only-panel header {
+  min-height: 24px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid rgba(255, 176, 32, 0.16);
+}
+
+.scored-only-panel header strong {
+  color: var(--gold);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.scored-only-panel header em {
+  color: var(--muted);
+  font-style: normal;
+  font-weight: 850;
+}
+
+.scored-only-list {
+  display: grid;
+  gap: 8px;
+}
+
+.scored-only-row {
+  display: grid;
+  grid-template-columns: minmax(180px, 1.1fr) minmax(180px, 0.9fr) minmax(180px, 1fr) 72px;
+  gap: 12px;
+  align-items: center;
+  min-height: 44px;
+  border: 1px solid rgba(255, 176, 32, 0.16);
+  border-radius: 8px;
+  padding: 9px 12px;
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.scored-only-row span,
+.scored-only-row small {
+  min-width: 0;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.scored-only-row em {
+  justify-self: end;
+  color: var(--green);
+  font-style: normal;
+  font-weight: 900;
 }
 
 .raw-section {
