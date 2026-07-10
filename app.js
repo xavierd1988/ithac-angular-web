@@ -545,16 +545,33 @@
     return state.reputation?.[state.reputationWindow] ?? [];
   }
 
+  function reputationRowsForWindow(windowKey) {
+    return state.reputation?.[windowKey] ?? [];
+  }
+
+  function reputationMapForWindow(windowKey) {
+    return new Map(reputationRowsForWindow(windowKey).map((row) => [String(row.username || '').toLowerCase(), row]));
+  }
+
+  function reputationMaps() {
+    return Object.fromEntries(REPUTATION_WINDOWS.map((item) => [item.key, reputationMapForWindow(item.key)]));
+  }
+
   function currentReputationMap() {
-    return new Map(currentReputationRows().map((row) => [String(row.username || '').toLowerCase(), row]));
+    return reputationMapForWindow(state.reputationWindow);
   }
 
   function liveRows() {
     const source = state.allInfluencers.length ? state.allInfluencers : (state.page.items ?? []);
-    const repMap = currentReputationMap();
+    const repMaps = reputationMaps();
+    const repMap = repMaps[state.reputationWindow] || currentReputationMap();
     const rows = source.map((row, index) => ({
       ...row,
       _sourceIndex: index,
+      _reputations: Object.fromEntries(REPUTATION_WINDOWS.map((item) => [
+        item.key,
+        repMaps[item.key]?.get(String(row.username || '').toLowerCase()) || null
+      ])),
       _reputation: repMap.get(String(row.username || '').toLowerCase()) || null
     })).filter(matchesLiveFilters);
     rows.sort(compareLiveRows);
@@ -601,16 +618,17 @@
     wrap.className = 'reputation-switcher merged-ranking-switcher';
     const total = liveRows().length;
     const scored = currentReputationRows().length;
+    const avg = windowAverageScore(state.reputationWindow);
     wrap.innerHTML = `
       <div>
         <strong>Live ranking + scraper</strong>
-        <span>${scored} scored aliases in ${reputationWindowLabel(state.reputationWindow)} · ${total} total handles in this same live list.</span>
+        <span>${scored} scored aliases in ${reputationWindowLabel(state.reputationWindow)} · avg ${formatScore(avg)} · ${total} total handles in this same live list.</span>
       </div>
       <div class="reputation-window-buttons">
         ${REPUTATION_WINDOWS.map((item) => `
           <button type="button" data-reputation-window="${escapeAttr(item.key)}" class="${state.reputationWindow === item.key ? 'active' : ''}">
             ${escapeHtml(item.label)}
-            <em>${(state.reputation?.[item.key] ?? []).length} scored</em>
+            <em>${(state.reputation?.[item.key] ?? []).length} scored · avg ${formatScore(windowAverageScore(item.key))}</em>
           </button>
         `).join('')}
       </div>
@@ -893,16 +911,18 @@
     article.querySelectorAll('.x-profile-link').forEach((link) => {
       link.addEventListener('click', (event) => event.stopPropagation());
     });
-    const reputationButton = article.querySelector('[data-reputation-username]');
-    if (reputationButton && reputation) {
+    article.querySelectorAll('[data-reputation-username]').forEach((reputationButton) => {
       reputationButton.addEventListener('click', (event) => {
         event.preventDefault();
         event.stopPropagation();
-        state.selectedReputation = reputation;
+        const windowKey = reputationButton.dataset.reputationWindow || state.reputationWindow;
+        const selected = row._reputations?.[windowKey] || reputation;
+        if (!selected) return;
+        state.selectedReputation = selected;
         renderModal();
-        void loadReputationDetail(reputation);
+        void loadReputationDetail(selected);
       });
-    }
+    });
     article.addEventListener('click', () => {
       const wasSelected = state.selectedUsername?.toLowerCase() === row.username.toLowerCase();
       state.selectedUsername = wasSelected ? null : row.username;
@@ -913,23 +933,45 @@
   }
 
   function rankingCellHtml(row, reputation, status) {
-    if (reputation) {
-      const score = reputationScore(reputation);
-      const label = reputationWindowLabel(reputation.window || state.reputationWindow);
+    const reps = row._reputations || {};
+    if (REPUTATION_WINDOWS.some((item) => reps[item.key])) {
       return `
-        <button type="button" class="ranking-cell ${scoreClass(score)}" data-reputation-username="${escapeAttr(row.username)}" title="Open reputation detail">
-          <small>#${escapeHtml(reputation.rank ?? '-')} · ${escapeHtml(label)}</small>
-          <strong>${formatScore(score)}</strong>
-          <em>${escapeHtml(reputation.lastSymbol || '-')} · ${Number(reputation.scoredCount ?? 0)} scored</em>
-        </button>
+        <section class="ranking-stack" aria-label="Reputation by competition">
+          ${REPUTATION_WINDOWS.map((item) => rankingChipHtml(row, reps[item.key], item)).join('')}
+        </section>
       `;
     }
     return `
-      <span class="ranking-cell unrated">
+      <span class="ranking-stack single">
+        <span class="ranking-cell unrated">
         <small>not rated</small>
         <strong>-</strong>
         <em>${escapeHtml(status)}</em>
+        </span>
       </span>
+    `;
+  }
+
+  function rankingChipHtml(row, reputation, windowItem) {
+    const active = state.reputationWindow === windowItem.key;
+    if (!reputation) {
+      return `
+        <span class="ranking-cell compact unrated ${active ? 'active' : ''}">
+          <small>${escapeHtml(windowItem.label)}</small>
+          <strong>-</strong>
+          <em>not scored</em>
+        </span>
+      `;
+    }
+    const score = reputationScore(reputation);
+    const avg = Number(reputation.averageScore);
+    const title = `${windowItem.label}: rank #${reputation.rank ?? '-'}, score ${formatScore(score)}, average ${formatScore(avg)}, ${Number(reputation.scoredCount ?? 0)} scored`;
+    return `
+      <button type="button" class="ranking-cell compact ${scoreClass(score)} ${active ? 'active' : ''}" data-reputation-username="${escapeAttr(row.username)}" data-reputation-window="${escapeAttr(windowItem.key)}" title="${escapeAttr(title)}">
+        <small>#${escapeHtml(reputation.rank ?? '-')} · ${escapeHtml(windowItem.label)}</small>
+        <strong>${formatScore(score)}</strong>
+        <em>avg ${formatScore(avg)} · ${Number(reputation.scoredCount ?? 0)}</em>
+      </button>
     `;
   }
 
@@ -1596,6 +1638,14 @@
   function reputationScore(item) {
     const value = Number(item?.competitionScore);
     return Number.isFinite(value) ? value : Number(item?.averageScore);
+  }
+
+  function windowAverageScore(windowKey) {
+    const rows = reputationRowsForWindow(windowKey)
+      .map((row) => Number(row.averageScore))
+      .filter(Number.isFinite);
+    if (!rows.length) return NaN;
+    return rows.reduce((sum, score) => sum + score, 0) / rows.length;
   }
 
   function signalGraph(signal) {
