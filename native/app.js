@@ -1498,17 +1498,28 @@
 
   function scoredOnlySignalHtml(signal) {
     const score = Number(signal.score);
-    const meta = signalCompactMeta(signal);
     const reason = signalReasonText(signal);
     const scoreText = Number.isFinite(score) ? formatScore(score) : '-';
+    const symbol = signal.symbol || '-';
+    const variation = formatVariation(signal.variationPct);
+    const direction = signal.direction || '-';
+    const status = signalStatusText(signal);
+    const serial = signal.serialRef || `#${signal.id || '-'}`;
+    const url = signalPostUrl(signal);
+    const tag = url ? 'a' : 'article';
+    const attrs = url ? ` href="${escapeAttr(url)}" target="_blank" rel="noopener noreferrer" title="Open X post"` : '';
     return `
-      <article class="scored-only-row ${scoreClass(score)}">
-        <strong>${escapeHtml(signal.serialRef || `#${signal.id || '-'}`)}</strong>
-        <span>${escapeHtml(meta)}</span>
-        <small>${escapeHtml(reason)}</small>
-        <em>${escapeHtml(scoreText)}</em>
-      </article>
+      <${tag} class="scored-only-row scored-call-link ${scoreClass(score)}"${attrs}>
+        <span class="scored-call-crypto"><b>${escapeHtml(symbol)}</b><small>${escapeHtml(direction)} · ${escapeHtml(variation)}</small></span>
+        <span class="scored-call-score"><b>${escapeHtml(scoreText)}</b><small>score</small></span>
+        <span class="scored-call-status"><b>${escapeHtml(status)}</b><small>${escapeHtml(serial)}</small></span>
+        <small class="scored-call-reason">${escapeHtml(reason)}</small>
+      </${tag}>
     `;
+  }
+
+  function signalPostUrl(signal) {
+    return signal.url || signal.postUrl || signal.sourceUrl || signal.Url || '';
   }
 
   function pipelineSectionHtml(title, kind, signals, emptyText) {
