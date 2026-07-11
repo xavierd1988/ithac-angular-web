@@ -46,6 +46,7 @@
     paperSync: null,
     paperBusy: false,
     paperError: null,
+    sortMode: 'scanner',
     scrapeNowBusy: new Set(),
     loadError: null
   };
@@ -490,7 +491,7 @@
     const pageSize = state.pageSize || state.page.pageSize || 250;
     const pageIndex = clampPageIndex(state.pageIndex, allRows.length, pageSize);
     const rows = allRows.slice(pageIndex * pageSize, pageIndex * pageSize + pageSize);
-    const nodes = [renderReputationSwitcher()];
+    const nodes = [renderScannerPath(), renderReputationSwitcher()];
     if (!rows.length) {
       const empty = document.createElement('article');
       empty.className = 'empty';
@@ -500,7 +501,7 @@
     }
 
     rows.forEach((row, index) => {
-      nodes.push(renderRow(row, pageIndex * pageSize + index + 1));
+      nodes.push(renderRow(row, displayRowNumber(row, pageIndex * pageSize + index + 1)));
       if (state.selectedUsername?.toLowerCase() === row.username.toLowerCase()) {
         nodes.push(renderDetail(row));
       }
@@ -562,10 +563,16 @@
   }
 
   function liveRows() {
+    const rows = enrichedInfluencerRows().filter(matchesLiveFilters);
+    rows.sort(compareLiveRows);
+    return rows;
+  }
+
+  function enrichedInfluencerRows() {
     const source = state.allInfluencers.length ? state.allInfluencers : (state.page.items ?? []);
     const repMaps = reputationMaps();
     const repMap = repMaps[state.reputationWindow] || currentReputationMap();
-    const rows = source.map((row, index) => ({
+    return source.map((row, index) => ({
       ...row,
       _sourceIndex: index,
       _reputations: Object.fromEntries(REPUTATION_WINDOWS.map((item) => [
@@ -573,9 +580,7 @@
         repMaps[item.key]?.get(String(row.username || '').toLowerCase()) || null
       ])),
       _reputation: repMap.get(String(row.username || '').toLowerCase()) || null
-    })).filter(matchesLiveFilters);
-    rows.sort(compareLiveRows);
-    return rows;
+    }));
   }
 
   function matchesLiveFilters(row) {
@@ -591,6 +596,9 @@
   }
 
   function compareLiveRows(a, b) {
+    if (state.sortMode === 'scanner') {
+      return (a._sourceIndex ?? 0) - (b._sourceIndex ?? 0);
+    }
     const scoreA = reputationScore(a._reputation);
     const scoreB = reputationScore(b._reputation);
     const hasA = Number.isFinite(scoreA);
@@ -621,10 +629,18 @@
     const avg = windowAverageScore(state.reputationWindow);
     wrap.innerHTML = `
       <div>
-        <strong>Live ranking + scraper</strong>
+        <strong>${state.sortMode === 'scanner' ? 'Scanner order + scores' : 'Score ranking + scraper'}</strong>
         <span>${scored} scored aliases in ${reputationWindowLabel(state.reputationWindow)} · avg ${formatScore(avg)} · ${total} total handles in this same live list.</span>
       </div>
       <div class="reputation-window-buttons">
+        <button type="button" data-sort-mode="scanner" class="${state.sortMode === 'scanner' ? 'active' : ''}">
+          SCANNER
+          <em>natural list</em>
+        </button>
+        <button type="button" data-sort-mode="score" class="${state.sortMode === 'score' ? 'active' : ''}">
+          SCORE
+          <em>best first</em>
+        </button>
         ${REPUTATION_WINDOWS.map((item) => `
           <button type="button" data-reputation-window="${escapeAttr(item.key)}" class="${state.reputationWindow === item.key ? 'active' : ''}">
             ${escapeHtml(item.label)}
@@ -633,6 +649,14 @@
         `).join('')}
       </div>
     `;
+    wrap.querySelectorAll('[data-sort-mode]').forEach((button) => {
+      button.addEventListener('click', () => {
+        state.sortMode = button.dataset.sortMode === 'score' ? 'score' : 'scanner';
+        state.selectedUsername = null;
+        state.pageIndex = 0;
+        renderAll();
+      });
+    });
     wrap.querySelectorAll('[data-reputation-window]').forEach((button) => {
       button.addEventListener('click', () => {
         state.reputationWindow = button.dataset.reputationWindow || 'day';
@@ -642,6 +666,87 @@
       });
     });
     return wrap;
+  }
+
+  function renderScannerPath() {
+    const rows = enrichedInfluencerRows();
+    const wrap = document.createElement('section');
+    wrap.className = 'scanner-path';
+    const current = scannerCurrentUsername();
+    const index = scannerIndex(current, rows);
+    const total = rows.length || state.run?.targetCount || 0;
+    const pageSize = state.pageSize || state.page.pageSize || 250;
+    const page = index >= 0 ? Math.floor(index / Math.max(pageSize, 1)) + 1 : null;
+    const run = state.run;
+    const status = normalizeRunStatus(run?.status);
+    const railRows = scannerRailRows(rows, index);
+
+    wrap.innerHTML = `
+      <header class="scanner-path-head">
+        <div>
+          <span>Scanner path</span>
+          <strong>${current ? `@${escapeHtml(current)}` : status === 'running' ? 'between accounts' : 'idle'}</strong>
+          <em>${index >= 0 ? `natural row ${index + 1}/${total} · page ${page}` : `${run?.successCount ?? 0}/${total || '-'} complete · waiting for next claim`}</em>
+        </div>
+        <div class="scanner-path-counts">
+          <b>${escapeHtml(run?.successCount ?? 0)}</b><small>done</small>
+          <b>${escapeHtml(run?.runningCount ?? 0)}</b><small>running</small>
+          <b>${escapeHtml(run?.queuedCount ?? 0)}</b><small>queued</small>
+        </div>
+      </header>
+      <div class="scanner-rail">
+        ${railRows.length ? railRows.map((item) => scannerRailItemHtml(item, index)).join('') : '<span class="scanner-rail-empty">Waiting for live queue...</span>'}
+      </div>
+    `;
+    wrap.querySelectorAll('[data-jump-username]').forEach((button) => {
+      button.addEventListener('click', () => jumpToScannerRow(button.dataset.jumpUsername || ''));
+    });
+    return wrap;
+  }
+
+  function scannerRailRows(rows, index) {
+    if (!rows.length) return [];
+    if (index < 0) return rows.slice(0, Math.min(5, rows.length)).map((row, offset) => ({ row, index: offset }));
+    const start = Math.max(0, Math.min(index - 2, rows.length - 5));
+    return rows.slice(start, start + 5).map((row, offset) => ({ row, index: start + offset }));
+  }
+
+  function scannerRailItemHtml(item, currentIndex) {
+    const { row, index } = item;
+    const isCurrent = index === currentIndex;
+    const status = isCurrent ? 'now' : index < currentIndex ? 'done' : 'next';
+    const label = isCurrent ? 'NOW' : index < currentIndex ? 'DONE' : 'NEXT';
+    const score = reputationScore(row._reputation);
+    return `
+      <button type="button" class="scanner-rail-item ${status}" data-jump-username="${escapeAttr(row.username)}">
+        <small>#${index + 1} · ${label}</small>
+        <strong>@${escapeHtml(row.username)}</strong>
+        <em>${escapeHtml(rowStatusLabel(row))} · ${Number.isFinite(score) ? `score ${formatScore(score)}` : 'not rated'}</em>
+      </button>
+    `;
+  }
+
+  function scannerCurrentUsername() {
+    const active = activeJob();
+    if (active?.username) return active.username;
+    return usernameFromText(latestEvent()?.text) || null;
+  }
+
+  function scannerIndex(username, rows = enrichedInfluencerRows()) {
+    if (!username) return -1;
+    const lower = String(username).toLowerCase();
+    return rows.findIndex((row) => String(row.username || '').toLowerCase() === lower);
+  }
+
+  function jumpToScannerRow(username) {
+    const rows = liveRows();
+    const lower = String(username || '').toLowerCase();
+    const index = rows.findIndex((row) => String(row.username || '').toLowerCase() === lower);
+    if (index < 0) return;
+    const pageSize = state.pageSize || state.page.pageSize || 250;
+    state.pageIndex = Math.floor(index / Math.max(pageSize, 1));
+    state.selectedUsername = username;
+    renderAll();
   }
 
   function renderPaper() {
@@ -1082,12 +1187,19 @@
 
   function rowPosition(username) {
     const lower = username.toLowerCase();
-    const rows = liveRows();
+    const rows = enrichedInfluencerRows();
     const index = rows.findIndex((row) => row.username.toLowerCase() === lower);
-    if (index < 0) return `not in ranked list`;
+    if (index < 0) return `not in scanner list`;
     const pageSize = state.pageSize || state.page.pageSize || 250;
     const page = Math.floor(index / Math.max(pageSize, 1)) + 1;
-    return `ranked row ${index + 1}/${rows.length} · page ${page}`;
+    return `scanner row ${index + 1}/${rows.length} · page ${page}`;
+  }
+
+  function displayRowNumber(row, fallback) {
+    if (state.sortMode === 'scanner' && Number.isFinite(Number(row._sourceIndex))) {
+      return Number(row._sourceIndex) + 1;
+    }
+    return fallback;
   }
 
   function isActiveRow(row) {
