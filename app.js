@@ -46,7 +46,7 @@
     paperSync: null,
     paperBusy: false,
     paperError: null,
-    sortMode: 'scanner',
+    sortMode: 'score',
     scrapeNowBusy: new Set(),
     loadError: null
   };
@@ -599,6 +599,17 @@
     if (state.sortMode === 'scanner') {
       return (a._sourceIndex ?? 0) - (b._sourceIndex ?? 0);
     }
+    const dayRepA = a._reputations?.day || null;
+    const dayRepB = b._reputations?.day || null;
+    const dayCountA = reputationScoredCount(dayRepA);
+    const dayCountB = reputationScoredCount(dayRepB);
+    if (dayCountA !== dayCountB) return dayCountB - dayCountA;
+    const dayScoreA = reputationScore(dayRepA);
+    const dayScoreB = reputationScore(dayRepB);
+    const hasDayA = Number.isFinite(dayScoreA);
+    const hasDayB = Number.isFinite(dayScoreB);
+    if (hasDayA !== hasDayB) return hasDayA ? -1 : 1;
+    if (hasDayA && Math.abs(dayScoreB - dayScoreA) > 0.001) return dayScoreB - dayScoreA;
     const scoreA = reputationScore(a._reputation);
     const scoreB = reputationScore(b._reputation);
     const hasA = Number.isFinite(scoreA);
@@ -626,11 +637,12 @@
     wrap.className = 'reputation-switcher merged-ranking-switcher';
     const total = liveRows().length;
     const scored = currentReputationRows().length;
+    const dayScored = reputationRowsForWindow('day').filter((row) => reputationScoredCount(row) > 0).length;
     const avg = windowAverageScore(state.reputationWindow);
     wrap.innerHTML = `
       <div>
-        <strong>${state.sortMode === 'scanner' ? 'Scanner order + scores' : 'Score ranking + scraper'}</strong>
-        <span>${scored} scored aliases in ${reputationWindowLabel(state.reputationWindow)} · avg ${formatScore(avg)} · ${total} total handles in this same live list.</span>
+        <strong>${state.sortMode === 'scanner' ? 'Scanner order + scores' : '1 DAY scored first + scraper'}</strong>
+        <span>${dayScored} aliases with 1 DAY calls · ${scored} scored in ${reputationWindowLabel(state.reputationWindow)} · avg ${formatScore(avg)} · ${total} total handles.</span>
       </div>
       <div class="reputation-window-buttons">
         <button type="button" data-sort-mode="scanner" class="${state.sortMode === 'scanner' ? 'active' : ''}">
@@ -638,8 +650,8 @@
           <em>natural list</em>
         </button>
         <button type="button" data-sort-mode="score" class="${state.sortMode === 'score' ? 'active' : ''}">
-          SCORE
-          <em>best first</em>
+          1D SCORED
+          <em>most calls first</em>
         </button>
         ${REPUTATION_WINDOWS.map((item) => `
           <button type="button" data-reputation-window="${escapeAttr(item.key)}" class="${state.reputationWindow === item.key ? 'active' : ''}">
@@ -1745,6 +1757,11 @@
   function reputationScore(item) {
     const value = Number(item?.competitionScore);
     return Number.isFinite(value) ? value : Number(item?.averageScore);
+  }
+
+  function reputationScoredCount(item) {
+    const value = Number(item?.scoredCount);
+    return Number.isFinite(value) ? value : 0;
   }
 
   function windowAverageScore(windowKey) {
