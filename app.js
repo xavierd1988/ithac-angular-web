@@ -1474,7 +1474,9 @@
     const detailState = state.reputationDetails.get(reputationDetailKey(row));
     const detail = detailState?.detail;
     const history = Array.isArray(row.history) ? row.history : [];
-    const scored = Array.isArray(detail?.scored) ? detail.scored : history;
+    const detailScored = Array.isArray(detail?.scored) ? detail.scored : [];
+    const detailHistory = Array.isArray(detail?.ranking?.history) ? detail.ranking.history : [];
+    const scored = detailScored.length ? detailScored : (detailHistory.length ? detailHistory : history);
     const label = reputationWindowLabel(row.window || state.reputationWindow);
     backdrop.className = 'modal-backdrop';
     backdrop.innerHTML = `
@@ -1516,6 +1518,7 @@
     const variation = formatVariation(signal.variationPct);
     const direction = signal.direction || '-';
     const status = signalStatusText(signal);
+    const verdict = signalOutcomeText(signal);
     const serial = signal.serialRef || `#${signal.id || '-'}`;
     const url = signalPostUrl(signal);
     const tag = url ? 'a' : 'article';
@@ -1524,10 +1527,20 @@
       <${tag} class="scored-only-row scored-call-link ${scoreClass(score)}"${attrs}>
         <span class="scored-call-crypto"><b>${escapeHtml(symbol)}</b><small>${escapeHtml(direction)} · ${escapeHtml(variation)}</small></span>
         <span class="scored-call-score"><b>${escapeHtml(scoreText)}</b><small>score</small></span>
-        <span class="scored-call-status"><b>${escapeHtml(status)}</b><small>${escapeHtml(serial)}</small></span>
+        <span class="scored-call-status"><b>${escapeHtml(verdict)}</b><small>${escapeHtml(status)} · ${escapeHtml(serial)}</small></span>
         <small class="scored-call-reason">${escapeHtml(reason)}</small>
       </${tag}>
     `;
+  }
+
+  function signalOutcomeText(signal) {
+    const direction = String(signal?.direction || '').toLowerCase();
+    const variation = Number(signal?.variationPct);
+    if (!Number.isFinite(variation) || (direction !== 'bullish' && direction !== 'bearish')) return 'scored call';
+    const priceMove = variation > 0 ? 'price up' : variation < 0 ? 'price down' : 'flat';
+    const good = direction === 'bullish' ? variation > 0 : variation < 0;
+    if (variation === 0) return `${priceMove} · neutral`;
+    return `${priceMove} · ${good ? 'good call' : 'bad call'}`;
   }
 
   function signalPostUrl(signal) {
