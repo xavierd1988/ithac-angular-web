@@ -2414,6 +2414,44 @@ button.ranking-cell:hover {
   color: var(--muted);
 }
 
+.reputation-score-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.reputation-score-summary span {
+  display: grid;
+  gap: 4px;
+  min-height: 62px;
+  border: 1px solid rgba(255, 176, 32, 0.15);
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.reputation-score-summary b {
+  color: var(--text);
+  font-size: 19px;
+  font-weight: 900;
+}
+
+.reputation-score-summary em {
+  color: var(--gold);
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 850;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.reputation-score-note {
+  margin: -2px 0 2px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
 @media (max-width: 1180px) {
   body {
     min-width: 960px;
