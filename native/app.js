@@ -599,28 +599,23 @@
     if (state.sortMode === 'scanner') {
       return (a._sourceIndex ?? 0) - (b._sourceIndex ?? 0);
     }
-    const dayRepA = a._reputations?.day || null;
-    const dayRepB = b._reputations?.day || null;
-    const dayCountA = reputationScoredCount(dayRepA);
-    const dayCountB = reputationScoredCount(dayRepB);
-    if (dayCountA !== dayCountB) return dayCountB - dayCountA;
-    const dayScoreA = reputationScore(dayRepA);
-    const dayScoreB = reputationScore(dayRepB);
-    const hasDayA = Number.isFinite(dayScoreA);
-    const hasDayB = Number.isFinite(dayScoreB);
-    if (hasDayA !== hasDayB) return hasDayA ? -1 : 1;
-    if (hasDayA && Math.abs(dayScoreB - dayScoreA) > 0.001) return dayScoreB - dayScoreA;
-    const scoreA = reputationScore(a._reputation);
-    const scoreB = reputationScore(b._reputation);
+    const windowKey = state.reputationWindow || 'day';
+    const repA = a._reputations?.[windowKey] || a._reputation || null;
+    const repB = b._reputations?.[windowKey] || b._reputation || null;
+    const scoreA = reputationScore(repA);
+    const scoreB = reputationScore(repB);
     const hasA = Number.isFinite(scoreA);
     const hasB = Number.isFinite(scoreB);
     if (hasA !== hasB) return hasA ? -1 : 1;
     if (hasA && Math.abs(scoreB - scoreA) > 0.001) return scoreB - scoreA;
-    const rankA = Number(a._reputation?.rank);
-    const rankB = Number(b._reputation?.rank);
+    const rankA = Number(repA?.rank);
+    const rankB = Number(repB?.rank);
     const safeRankA = Number.isFinite(rankA) ? rankA : Number.MAX_SAFE_INTEGER;
     const safeRankB = Number.isFinite(rankB) ? rankB : Number.MAX_SAFE_INTEGER;
     if (safeRankA !== safeRankB) return safeRankA - safeRankB;
+    const countA = reputationScoredCount(repA);
+    const countB = reputationScoredCount(repB);
+    if (countA !== countB) return countB - countA;
     if (isActiveRow(a) !== isActiveRow(b)) return isActiveRow(a) ? -1 : 1;
     const scrapeA = Date.parse(a.lastScrapeFinishedAt || a.lastScrapeUpdatedAt || a.lastScrapeStartedAt || '') || 0;
     const scrapeB = Date.parse(b.lastScrapeFinishedAt || b.lastScrapeUpdatedAt || b.lastScrapeStartedAt || '') || 0;
@@ -637,12 +632,13 @@
     wrap.className = 'reputation-switcher merged-ranking-switcher';
     const total = liveRows().length;
     const scored = currentReputationRows().length;
-    const dayScored = reputationRowsForWindow('day').filter((row) => reputationScoredCount(row) > 0).length;
+    const activeLabel = reputationWindowLabel(state.reputationWindow);
+    const activeScored = reputationRowsForWindow(state.reputationWindow).filter((row) => reputationScoredCount(row) > 0).length;
     const avg = windowAverageScore(state.reputationWindow);
     wrap.innerHTML = `
       <div>
-        <strong>${state.sortMode === 'scanner' ? 'Scanner order + scores' : '1 DAY scored first + scraper'}</strong>
-        <span>${dayScored} aliases with 1 DAY calls · ${scored} scored in ${reputationWindowLabel(state.reputationWindow)} · avg ${formatScore(avg)} · ${total} total handles.</span>
+        <strong>${state.sortMode === 'scanner' ? 'Scanner order + scores' : `${activeLabel} best scores + scraper`}</strong>
+        <span>${activeScored} aliases with ${activeLabel} calls · ${scored} scored in ${activeLabel} · sorted by highest score first · avg ${formatScore(avg)} · ${total} total handles.</span>
       </div>
       <div class="reputation-window-buttons">
         <button type="button" data-sort-mode="scanner" class="${state.sortMode === 'scanner' ? 'active' : ''}">
@@ -650,8 +646,8 @@
           <em>natural list</em>
         </button>
         <button type="button" data-sort-mode="score" class="${state.sortMode === 'score' ? 'active' : ''}">
-          1D SCORED
-          <em>most calls first</em>
+          SCORE
+          <em>best first</em>
         </button>
         ${REPUTATION_WINDOWS.map((item) => `
           <button type="button" data-reputation-window="${escapeAttr(item.key)}" class="${state.reputationWindow === item.key ? 'active' : ''}">
@@ -1143,7 +1139,7 @@
     try {
       const username = String(row.username || '').trim();
       const windowKey = row.window || state.reputationWindow;
-      const detail = await getJson(`/api/crypto/reputation/${encodeURIComponent(username)}/detail?window=${encodeURIComponent(windowKey)}&take=80`);
+      const detail = await getJson(`/api/crypto/reputation/${encodeURIComponent(username)}/detail?window=${encodeURIComponent(windowKey)}&take=250`);
       state.reputationDetails.set(key, { loading: false, error: null, detail });
     } catch (error) {
       state.reputationDetails.set(key, {
@@ -1477,6 +1473,11 @@
     const detailScored = Array.isArray(detail?.scored) ? detail.scored : [];
     const detailHistory = Array.isArray(detail?.ranking?.history) ? detail.ranking.history : [];
     const scored = detailScored.length ? detailScored : (detailHistory.length ? detailHistory : history);
+    const ranking = detail?.ranking || row;
+    const rankingScore = reputationScore(ranking);
+    const tradeAverage = Number(ranking?.averageScore);
+    const totalScored = reputationScoredCount(ranking) || scored.length;
+    const shownScored = scored.length;
     const label = reputationWindowLabel(row.window || state.reputationWindow);
     backdrop.className = 'modal-backdrop';
     backdrop.innerHTML = `
@@ -1490,10 +1491,19 @@
         </header>
         ${detailState?.loading ? '<p class="empty-inline">Loading full pipeline...</p>' : ''}
         ${detailState?.error ? `<p class="paper-error">${escapeHtml(detailState.error)}</p>` : ''}
+        <section class="reputation-score-summary" aria-label="Reputation score summary">
+          <span><b>${escapeHtml(formatScore(rankingScore))}</b><em>ranking score</em></span>
+          <span><b>${escapeHtml(formatScore(tradeAverage))}</b><em>trade average</em></span>
+          <span><b>${escapeHtml(String(totalScored))}</b><em>calls used</em></span>
+          <span><b>${escapeHtml(String(shownScored))}</b><em>rows shown</em></span>
+        </section>
+        <p class="reputation-score-note">
+          Ranking score and average use all scored calls in this window. The list below is only the latest detail returned by the API.
+        </p>
         <section class="scored-only-panel">
           <header>
-            <strong>Scored calls</strong>
-            <em>${scored.length}</em>
+            <strong>Latest scored calls shown</strong>
+            <em>${shownScored} / ${totalScored || shownScored}</em>
           </header>
           <div class="scored-only-list">
             ${scored.length ? scored.map(scoredOnlySignalHtml).join('') : '<p class="empty-inline">No scored call in this ranking.</p>'}
