@@ -1498,7 +1498,7 @@
           <span><b>${escapeHtml(String(shownScored))}</b><em>rows shown</em></span>
         </section>
         <p class="reputation-score-note">
-          Ranking score and average use all scored calls in this window. The list below is only the latest detail returned by the API.
+          Compact row: coin, score, call -> end, entry -> exit, verdict. Click opens the X post.
         </p>
         <section class="scored-only-panel">
           <header>
@@ -1529,7 +1529,10 @@
     const direction = signal.direction || '-';
     const status = signalStatusText(signal);
     const verdict = signalOutcomeText(signal);
-    const serial = signal.serialRef || `#${signal.id || '-'}`;
+    const callTime = compactTime(signalCallTime(signal));
+    const endTime = compactTime(signalEndTime(signal));
+    const entryPrice = compactPrice(signalEntryPrice(signal));
+    const exitPrice = compactPrice(signalExitPrice(signal));
     const url = signalPostUrl(signal);
     const tag = url ? 'a' : 'article';
     const attrs = url ? ` href="${escapeAttr(url)}" target="_blank" rel="noopener noreferrer" title="Open X post"` : '';
@@ -1537,7 +1540,8 @@
       <${tag} class="scored-only-row scored-call-link ${scoreClass(score)}"${attrs}>
         <span class="scored-call-crypto"><b>${escapeHtml(symbol)}</b><small>${escapeHtml(direction)} · ${escapeHtml(variation)}</small></span>
         <span class="scored-call-score"><b>${escapeHtml(scoreText)}</b><small>score</small></span>
-        <span class="scored-call-status"><b>${escapeHtml(verdict)}</b><small>${escapeHtml(status)} · ${escapeHtml(serial)}</small></span>
+        <span class="scored-call-window"><small>${escapeHtml(callTime)} -> ${escapeHtml(endTime)}</small><small>${escapeHtml(entryPrice)} -> ${escapeHtml(exitPrice)}</small></span>
+        <span class="scored-call-status"><b>${escapeHtml(verdict)}</b><small>${escapeHtml(status)}</small></span>
         <small class="scored-call-reason">${escapeHtml(reason)}</small>
       </${tag}>
     `;
@@ -1765,6 +1769,43 @@
     if (!signal.coinId) return 'coin unresolved';
     if (signal.thesis) return signal.thesis;
     return signal.source || '-';
+  }
+
+  function signalCallTime(signal) {
+    return signal.postedAt || signal.posted_at || signal.postCreatedAt || signal.post_created_at ||
+      signal.tweetCreatedAt || signal.tweet_created_at || signal.createdAt || signal.created_at ||
+      signal.mentionedAt || signal.mentioned_at || signal.callAt || signal.call_at ||
+      signal.startPriceAt || signal.start_price_at || signal.window?.startAt ||
+      signal.window?.start_at || '';
+  }
+
+  function signalEndTime(signal) {
+    return signal.endPriceAt || signal.end_price_at || signal.exitPriceAt || signal.exit_price_at ||
+      signal.exitAt || signal.exit_at || signal.targetPriceAt || signal.target_price_at ||
+      signal.window?.targetAt || signal.window?.target_at || '';
+  }
+
+  function signalEntryPrice(signal) {
+    return signal.startPriceUsd ?? signal.start_price_usd ?? signal.entryPriceUsd ??
+      signal.entry_price_usd ?? signal.priceStartUsd ?? signal.price_start_usd ??
+      signal.startPrice ?? signal.entryPrice ?? signal.window?.startPriceUsd ??
+      signal.window?.start_price_usd ?? signal.window?.startPrice;
+  }
+
+  function signalExitPrice(signal) {
+    return signal.endPriceUsd ?? signal.end_price_usd ?? signal.exitPriceUsd ??
+      signal.exit_price_usd ?? signal.priceEndUsd ?? signal.price_end_usd ??
+      signal.endPrice ?? signal.exitPrice ?? signal.window?.endPriceUsd ??
+      signal.window?.end_price_usd ?? signal.window?.endPrice;
+  }
+
+  function compactTime(value) {
+    return value ? formatMinute(value) : '-';
+  }
+
+  function compactPrice(value) {
+    const number = Number(value);
+    return Number.isFinite(number) ? formatPrice(number) : '-';
   }
 
   function confidenceText(value) {
