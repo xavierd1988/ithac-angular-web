@@ -109,7 +109,7 @@
     if (configured) return configured.replace(/\/+$/, '');
     const host = window.location.hostname;
     if (host === 'localhost' || host === '127.0.0.1') return 'http://127.0.0.1:5088';
-    if (host === 'ithacapp.com' || host === 'www.ithacapp.com') return 'https://178.105.42.115.sslip.io';
+    if (host === 'ithacapp.com' || host === 'www.ithacapp.com') return 'https://api.ithacapp.com/live';
     return '';
   }
 
