@@ -3,9 +3,9 @@
 
   const API_CANDIDATES = resolveApiBaseCandidates();
   let API_BASE = API_CANDIDATES[0];
-  const FETCH_TIMEOUT_MS = 8_000;
+  const FETCH_TIMEOUT_MS = 15_000;
   const SNAPSHOT_MIN_INTERVAL_MS = 3_000;
-  const CRYPTO_REFRESH_MS = 60_000;
+  const CRYPTO_REFRESH_MS = 300_000;
   const POLL_FALLBACK_MS = 5_000;
   const REPUTATION_WINDOWS = [
     { key: 'day', label: '1 DAY' },
@@ -106,8 +106,9 @@
     });
 
     startClock();
-    void pickApiBase().then(() => {
-      void loadSnapshot({ resetListScroll: false });
+    void pickApiBase().then(async () => {
+      // Snapshot first: loading the heavy rankings at the same time made it time out.
+      await loadSnapshot({ resetListScroll: false });
       void loadCryptoPanels();
       setInterval(() => void loadCryptoPanels(), CRYPTO_REFRESH_MS);
       connectLiveEvents();
