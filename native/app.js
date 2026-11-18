@@ -1,8 +1,12 @@
 (() => {
   'use strict';
 
-  const API_BASE = resolveApiBaseUrl();
+  const API_CANDIDATES = resolveApiBaseCandidates();
+  let API_BASE = API_CANDIDATES[0];
   const FETCH_TIMEOUT_MS = 8_000;
+  const SNAPSHOT_MIN_INTERVAL_MS = 3_000;
+  const CRYPTO_REFRESH_MS = 60_000;
+  const POLL_FALLBACK_MS = 5_000;
   const REPUTATION_WINDOWS = [
     { key: 'day', label: '1 DAY' },
     { key: 'week', label: '1 WEEK' },
@@ -16,6 +20,8 @@
     priorityOnly: false,
     snapshotSeq: 0,
     refreshTimer: null,
+    snapshotTimer: null,
+    lastSnapshotRequestAt: 0,
     clockTimer: null,
     eventSource: null,
     liveTransport: 'connecting',
@@ -100,17 +106,44 @@
     });
 
     startClock();
-    void loadSnapshot({ resetListScroll: false });
-    connectLiveEvents();
+    void pickApiBase().then(() => {
+      void loadSnapshot({ resetListScroll: false });
+      void loadCryptoPanels();
+      setInterval(() => void loadCryptoPanels(), CRYPTO_REFRESH_MS);
+      connectLiveEvents();
+    });
   }
 
-  function resolveApiBaseUrl() {
+  function resolveApiBaseCandidates() {
     const configured = window.ITHAC_API_BASE_URL?.trim();
-    if (configured) return configured.replace(/\/+$/, '');
+    if (configured) return [configured.replace(/\/+$/, '')];
     const host = window.location.hostname;
-    if (host === 'localhost' || host === '127.0.0.1') return 'http://127.0.0.1:5088';
-    if (host === 'ithacapp.com' || host === 'www.ithacapp.com') return 'https://api.ithacapp.com/live';
-    return '';
+    if (host === 'localhost' || host === '127.0.0.1') return ['http://127.0.0.1:5088'];
+    if (host === 'ithacapp.com' || host === 'www.ithacapp.com') {
+      // Stable domain first. The direct VM address is a temporary fallback
+      // while api.ithacapp.com is moved from the old gateway to the VM.
+      return ['https://api.ithacapp.com/live', 'https://178.105.42.115.sslip.io'];
+    }
+    return [''];
+  }
+
+  async function pickApiBase() {
+    if (API_CANDIDATES.length < 2) return;
+    for (const base of API_CANDIDATES) {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 4_000);
+      try {
+        const response = await fetch(`${base}/health`, { cache: 'no-store', signal: controller.signal });
+        if (response.ok) {
+          API_BASE = base;
+          return;
+        }
+      } catch {
+        // Try the next candidate.
+      } finally {
+        clearTimeout(timer);
+      }
+    }
   }
 
   function byId(id) {
@@ -176,7 +209,6 @@
         getJson('/api/posts/recent?take=160').catch(() => []),
         getJson('/api/jobs/recent?take=220').catch(() => [])
       ]);
-      void loadCryptoPanels();
       void loadAllInfluencers(false);
       if (requestId !== state.snapshotSeq) return;
 
@@ -291,7 +323,7 @@
   function connectLiveEvents() {
     if (typeof EventSource === 'undefined') {
       state.liveTransport = 'polling';
-      startPolling(2500);
+      startPolling(POLL_FALLBACK_MS);
       return;
     }
 
@@ -299,16 +331,31 @@
       const source = new EventSource(apiUrl('/api/live/events'));
       state.eventSource = source;
       state.liveTransport = 'sse';
-      source.onmessage = () => void loadSnapshot({ resetListScroll: false });
+      source.onopen = () => {
+        state.liveTransport = 'sse';
+        clearInterval(state.refreshTimer);
+        renderTop();
+      };
+      source.onmessage = () => scheduleSnapshot();
       source.onerror = () => {
         state.liveTransport = 'polling';
         renderTop();
-        startPolling(2500);
+        startPolling(POLL_FALLBACK_MS);
       };
     } catch {
       state.liveTransport = 'polling';
-      startPolling(2500);
+      startPolling(POLL_FALLBACK_MS);
     }
+  }
+
+  function scheduleSnapshot() {
+    if (state.snapshotTimer) return;
+    const wait = Math.max(0, SNAPSHOT_MIN_INTERVAL_MS - (Date.now() - state.lastSnapshotRequestAt));
+    state.snapshotTimer = setTimeout(() => {
+      state.snapshotTimer = null;
+      state.lastSnapshotRequestAt = Date.now();
+      void loadSnapshot({ resetListScroll: false });
+    }, wait);
   }
 
   function startPolling(ms) {
@@ -780,11 +827,6 @@
             <span class="label">Paper trading</span>
             <strong>${run ? `Run #${escapeHtml(run.id)} · ${escapeHtml(run.status)}` : 'No active run'}</strong>
             <em>${Number(totals.openTrades ?? openTrades.length)} open · ${Number(totals.closedTrades ?? closedTrades.length)} closed · net ${formatMoney(totals.netPnlUsd)}</em>
-          </div>
-          <div class="paper-actions">
-            <button type="button" data-paper-action="start" ${active || state.paperBusy ? 'disabled' : ''}>Start</button>
-            <button type="button" data-paper-action="sync" ${!run || state.paperBusy ? 'disabled' : ''}>Sync</button>
-            <button type="button" data-paper-action="stop" ${!active || state.paperBusy ? 'disabled' : ''}>Stop</button>
           </div>
         </header>
         ${state.paperError ? `<p class="paper-error">${escapeHtml(state.paperError)}</p>` : ''}

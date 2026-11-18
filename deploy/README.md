@@ -30,3 +30,16 @@ After a deployment, verify the following from the affected network:
 
 The backend `/health` endpoint does not check database readiness. A healthy
 HTTP listener alone is insufficient; validate the snapshot response too.
+
+## Temporary fallback (2026-11-18)
+
+`api.ithacapp.com` still resolves to the old nginx gateway, which no longer
+answers. Until that record points at the VM, the published site tries
+`https://api.ithacapp.com/live` first and falls back to the VM address. Once
+`https://api.ithacapp.com/live/health` answers again, remove the fallback from
+`resolveApiBaseCandidates()` in `app.js`.
+
+The public site is read-only: it only sends GET requests. Operator actions
+(Paper start/sync/stop, scrape retries) belong to the private cockpit.
+Live events reload the scraper snapshot at most once every 3 seconds; the
+rankings, Timex signals and Paper summary reload once a minute.
