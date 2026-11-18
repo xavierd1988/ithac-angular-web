@@ -42,4 +42,5 @@ answers. Until that record points at the VM, the published site tries
 The public site is read-only: it only sends GET requests. Operator actions
 (Paper start/sync/stop, scrape retries) belong to the private cockpit.
 Live events reload the scraper snapshot at most once every 3 seconds; the
-rankings, Timex signals and Paper summary reload once a minute.
+rankings, Timex signals and Paper summary load after the snapshot and then
+every 5 minutes.
