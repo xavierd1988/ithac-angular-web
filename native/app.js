@@ -1,8 +1,7 @@
 (() => {
   'use strict';
 
-  const API_CANDIDATES = resolveApiBaseCandidates();
-  let API_BASE = API_CANDIDATES[0];
+  const API_BASE = resolveApiBase();
   const FETCH_TIMEOUT_MS = 15_000;
   const SNAPSHOT_MIN_INTERVAL_MS = 3_000;
   const CRYPTO_REFRESH_MS = 300_000;
@@ -106,45 +105,21 @@
     });
 
     startClock();
-    void pickApiBase().then(async () => {
-      // Snapshot first: loading the heavy rankings at the same time made it time out.
-      await loadSnapshot({ resetListScroll: false });
+    // Load the snapshot before the rankings to avoid a timeout.
+    void loadSnapshot({ resetListScroll: false }).then(() => {
       void loadCryptoPanels();
       setInterval(() => void loadCryptoPanels(), CRYPTO_REFRESH_MS);
       connectLiveEvents();
     });
   }
 
-  function resolveApiBaseCandidates() {
+  function resolveApiBase() {
     const configured = window.ITHAC_API_BASE_URL?.trim();
-    if (configured) return [configured.replace(/\/+$/, '')];
+    if (configured) return configured.replace(/\/+$/, '');
     const host = window.location.hostname;
-    if (host === 'localhost' || host === '127.0.0.1') return ['http://127.0.0.1:5088'];
-    if (host === 'ithacapp.com' || host === 'www.ithacapp.com') {
-      // Stable domain first. The direct VM address is a temporary fallback
-      // while api.ithacapp.com is moved from the old gateway to the VM.
-      return ['https://api.ithacapp.com/live', 'https://178.105.42.115.sslip.io'];
-    }
-    return [''];
-  }
-
-  async function pickApiBase() {
-    if (API_CANDIDATES.length < 2) return;
-    for (const base of API_CANDIDATES) {
-      const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), 4_000);
-      try {
-        const response = await fetch(`${base}/health`, { cache: 'no-store', signal: controller.signal });
-        if (response.ok) {
-          API_BASE = base;
-          return;
-        }
-      } catch {
-        // Try the next candidate.
-      } finally {
-        clearTimeout(timer);
-      }
-    }
+    if (host === 'localhost' || host === '127.0.0.1') return 'http://127.0.0.1:5088';
+    if (host === 'ithacapp.com' || host === 'www.ithacapp.com') return 'https://api.ithacapp.com/live';
+    return '';
   }
 
   function byId(id) {
