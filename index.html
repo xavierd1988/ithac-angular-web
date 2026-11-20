@@ -4,20 +4,20 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light">
-  <meta name="theme-color" content="#102620">
+  <meta name="theme-color" content="#02093E">
   <title>ITHAC · Crypto Influencer Ranking</title>
-  <link rel="icon" href="./favicon.ico?v=20260707-paper" sizes="any">
-  <link rel="shortcut icon" href="./favicon.ico?v=20260707-paper">
-  <link rel="icon" type="image/svg+xml" href="./favicon.svg?v=20260707-paper">
-  <link rel="apple-touch-icon" href="./apple-touch-icon.png?v=20260707-paper">
-  <link rel="mask-icon" href="./safari-pinned-tab.svg?v=20260707-paper" color="#21604b">
+  <link rel="icon" type="image/png" href="./ithac-app-mark.png">
+  <link rel="apple-touch-icon" href="./ithac-app-touch.png">
   <link rel="stylesheet" href="./styles.css?v=20260714-call-compact">
-  <link rel="stylesheet" href="./ranking.css?v=20261120-cover">
+  <link rel="stylesheet" href="./ranking.css?v=20261120-mobile-brand">
 </head>
 <body>
   <header class="site-header">
     <div class="site-header-inner">
-      <a class="wordmark" href="./">ITHAC</a>
+      <a class="wordmark" href="./">
+        <img src="./ithac-app-mark.png" width="28" height="26" alt="">
+        <span>ITHAC</span>
+      </a>
       <nav class="main-tabs" aria-label="Views">
         <button class="active" type="button" data-tab="live" aria-current="page">Ranking</button>
         <button type="button" data-tab="paper">Paper trading</button>
@@ -33,10 +33,7 @@
         <a class="cover-link" href="#rankingTools">Explore the ranking <span aria-hidden="true">↓</span></a>
       </div>
       <div class="cover-art" aria-hidden="true">
-        <img src="./ithac-ranking-cover.jpg"
-          srcset="./ithac-ranking-cover-small.jpg 720w, ./ithac-ranking-cover.jpg 1280w"
-          sizes="(max-width: 640px) 100vw, 610px"
-          alt="" width="1280" height="853" fetchpriority="high">
+        <img src="./ithac-app-mark.png" alt="" width="366" height="345" fetchpriority="high">
       </div>
     </div>
 
@@ -103,6 +100,7 @@
       </section>
 
       <div id="loadError" class="load-error ranking-error" role="status" hidden></div>
+      <h2 class="full-ranking-title">Full ranking</h2>
       <div id="leaderboardHead" class="leaderboard-head" aria-hidden="true">
         <span>Rank</span><span>Account</span><span>Score</span><span>Calls</span><span></span>
       </div>
@@ -110,27 +108,32 @@
         <p class="empty">Loading ranking…</p>
       </div>
 
-      <nav class="pager" aria-label="Ranking pages">
-        <strong id="pageStatus">Page 1 / 1</strong>
-        <button id="prevPage" type="button" aria-label="Previous page">Previous</button>
-        <div class="page-numbers" id="pageNumbers"></div>
-        <button id="nextPage" type="button" aria-label="Next page">Next</button>
-        <label>
-          Rows
-          <select id="pageSize">
-            <option value="25" selected>25</option>
-            <option value="50">50</option>
-            <option value="100">100</option>
-            <option value="250">250</option>
-            <option value="500">500</option>
-            <option value="1000">1000</option>
-          </select>
-        </label>
-      </nav>
+      <div class="incremental-ranking" id="incrementalRanking" hidden>
+        <button type="button" id="showMore" aria-controls="list">Show more</button>
+      </div>
+      <details class="page-navigation" id="pageNavigation">
+        <summary>Browse pages <strong id="pageStatus"></strong></summary>
+        <nav class="pager" aria-label="Ranking pages">
+          <button id="prevPage" type="button" aria-label="Previous page">Previous</button>
+          <div class="page-numbers" id="pageNumbers"></div>
+          <button id="nextPage" type="button" aria-label="Next page">Next</button>
+          <label>
+            Rows
+            <select id="pageSize">
+              <option value="25" selected>25</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+              <option value="250">250</option>
+              <option value="500">500</option>
+              <option value="1000">1000</option>
+            </select>
+          </label>
+        </nav>
+      </details>
     </section>
   </main>
   <div id="modalRoot"></div>
 
-  <script src="./app.js?v=20261120-cover" defer></script>
+  <script src="./app.js?v=20261120-mobile-brand" defer></script>
 </body>
 </html>
