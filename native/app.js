@@ -13,6 +13,7 @@
   ];
   const state = {
     pageIndex: 0,
+    pagesShown: 1,
     pageSize: 25,
     query: '',
     status: 'all',
@@ -76,6 +77,9 @@
     prevPage: byId('prevPage'),
     nextPage: byId('nextPage'),
     pageSize: byId('pageSize'),
+    pageNavigation: byId('pageNavigation'),
+    incrementalRanking: byId('incrementalRanking'),
+    showMore: byId('showMore'),
     loadError: byId('loadError'),
     pageTitle: byId('pageTitle'),
     pageDescription: byId('pageDescription'),
@@ -92,7 +96,6 @@
     periodButtons: document.querySelectorAll('.period-button'),
     list: byId('list'),
     mainTabs: document.querySelectorAll('[data-tab]'),
-    pager: document.querySelector('.pager'),
     modalRoot: byId('modalRoot')
   };
 
@@ -112,11 +115,13 @@
   }
 
   function init() {
-    els.prevPage.addEventListener('click', () => goToPage(state.pageIndex - 1));
-    els.nextPage.addEventListener('click', () => goToPage(state.pageIndex + 1));
+    els.prevPage.addEventListener('click', () => goToPage(rankingPage(liveRows()).pageIndex - 1));
+    els.nextPage.addEventListener('click', () => goToPage(rankingPage(liveRows()).nextPage));
+    els.showMore.addEventListener('click', showMoreRows);
     els.pageSize.addEventListener('change', () => {
       state.pageSize = Number(els.pageSize.value) || 25;
       state.pageIndex = 0;
+      state.pagesShown = 1;
       state.selectedUsername = null;
       renderAll();
       void loadSnapshot({ resetListScroll: true });
@@ -124,6 +129,7 @@
     els.rankingSearch.addEventListener('input', () => {
       state.query = els.rankingSearch.value.trim().replace(/^@+/, '');
       state.pageIndex = 0;
+      state.pagesShown = 1;
       state.selectedUsername = null;
       renderAll();
       if (!state.allInfluencers.length) searchSnapshot();
@@ -132,6 +138,7 @@
       state.sortMode = els.rankingOrder.value;
       state.selectedUsername = null;
       state.pageIndex = 0;
+      state.pagesShown = 1;
       renderAll();
     });
     els.periodButtons.forEach((button) => {
@@ -139,6 +146,7 @@
         if (state.reputationWindow === button.dataset.reputationWindow) return;
         state.reputationWindow = button.dataset.reputationWindow;
         state.pageIndex = 0;
+        state.pagesShown = 1;
         state.selectedReputation = null;
         renderAll();
       });
@@ -529,21 +537,40 @@
     els.scannerMeta.textContent = event ? `${event.text} · ${event.at} · ${done}/${Math.max(total, 1)} complete · ${failed} failed · ${resources}` : `no active scrape · ${resources}`;
   }
 
-  function renderPager(rows) {
-    els.pager.hidden = state.activeTab !== 'live';
-    els.loadError.hidden = state.activeTab !== 'live' || !state.loadError;
-    if (state.activeTab !== 'live') return;
-    const total = state.allInfluencers.length ? rows.length : state.page.total;
+  function rankingPage(rows) {
+    const hasFullList = state.allInfluencers.length > 0;
+    const total = hasFullList ? rows.length : state.page.total;
     const pageSize = state.pageSize;
-    const pageCount = Math.max(1, Math.ceil(total / Math.max(pageSize, 1)));
+    const pageCount = Math.max(1, Math.ceil(total / pageSize));
     const pageIndex = clampPageIndex(state.pageIndex, total, pageSize);
-    const start = total ? pageIndex * pageSize + 1 : 0;
-    const end = Math.min(total, start + pageSize - 1);
+    const nextPage = Math.min(pageCount, pageIndex + (hasFullList ? state.pagesShown : 1));
+    const offset = pageIndex * pageSize;
+    const end = Math.min(total, nextPage * pageSize);
+    return { hasFullList, total, pageCount, pageIndex, nextPage, offset, end };
+  }
 
-    els.pageStatus.textContent = total ? `${start}–${end} of ${total}` : '0 accounts';
+  function rankingIsLoading() {
+    return state.sortMode === 'score' &&
+      (!state.reputationReady.has(state.reputationWindow) || !state.allInfluencersReady);
+  }
+
+  function renderPager(rows) {
+    const live = state.activeTab === 'live';
+    els.pageNavigation.hidden = !live;
+    els.loadError.hidden = !live || !state.loadError;
+    if (!live) {
+      els.incrementalRanking.hidden = true;
+      return;
+    }
+    const { hasFullList, total, pageCount, pageIndex, nextPage, offset, end } = rankingPage(rows);
+    const hasMore = nextPage < pageCount;
+    els.incrementalRanking.hidden = !hasFullList || !hasMore || rankingIsLoading();
+    els.showMore.disabled = els.incrementalRanking.hidden;
+
+    els.pageStatus.textContent = total ? `${offset + 1}–${end} of ${total}` : '0 accounts';
     els.prevPage.disabled = pageIndex <= 0;
-    els.nextPage.disabled = pageIndex >= pageCount - 1;
-    els.pageSize.value = String(pageSize);
+    els.nextPage.disabled = !hasMore;
+    els.pageSize.value = String(state.pageSize);
 
     const focusedPage = els.pageNumbers.contains(document.activeElement)
       ? document.activeElement.textContent
@@ -554,6 +581,20 @@
         .find((button) => button.textContent === focusedPage)?.focus({ preventScroll: true });
     }
     els.loadError.textContent = state.loadError ? `Live API not loaded: ${state.loadError}` : '';
+  }
+
+  function showMoreRows() {
+    if (state.activeTab !== 'live' || rankingIsLoading()) return;
+    const rows = liveRows();
+    const { hasFullList, total, offset, end } = rankingPage(rows);
+    if (!hasFullList || end >= total) return;
+
+    state.pagesShown += 1;
+    renderPager(rows);
+    renderList(rows);
+    const firstNewRow = els.list.querySelectorAll('.leaderboard-entry > summary')[end - offset];
+    firstNewRow?.focus({ preventScroll: true });
+    firstNewRow?.scrollIntoView({ block: 'nearest' });
   }
 
   function pageButtonNodes(activePage, pageCount) {
@@ -596,8 +637,7 @@
       renderPaper();
       return;
     }
-    if (state.sortMode === 'score' &&
-        (!state.reputationReady.has(state.reputationWindow) || !state.allInfluencersReady)) {
+    if (rankingIsLoading()) {
       els.list.replaceChildren(emptyNode('Loading ranking…', ''));
       return;
     }
@@ -606,11 +646,8 @@
     const focusedRow = focused?.closest('.leaderboard-entry');
     const focusedIndex = focusedRow ? [...focusedRow.querySelectorAll(rowControl)].indexOf(focused) : -1;
     allRows ??= liveRows();
-    const pageSize = state.pageSize;
-    const hasFullList = state.allInfluencers.length > 0;
-    const pageIndex = clampPageIndex(state.pageIndex, hasFullList ? allRows.length : state.page.total, pageSize);
-    const offset = pageIndex * pageSize;
-    const rows = hasFullList ? allRows.slice(offset, offset + pageSize) : allRows;
+    const { hasFullList, offset, end } = rankingPage(allRows);
+    const rows = hasFullList ? allRows.slice(offset, end) : allRows;
     if (!rows.length) {
       const title = state.loadError ? 'Ranking unavailable' : state.lastSnapshotAt ? 'No matching accounts' : 'Loading ranking…';
       const body = state.loadError ? 'The live API could not be reached.' : '';
@@ -921,6 +958,7 @@
     if (index < 0) return;
     const pageSize = state.pageSize || state.page.pageSize || 250;
     state.pageIndex = Math.floor(index / Math.max(pageSize, 1));
+    state.pagesShown = 1;
     state.selectedUsername = username;
     state.selectedMentionKey = null;
     renderAll();
@@ -1361,8 +1399,9 @@
       : state.page.total;
     const pageSize = state.pageSize || state.page.pageSize || 250;
     const next = clampPageIndex(pageIndex, total, pageSize);
-    if (next === state.pageIndex) return;
+    if (next === state.pageIndex && state.pagesShown === 1) return;
     state.pageIndex = next;
+    state.pagesShown = 1;
     state.selectedUsername = null;
     if (state.activeTab === 'live' && state.allInfluencers.length) {
       renderAll();
