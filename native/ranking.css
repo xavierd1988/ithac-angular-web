@@ -103,9 +103,9 @@ button, input, select { font-weight: 500; }
 .page-intro h1 {
   margin: 0;
   color: var(--cover-text);
-  font-family: "Avenir Next", Avenir, system-ui, sans-serif;
+  font-family: Avenir, "Avenir Next", "Helvetica Neue", system-ui, sans-serif;
   font-size: clamp(37px, 4.55vw, 62px);
-  font-weight: 600;
+  font-weight: 300;
   letter-spacing: -0.045em;
   line-height: 1.1;
 }
