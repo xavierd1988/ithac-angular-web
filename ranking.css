@@ -45,72 +45,41 @@ button, input, select { font-weight: 500; }
   outline-offset: 3px;
 }
 
-.site-header {
-  border-bottom: 1px solid #303b59;
-  background: var(--cover-ink);
-}
-
-.site-header-inner,
 .cover-inner,
 .app-shell > .list-card {
   width: min(var(--content-width), calc(100% - 2 * var(--gutter)));
   margin-inline: auto;
 }
 
-.site-header-inner {
-  display: flex;
-  min-height: 67px;
-  justify-content: space-between;
-  align-items: center;
-  gap: 16px;
-}
-
-.wordmark {
-  display: inline-flex;
-  align-items: center;
-  gap: 9px;
-  color: var(--cover-text);
-  font-size: 25px;
-  font-weight: 700;
-  letter-spacing: 0.09em;
-  line-height: 1;
-  text-decoration: none;
-}
-
-.wordmark img { display: block; width: 28px; height: auto; }
-
-.site-header .main-tabs {
+.list-card .main-tabs {
   flex-wrap: wrap;
-  gap: clamp(6px, 2vw, 24px);
-  border: 0;
-  padding: 0;
-  background: transparent;
+  gap: clamp(12px, 2vw, 24px);
+  padding: 0 var(--row-padding);
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
 }
 
-.site-header .main-tabs button {
-  align-self: stretch;
-  min-height: 67px;
+.list-card .main-tabs button,
+.list-card .main-tabs button.active:hover {
+  min-height: 44px;
   border: 0;
   border-radius: 0;
   border-bottom: 2px solid transparent;
   padding: 0 2px;
-  color: #d9e2ff;
+  color: var(--muted);
   background: transparent;
   font-size: 13px;
-  font-weight: 650;
+  font-weight: 600;
   text-transform: none;
 }
 
-.site-header .main-tabs button.active,
-.site-header .main-tabs button.active:hover,
-.site-header .main-tabs button[aria-current="page"] {
-  border-bottom-color: var(--cover-blush);
-  color: var(--cover-text);
-  background: transparent;
+.list-card .main-tabs button.active,
+.list-card .main-tabs button.active:hover {
+  border-bottom-color: var(--accent);
+  color: var(--accent);
 }
 
-.site-header .main-tabs button:is(:hover, :focus-visible) { color: var(--cover-blush); }
-.site-header :is(a, button):focus-visible { outline-color: var(--cover-blush); }
+.list-card .main-tabs button:hover { color: var(--accent); }
 
 .app-shell {
   display: block;
@@ -121,10 +90,10 @@ button, input, select { font-weight: 500; }
 .page-intro {
   margin: 0 0 clamp(20px, 3vw, 36px);
   color: var(--cover-text);
-  background: var(--cover-ink);
+  background: #061055;
   background:
-    radial-gradient(ellipse at 82% 0%, #7892cf27, #7892cf00 57%),
-    linear-gradient(112deg, var(--cover-ink) 8%, #19274d 61%, #263d73);
+    radial-gradient(ellipse at 84% 42%, #4160ff 0, #4160ff00 49%),
+    linear-gradient(112deg, #02093e 5%, #061055 45%, #002af1 86%);
 }
 
 .cover-inner {
@@ -143,7 +112,7 @@ button, input, select { font-weight: 500; }
 .cover-mark {
   position: relative;
   display: block;
-  width: clamp(92px, 13vw, 162px);
+  width: clamp(104px, 14vw, 184px);
   aspect-ratio: 366 / 345;
 }
 
@@ -171,37 +140,10 @@ button, input, select { font-weight: 500; }
   line-height: 1.04;
 }
 
-.page-intro p {
-  max-width: 66ch;
-  margin: 13px 0 0;
-  color: #e0e7ff;
-  font-size: clamp(14px, 1.45vw, 16px);
-  line-height: 1.55;
-}
-
-.cover-link {
-  display: inline-flex;
-  min-height: 36px;
-  align-items: center;
-  gap: 8px;
-  margin-top: 12px;
-  color: var(--cover-text);
-  font-size: 13px;
-  font-weight: 700;
-  text-decoration: underline;
-  text-underline-offset: 4px;
-}
-
-.cover-link span,
-.cover-link:hover { color: var(--cover-blush); }
-.cover-link:focus-visible { outline-color: var(--cover-blush); }
-
 body[data-view="paper"] .page-intro { background: var(--surface); }
 body[data-view="paper"] .cover-inner { grid-template-columns: minmax(0, 1fr); }
-body[data-view="paper"] .cover-art,
-body[data-view="paper"] .cover-link { display: none; }
-body[data-view="paper"] .page-intro h1 { max-inline-size: none; color: var(--ink); }
-body[data-view="paper"] .page-intro p { color: var(--muted); }
+body[data-view="paper"] .cover-art { display: none; }
+body[data-view="paper"] .page-intro h1 { color: var(--ink); }
 
 .list-card {
   min-height: 0;
@@ -517,9 +459,7 @@ body[data-view="paper"] .page-intro p { color: var(--muted); }
 @media (max-width: 640px) {
   .cover-inner { gap: 12px; padding-block: 26px; }
   .page-intro h1 { font-size: clamp(32px, 8.3vw, 49px); }
-  .page-intro p { margin-top: 10px; }
-  .cover-link { margin-top: 8px; }
-  .cover-mark { width: clamp(58px, 17vw, 100px); }
+  .cover-mark { width: clamp(64px, 20vw, 108px); }
   .featured-cards { grid-template-columns: minmax(0, 1fr); gap: 6px; }
   .featured-card { min-height: 58px; padding: 6px 10px; gap: 10px; }
   .featured-identity .avatar { width: 34px; height: 34px; }
@@ -942,10 +882,6 @@ button.ranking-cell:hover {
 
 @media (max-width: 500px) {
   :root { --ranking-columns: 28px minmax(0, 1fr) 48px 36px 12px; --ranking-gap: 7px; --row-padding: 10px; }
-  .site-header-inner, .site-header .main-tabs button { min-height: 58px; }
-  .site-header .main-tabs { gap: 11px; }
-  .site-header .main-tabs button { font-size: 12px; }
-  .wordmark { font-size: 19px; }
   .ranking-toolbar { gap: 8px; }
   .ranking-period { flex-basis: fit-content; }
   .ranking-search { flex: 1 0 65%; order: 2; margin-inline-start: 0; }
