@@ -30,7 +30,6 @@
     selectedSignal: null,
     selectedMentionKey: null,
     selectedReputation: null,
-    activeTab: 'live',
     selectedPosts: new Map(),
     run: null,
     page: { pageIndex: 0, pageSize: 25, total: 0, items: [] },
@@ -52,11 +51,6 @@
     reputationReady: new Set(),
     reputationErrors: new Set(),
     reputationDetails: new Map(),
-    paper: null,
-    paperPanelOpen: false,
-    paperSync: null,
-    paperBusy: false,
-    paperError: null,
     sortMode: 'score',
     scrapeNowBusy: new Set(),
     loadError: null
@@ -77,12 +71,9 @@
     prevPage: byId('prevPage'),
     nextPage: byId('nextPage'),
     pageSize: byId('pageSize'),
-    pageNavigation: byId('pageNavigation'),
     incrementalRanking: byId('incrementalRanking'),
     showMore: byId('showMore'),
     loadError: byId('loadError'),
-    pageTitle: byId('pageTitle'),
-    rankingTools: byId('rankingTools'),
     rankingStats: byId('rankingStats'),
     rankingSearch: byId('rankingSearch'),
     rankingOrder: byId('rankingOrder'),
@@ -94,7 +85,6 @@
     leaderboardHead: byId('leaderboardHead'),
     periodButtons: document.querySelectorAll('.period-button'),
     list: byId('list'),
-    mainTabs: document.querySelectorAll('[data-tab]'),
     modalRoot: byId('modalRoot')
   };
 
@@ -157,9 +147,6 @@
     els.scannerDisclosure.addEventListener('toggle', renderScanner);
     els.list.addEventListener('click', handleListClick);
     els.modalRoot.addEventListener('keydown', handleModalKey);
-    els.mainTabs.forEach((button) => {
-      button.addEventListener('click', () => setTab(button.dataset.tab || 'live'));
-    });
 
     startClock();
     // Load the snapshot before the rankings to avoid a timeout.
@@ -280,15 +267,7 @@
       ...REPUTATION_WINDOWS.map(({ key }) => loadReputationWindow(key)),
       getJson('/api/crypto/timex?take=500').then((rows) => {
         if (Array.isArray(rows)) state.timex = rows;
-      }).catch(() => {}),
-      getJson('/api/paper/summary?sync=false').then((paper) => {
-        if (paper) state.paper = paper;
-        state.paperError = null;
-        if (state.activeTab === 'paper') renderList();
-      }).catch(() => {
-        if (!state.paper) state.paperError = 'The paper trading summary could not be loaded.';
-        if (state.activeTab === 'paper') renderList();
-      })
+      }).catch(() => {})
     ]).finally(() => { cryptoPanelsRequest = null; });
     return cryptoPanelsRequest;
   }
@@ -303,7 +282,7 @@
       if (!state.reputationReady.has(key)) state.reputationErrors.add(key);
     }
     state.reputationReady.add(key);
-    if (state.activeTab === 'live' && state.reputationWindow === key) renderAll();
+    if (state.reputationWindow === key) renderAll();
     else renderRankingControls();
   }
 
@@ -420,10 +399,9 @@
 
   function renderAll() {
     renderTop();
-    renderTabs();
     renderRankingControls();
     renderScanner();
-    const rows = state.activeTab === 'live' ? liveRows() : [];
+    const rows = liveRows();
     renderFeatured(rows);
     renderPager(rows);
     renderList(rows);
@@ -431,12 +409,6 @@
   }
 
   function handleListClick(event) {
-    const paperAction = event.target.closest('[data-paper-action]');
-    if (paperAction?.dataset.paperAction) {
-      event.preventDefault();
-      void runPaperAction(paperAction.dataset.paperAction);
-      return;
-    }
     const scrapeNowButton = event.target.closest('[data-scrape-username]');
     if (scrapeNowButton?.dataset.scrapeUsername) {
       event.preventDefault();
@@ -462,32 +434,6 @@
     const key = mention.dataset.mentionKey || '';
     state.selectedMentionKey = state.selectedMentionKey === key ? null : key;
     renderList();
-  }
-
-  function setTab(tab) {
-    const next = ['live', 'paper'].includes(tab) ? tab : 'live';
-    if (state.activeTab === next) return;
-    state.activeTab = next;
-    state.selectedUsername = null;
-    state.selectedSignal = null;
-    state.selectedMentionKey = null;
-    state.selectedReputation = null;
-    renderAll();
-    if (next === 'paper') void loadCryptoPanels();
-  }
-
-  function renderTabs() {
-    const ranking = state.activeTab === 'live';
-    document.body.dataset.view = state.activeTab;
-    els.pageTitle.textContent = ranking ? 'Live Crypto Influencer Ranking' : 'Paper trading';
-    els.rankingTools.hidden = !ranking;
-    els.leaderboardHead.hidden = !ranking;
-    els.mainTabs.forEach((button) => {
-      const active = button.dataset.tab === state.activeTab;
-      button.classList.toggle('active', active);
-      if (active) button.setAttribute('aria-current', 'page');
-      else button.removeAttribute('aria-current');
-    });
   }
 
   function renderTop() {
@@ -551,13 +497,7 @@
   }
 
   function renderPager(rows) {
-    const live = state.activeTab === 'live';
-    els.pageNavigation.hidden = !live;
-    els.loadError.hidden = !live || !state.loadError;
-    if (!live) {
-      els.incrementalRanking.hidden = true;
-      return;
-    }
+    els.loadError.hidden = !state.loadError;
     const { hasFullList, total, pageCount, pageIndex, nextPage, offset, end } = rankingPage(rows);
     const hasMore = nextPage < pageCount;
     els.incrementalRanking.hidden = !hasFullList || !hasMore || rankingIsLoading();
@@ -580,7 +520,7 @@
   }
 
   function showMoreRows() {
-    if (state.activeTab !== 'live' || rankingIsLoading()) return;
+    if (rankingIsLoading()) return;
     const rows = liveRows();
     const { hasFullList, total, offset, end } = rankingPage(rows);
     if (!hasFullList || end >= total) return;
@@ -629,10 +569,6 @@
   }
 
   function renderList(allRows) {
-    if (state.activeTab === 'paper') {
-      renderPaper();
-      return;
-    }
     if (rankingIsLoading()) {
       els.list.replaceChildren(emptyNode('Loading ranking…', ''));
       return;
@@ -798,7 +734,6 @@
   }
 
   function renderRankingControls() {
-    if (state.activeTab !== 'live') return;
     els.periodButtons.forEach((button) => {
       const active = button.dataset.reputationWindow === state.reputationWindow;
       button.classList.toggle('active', active);
@@ -818,7 +753,7 @@
 
   function renderFeatured(rows) {
     const windowKey = state.reputationWindow;
-    const ready = state.activeTab === 'live' && state.sortMode === 'score' &&
+    const ready = state.sortMode === 'score' &&
       !state.query && state.status === 'all' && !state.priorityOnly &&
       state.allInfluencersReady && state.allInfluencers.length > 0 &&
       state.reputationReady.has(windowKey) && !state.reputationErrors.has(windowKey);
@@ -864,7 +799,7 @@
   }
 
   function renderScanner() {
-    if (!els.scannerDisclosure.open || state.activeTab !== 'live') return;
+    if (!els.scannerDisclosure.open) return;
     const username = document.activeElement?.dataset.jumpUsername;
     const path = renderScannerPath();
     els.scannerPath.replaceChildren(path);
@@ -965,78 +900,6 @@
     void loadPosts(username);
   }
 
-  function renderPaper() {
-    const paper = state.paper;
-    if (!paper) {
-      els.list.replaceChildren(emptyNode('No paper state', state.paperError || 'Paper trading summary is not loaded yet.'));
-      return;
-    }
-
-    const scrollState = capturePaperScroll();
-    const run = paper.currentRun;
-    const totals = paper.totals || {};
-    const openTrades = paper.openTrades || [];
-    const closedTrades = paper.closedTrades || [];
-    const allTrades = [...openTrades, ...closedTrades].sort(comparePaperTradesByProgress);
-    const activeSummary = document.activeElement?.matches('.paper-disclosure > summary');
-    const view = document.createElement('details');
-    view.className = 'paper-view paper-disclosure';
-    view.open = state.paperPanelOpen;
-    view.addEventListener('toggle', () => {
-      if (view.isConnected) state.paperPanelOpen = view.open;
-    });
-    view.innerHTML = `
-      <summary>Trades and run details</summary>
-      <section class="paper-list-card">
-        <header class="paper-list-head">
-          <div>
-            <span class="label">Paper trading</span>
-            <strong>${run ? `Run #${escapeHtml(run.id)} · ${escapeHtml(run.status)}` : 'No active run'}</strong>
-            <em>${Number(totals.openTrades ?? openTrades.length)} open · ${Number(totals.closedTrades ?? closedTrades.length)} closed · net ${formatMoney(totals.netPnlUsd)}</em>
-          </div>
-        </header>
-        ${state.paperError ? `<p class="paper-error">${escapeHtml(state.paperError)}</p>` : ''}
-        <div class="paper-progress-list">
-          ${allTrades.length ? allTrades.map(paperTradeProgressRowHtml).join('') : '<p class="empty-inline">No paper trade yet.</p>'}
-        </div>
-      </section>
-    `;
-    els.list.replaceChildren(view);
-    if (activeSummary) view.querySelector('summary').focus({ preventScroll: true });
-    restorePaperScroll(scrollState);
-  }
-
-  async function runPaperAction(action) {
-    if (state.paperBusy) return;
-    state.paperBusy = true;
-    state.paperError = null;
-    renderAll();
-    try {
-      if (action === 'start') {
-        await postJson('/api/paper/runs', {
-          name: 'Reputation Top 10',
-          topNPerWindow: 10,
-          stakeUsd: 100,
-          feeBpsPerSide: 10,
-          spreadBps: 30,
-          slippageBps: 50,
-          maxSignalAgeMinutes: 180,
-          maxOpenPositions: 90
-        });
-      } else if (action === 'sync') {
-        state.paperSync = await postJson('/api/paper/sync', {});
-      } else if (action === 'stop') {
-        await postJson('/api/paper/runs/current/stop', {});
-      }
-      state.paper = await getJson('/api/paper/summary?sync=false');
-    } catch (error) {
-      state.paperError = error instanceof Error ? error.message : 'Paper action failed';
-    } finally {
-      state.paperBusy = false;
-      renderAll();
-    }
-  }
-
   async function scrapeInfluencerNow(username) {
     const clean = String(username || '').trim();
     const key = clean.toLowerCase();
@@ -1053,132 +916,6 @@
       state.scrapeNowBusy.delete(key);
       renderAll();
     }
-  }
-
-  function capturePaperScroll() {
-    return {
-      listTop: els.list.scrollTop
-    };
-  }
-
-  function restorePaperScroll(scrollState) {
-    if (!scrollState) return;
-    els.list.scrollTop = scrollState.listTop || 0;
-  }
-
-  function paperTradeProgressRowHtml(trade) {
-    const username = String(trade.username || '').trim();
-    const profileUrl = xProfileUrl(username);
-    const profileLabel = `Open @${username || 'profile'} on X`;
-    const closed = String(trade.status || '').toLowerCase() === 'closed' || Boolean(trade.exitAt);
-    const progress = paperTradeProgressPct(trade);
-    const block = paperTradeBlock(trade);
-    const result = closed ? paperTradeResult(trade) : (block ? block.result : 'waiting exit');
-    const resultClass = closed ? moneyClass(trade.netPnlUsd) : (block ? 'blocked' : 'neutral');
-    const progressText = closed ? 'complete' : (block ? block.progress : paperTradeProgressText(trade));
-    const rank = trade.rank ?? trade.rankPosition ?? '-';
-    return `
-      <article class="paper-progress-row ${closed ? 'closed' : block ? 'blocked' : 'open'}">
-        <section class="paper-progress-trade">
-          <a class="avatar-link paper-avatar x-profile-link" href="${escapeAttr(profileUrl)}" target="_blank" rel="noopener noreferrer" aria-label="${escapeAttr(profileLabel)}">
-            ${avatarHtml({ ...trade, username })}
-          </a>
-          <span>
-            <strong>${escapeHtml(trade.displayName || `@${username || '-'}`)} · ${escapeHtml(trade.symbol || '-')}</strong>
-            <em>@${escapeHtml(username || '-')} · ${escapeHtml(windowShortLabel(trade.categoryWindow))} · #${escapeHtml(trade.rank ?? '-')} · ${escapeHtml(trade.direction || '-')}</em>
-          </span>
-        </section>
-        <section class="paper-progress-main">
-          <span>${escapeHtml(progressText)}</span>
-          <div class="paper-progress-track"><i style="width:${progress}%"></i></div>
-          <em>entry ${formatPrice(trade.entryPriceUsd)} · ${formatMinute(trade.entryAt)} → ${closed ? `exit ${formatPrice(trade.exitPriceUsd)} · ${formatMinute(trade.exitAt)}` : block ? `${block.detail} · target ${formatMinute(trade.targetExitAt)}` : `target ${formatMinute(trade.targetExitAt)}`}</em>
-        </section>
-        <span class="paper-progress-result ${escapeAttr(resultClass)}">
-          <small>${closed ? 'result' : block ? escapeHtml(block.label) : `rank #${escapeHtml(rank)}`}</small>
-          <strong>${escapeHtml(result)}</strong>
-        </span>
-      </article>
-    `;
-  }
-
-  function paperTradeBlock(trade) {
-    const closed = String(trade.status || '').toLowerCase() === 'closed' || Boolean(trade.exitAt);
-    if (closed) return null;
-    const status = String(trade.signalWindowStatus || '').trim().toLowerCase();
-    const error = String(trade.signalWindowError || '').trim().toLowerCase();
-    const due = paperTradeProgressPct(trade) >= 99.9 && new Date(trade.targetExitAt).getTime() <= Date.now();
-    if (!due && !status.includes('error') && !error) return null;
-    if (status.includes('price') || error.includes('coingecko') || error.includes('price')) {
-      return {
-        label: 'CoinGecko',
-        progress: 'price unavailable',
-        result: 'price missing',
-        detail: humanPaperTradeError(error || status)
-      };
-    }
-    if (status && status !== 'scored' && status !== 'closed') {
-      return {
-        label: 'Timex',
-        progress: status.replaceAll('_', ' '),
-        result: 'not scored',
-        detail: humanPaperTradeError(error || status)
-      };
-    }
-    return due ? {
-      label: 'Timex',
-      progress: 'waiting Timex',
-      result: 'waiting exit',
-      detail: 'Timex has not produced an exit price yet'
-    } : null;
-  }
-
-  function humanPaperTradeError(value) {
-    const clean = String(value || '').trim();
-    if (!clean) return 'Exit price unavailable';
-    if (clean === 'coingecko_history_start_unavailable') return 'CoinGecko history unavailable';
-    if (clean.includes('coingecko')) return clean.replaceAll('_', ' ');
-    return clean.replaceAll('_', ' ');
-  }
-
-  function paperTradeResult(trade) {
-    const pnl = Number(trade.netPnlUsd);
-    const pct = trade.netReturnPct ?? trade.grossReturnPct;
-    if (!Number.isFinite(pnl)) return 'closed';
-    return `${formatMoney(pnl)} · ${formatSignedPct(pct)}`;
-  }
-
-  function paperTradeProgressPct(trade) {
-    if (String(trade.status || '').toLowerCase() === 'closed' || trade.exitAt) return 100;
-    const entry = new Date(trade.entryAt).getTime();
-    const target = new Date(trade.targetExitAt).getTime();
-    if (!Number.isFinite(entry) || !Number.isFinite(target) || target <= entry) return 0;
-    const pct = ((Date.now() - entry) / (target - entry)) * 100;
-    return Math.max(0, Math.min(100, pct));
-  }
-
-  function paperTradeProgressText(trade) {
-    const pct = paperTradeProgressPct(trade);
-    const target = new Date(trade.targetExitAt).getTime();
-    const minutes = Number.isFinite(target) ? Math.max(0, Math.round((target - Date.now()) / 60000)) : null;
-    if (minutes == null) return `${Math.round(pct)}% to exit`;
-    if (minutes >= 120) return `${Math.round(pct)}% · ${Math.round(minutes / 60)}h left`;
-    return `${Math.round(pct)}% · ${minutes}m left`;
-  }
-
-  function comparePaperTradesByProgress(a, b) {
-    const progress = paperTradeProgressPct(b) - paperTradeProgressPct(a);
-    if (Math.abs(progress) > 0.001) return progress;
-    const timeA = new Date(a.exitAt || a.targetExitAt || a.entryAt).getTime();
-    const timeB = new Date(b.exitAt || b.targetExitAt || b.entryAt).getTime();
-    return (Number.isFinite(timeA) ? timeA : 0) - (Number.isFinite(timeB) ? timeB : 0);
-  }
-
-  function windowShortLabel(key) {
-    const value = String(key || '').toLowerCase();
-    if (value === 'day') return '1D';
-    if (value === 'week') return '1W';
-    if (value === 'month') return '1M';
-    return value.toUpperCase() || '-';
   }
 
   function emptyNode(title, body) {
@@ -1393,22 +1130,20 @@
   }
 
   function goToPage(pageIndex) {
-    const total = state.activeTab === 'live' && state.allInfluencers.length
-      ? liveRows().length
-      : state.page.total;
+    const total = state.allInfluencers.length ? liveRows().length : state.page.total;
     const pageSize = state.pageSize || state.page.pageSize || 250;
     const next = clampPageIndex(pageIndex, total, pageSize);
     if (next === state.pageIndex && state.pagesShown === 1) return;
     state.pageIndex = next;
     state.pagesShown = 1;
     state.selectedUsername = null;
-    if (state.activeTab === 'live' && state.allInfluencers.length) {
+    if (state.allInfluencers.length) {
       renderAll();
       els.leaderboardHead.scrollIntoView({ block: 'start' });
       return;
     }
     void loadSnapshot({ resetListScroll: true }).then(() => {
-      if (state.activeTab === 'live' && state.pageIndex === next) {
+      if (state.pageIndex === next) {
         els.leaderboardHead.scrollIntoView({ block: 'start' });
       }
     });
@@ -2153,26 +1888,6 @@
     if (!Number.isFinite(number)) return '-';
     const sign = number > 0 ? '+' : '';
     return `${sign}${number.toFixed(2)}%`;
-  }
-
-  function formatSignedPct(value) {
-    const number = Number(value);
-    if (!Number.isFinite(number)) return '-';
-    const sign = number > 0 ? '+' : '';
-    return `${sign}${number.toFixed(2)}%`;
-  }
-
-  function formatMoney(value) {
-    const number = Number(value);
-    if (!Number.isFinite(number)) return '-';
-    const sign = number > 0 ? '+' : number < 0 ? '-' : '';
-    return `${sign}$${Math.abs(number).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-  }
-
-  function moneyClass(value) {
-    const number = Number(value);
-    if (!Number.isFinite(number) || number === 0) return 'neutral';
-    return number > 0 ? 'good' : 'bad';
   }
 
   function formatPrice(value) {
