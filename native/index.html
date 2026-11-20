@@ -9,7 +9,8 @@
   <link rel="icon" type="image/png" sizes="64x64" href="./favicon-royal-blue.png">
   <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=20261120-royal-blue">
   <link rel="stylesheet" href="./styles.css?v=20260714-call-compact">
-  <link rel="stylesheet" href="./ranking.css?v=20261120-avenir-light">
+  <link rel="stylesheet" href="./ranking.css?v=20261120-action">
+  <link rel="stylesheet" href="./action-robot.css?v=20261120-action">
 </head>
 <body>
   <main class="app-shell">
@@ -119,24 +120,51 @@
           </div>
         </details>
       </section>
-      <aside class="chat-sidebar" aria-label="Live chat">
-        <details id="chatPanel" class="chat-panel">
-          <summary>Live chat <span id="chatConnection" class="chat-connection"></span></summary>
-          <div class="chat-content">
-            <label class="chat-nickname">
-              <span class="visually-hidden">Nickname</span>
-              <input id="chatNickname" name="nickname" form="chatForm" type="text" maxlength="32" required autocomplete="nickname" placeholder="Nickname">
-            </label>
-            <div id="chatMessages" class="chat-messages" role="log" aria-label="Messages" aria-relevant="additions"></div>
-            <p id="chatEmpty" class="chat-empty" hidden>No messages yet.</p>
-            <form id="chatForm" class="chat-form">
-              <label for="chatInput">Message</label>
-              <textarea id="chatInput" name="message" rows="2" maxlength="280" required placeholder="Write a message"></textarea>
-              <div class="chat-actions">
-                <span id="chatStatus" role="status"></span>
-                <button id="chatSend" type="submit">Send</button>
+      <aside class="action-sidebar" aria-labelledby="actionTitle">
+        <details id="actionPanel" class="action-panel" data-robot-state="watching" open>
+          <summary class="action-heading">
+            <span id="actionTitle">Action</span>
+            <span class="action-mode">Simulation</span>
+            <span id="actionSignalNotice" class="action-notice" aria-live="polite"></span>
+          </summary>
+          <div class="action-content">
+            <div class="action-robot" aria-hidden="true">
+              <div class="action-robot-body">
+                <span class="action-robot-arm action-robot-arm-left"></span>
+                <span class="action-robot-arm action-robot-arm-right"></span>
+                <span class="action-robot-head"><span class="action-robot-visor"></span></span>
+                <span class="action-robot-chip"></span>
               </div>
-            </form>
+              <span class="action-robot-stack action-robot-stack-left"></span>
+              <span class="action-robot-stack action-robot-stack-right"></span>
+            </div>
+
+            <div class="action-wallet">
+              <span class="action-wallet-chip" aria-hidden="true"></span>
+              <div><strong id="actionBalance">1,000</strong> <span>test chips</span></div>
+              <button id="actionReset" class="action-secondary" type="button" hidden>Reset chips</button>
+            </div>
+
+            <div class="action-follow">
+              <label for="actionInfluencer">Follow an influencer</label>
+              <input id="actionInfluencer" type="search" placeholder="Search by name" autocomplete="off" aria-controls="actionSuggestions">
+              <ul id="actionSuggestions" class="action-suggestions" aria-label="Influencers" hidden></ul>
+            </div>
+            <p id="actionStatus" class="action-status" role="status" aria-atomic="true">Follow an influencer to be alerted to their next call.</p>
+
+            <article id="actionCall" class="action-call" aria-labelledby="actionCallTitle" hidden>
+              <span id="actionCallSource"></span>
+              <strong id="actionCallTitle"></strong>
+              <span id="actionCallMeta"></span>
+              <a id="actionPost" target="_blank" rel="noopener noreferrer" hidden>View original post</a>
+            </article>
+            <dl id="actionPosition" class="action-position" aria-label="Simulated position" hidden>
+              <div><dt>Entry index</dt><dd id="actionEntry">–</dd></div>
+              <div><dt>Simulated index</dt><dd id="actionMark">–</dd></div>
+              <div><dt>Chip P&amp;L</dt><dd id="actionPnl">–</dd></div>
+            </dl>
+            <button id="actionPositionButton" class="action-primary" type="button" hidden></button>
+            <button id="actionDemo" class="action-secondary" type="button">Test a call</button>
           </div>
         </details>
       </aside>
@@ -144,7 +172,7 @@
   </main>
   <div id="modalRoot"></div>
 
-  <script src="./app.js?v=20261120-live-chat" defer></script>
-  <script src="./chat.js?v=20261120-chat-glass" defer></script>
+  <script src="./action.js?v=20261120-action" defer></script>
+  <script src="./app.js?v=20261120-action" defer></script>
 </body>
 </html>
