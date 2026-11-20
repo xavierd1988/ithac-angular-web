@@ -9,7 +9,7 @@
   <link rel="icon" type="image/png" href="./ithac-app-mark.png">
   <link rel="apple-touch-icon" href="./ithac-app-touch.png">
   <link rel="stylesheet" href="./styles.css?v=20260714-call-compact">
-  <link rel="stylesheet" href="./ranking.css?v=20261120-live-chat-2">
+  <link rel="stylesheet" href="./ranking.css?v=20261120-chat-glass">
 </head>
 <body>
   <main class="app-shell">
@@ -24,56 +24,11 @@
 
     <div class="ranking-layout">
       <section class="list-card" aria-labelledby="pageTitle">
-        <div class="ranking-tools" id="rankingTools">
-          <div class="ranking-toolbar">
-            <div class="ranking-period" role="group" aria-label="Scoring period">
-              <button class="period-button active" type="button" data-reputation-window="day" aria-pressed="true">1 day</button>
-              <button class="period-button" type="button" data-reputation-window="week" aria-pressed="false">1 week</button>
-              <button class="period-button" type="button" data-reputation-window="month" aria-pressed="false">1 month</button>
-            </div>
-            <label class="ranking-search">
-              <span>Find an account</span>
-              <input id="rankingSearch" type="search" placeholder="Search by name" autocomplete="off">
-            </label>
-          </div>
-
-          <div class="utility-disclosures">
-            <details class="ranking-options">
-              <summary>Ranking options</summary>
-              <div class="options-content">
-                <label>
-                  Order
-                  <select id="rankingOrder">
-                    <option value="score">Highest score</option>
-                    <option value="scanner">Scanner order</option>
-                  </select>
-                </label>
-                <p id="rankingStats"></p>
-              </div>
-            </details>
-
-            <details class="scanner-disclosure">
-              <summary>Live activity</summary>
-              <div id="livePositionBar" class="live-position-bar" aria-label="Live scraper position">
-                <section class="scanner-head">
-                  <span class="live-dot" aria-hidden="true"></span>
-                  <span class="live-kicker">Live scraper</span>
-                  <strong id="scannerTitle">Connecting</strong>
-                  <em id="scannerMeta">Waiting for live data</em>
-                </section>
-                <section class="scanner-metrics" aria-label="Scraper counters">
-                  <span><b id="scannerProgressText">0%</b><em>progress</em></span>
-                  <span><b id="scannerDone">0</b><em>done</em></span>
-                  <span><b id="scannerRunning">0</b><em>running</em></span>
-                  <span><b id="scannerQueued">0</b><em>queued</em></span>
-                  <span><b id="scannerResources">0/0 · 0/0</b><em>sessions · proxies</em></span>
-                </section>
-                <div class="scanner-progress-track" aria-hidden="true">
-                  <i id="scannerProgressBar"></i>
-                </div>
-              </div>
-              <div id="scannerPath"></div>
-            </details>
+        <div class="ranking-tools ranking-tools-primary">
+          <div class="ranking-period" role="group" aria-label="Scoring period">
+            <button class="period-button active" type="button" data-reputation-window="day" aria-pressed="true">1 day</button>
+            <button class="period-button" type="button" data-reputation-window="week" aria-pressed="false">1 week</button>
+            <button class="period-button" type="button" data-reputation-window="month" aria-pressed="false">1 month</button>
           </div>
         </div>
 
@@ -116,16 +71,65 @@
             </label>
           </nav>
         </details>
+        <details class="ranking-extras">
+          <summary>Search, options and activity</summary>
+          <div class="ranking-tools ranking-tools-secondary">
+            <label class="ranking-search">
+              <span>Find an account</span>
+              <input id="rankingSearch" type="search" placeholder="Search by name" autocomplete="off">
+            </label>
+            <div class="utility-disclosures">
+              <details class="ranking-options">
+                <summary>Ranking options</summary>
+                <div class="options-content">
+                  <label>
+                    Order
+                    <select id="rankingOrder">
+                      <option value="score">Highest score</option>
+                      <option value="scanner">Scanner order</option>
+                    </select>
+                  </label>
+                  <p id="rankingStats"></p>
+                </div>
+              </details>
+
+              <details class="scanner-disclosure">
+                <summary>Live activity</summary>
+                <div id="livePositionBar" class="live-position-bar" aria-label="Live scraper position">
+                  <section class="scanner-head">
+                    <span class="live-dot" aria-hidden="true"></span>
+                    <span class="live-kicker">Live scraper</span>
+                    <strong id="scannerTitle">Connecting</strong>
+                    <em id="scannerMeta">Waiting for live data</em>
+                  </section>
+                  <section class="scanner-metrics" aria-label="Scraper counters">
+                    <span><b id="scannerProgressText">0%</b><em>progress</em></span>
+                    <span><b id="scannerDone">0</b><em>done</em></span>
+                    <span><b id="scannerRunning">0</b><em>running</em></span>
+                    <span><b id="scannerQueued">0</b><em>queued</em></span>
+                    <span><b id="scannerResources">0/0 · 0/0</b><em>sessions · proxies</em></span>
+                  </section>
+                  <div class="scanner-progress-track" aria-hidden="true">
+                    <i id="scannerProgressBar"></i>
+                  </div>
+                </div>
+                <div id="scannerPath"></div>
+              </details>
+            </div>
+          </div>
+        </details>
       </section>
       <aside class="chat-sidebar" aria-label="Live chat">
         <details id="chatPanel" class="chat-panel">
           <summary>Live chat <span id="chatConnection" class="chat-connection"></span></summary>
           <div class="chat-content">
+            <label class="chat-nickname">
+              <span class="visually-hidden">Nickname</span>
+              <input id="chatNickname" name="nickname" form="chatForm" type="text" maxlength="32" required autocomplete="nickname" placeholder="Nickname">
+            </label>
             <div id="chatMessages" class="chat-messages" role="log" aria-label="Messages" aria-relevant="additions"></div>
             <p id="chatEmpty" class="chat-empty" hidden>No messages yet.</p>
             <form id="chatForm" class="chat-form">
-              <label for="chatNickname">Nickname</label>
-              <input id="chatNickname" name="nickname" type="text" maxlength="32" required autocomplete="nickname">
               <label for="chatInput">Message</label>
               <textarea id="chatInput" name="message" rows="2" maxlength="280" required placeholder="Write a message"></textarea>
               <div class="chat-actions">
@@ -141,6 +145,6 @@
   <div id="modalRoot"></div>
 
   <script src="./app.js?v=20261120-live-chat" defer></script>
-  <script src="./chat.js?v=20261120-live-chat" defer></script>
+  <script src="./chat.js?v=20261120-chat-glass" defer></script>
 </body>
 </html>
