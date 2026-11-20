@@ -82,7 +82,6 @@
     showMore: byId('showMore'),
     loadError: byId('loadError'),
     pageTitle: byId('pageTitle'),
-    pageDescription: byId('pageDescription'),
     rankingTools: byId('rankingTools'),
     rankingStats: byId('rankingStats'),
     rankingSearch: byId('rankingSearch'),
@@ -480,10 +479,7 @@
   function renderTabs() {
     const ranking = state.activeTab === 'live';
     document.body.dataset.view = state.activeTab;
-    els.pageTitle.textContent = ranking ? 'Crypto Influencer Ranking' : 'Paper trading';
-    els.pageDescription.textContent = ranking
-      ? 'Compare how crypto calls perform over one day, one week, or one month.'
-      : 'Simulated positions and their results.';
+    els.pageTitle.textContent = ranking ? 'Live Crypto Influencer Ranking' : 'Paper trading';
     els.rankingTools.hidden = !ranking;
     els.leaderboardHead.hidden = !ranking;
     els.mainTabs.forEach((button) => {

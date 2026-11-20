@@ -5,34 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light">
   <meta name="theme-color" content="#02093E">
-  <title>ITHAC · Crypto Influencer Ranking</title>
+  <title>Live Crypto Influencer Ranking</title>
   <link rel="icon" type="image/png" href="./ithac-app-mark.png">
   <link rel="apple-touch-icon" href="./ithac-app-touch.png">
   <link rel="stylesheet" href="./styles.css?v=20260714-call-compact">
-  <link rel="stylesheet" href="./ranking.css?v=20261120-soft-editorial">
+  <link rel="stylesheet" href="./ranking.css?v=20261120-live-banner">
 </head>
 <body>
-  <header class="site-header">
-    <div class="site-header-inner">
-      <a class="wordmark" href="./">
-        <img src="./ithac-app-mark.png" width="28" height="26" alt="">
-        <span>ITHAC</span>
-      </a>
-      <nav class="main-tabs" aria-label="Views">
-        <button class="active" type="button" data-tab="live" aria-current="page">Ranking</button>
-        <button type="button" data-tab="paper">Paper trading</button>
-      </nav>
-    </div>
-  </header>
-
   <main class="app-shell">
     <div class="page-intro">
       <div class="cover-inner">
-        <div class="cover-copy">
-          <h1 id="pageTitle">Crypto Influencer Ranking</h1>
-          <p id="pageDescription">Compare how crypto calls perform over one day, one week, or one month.</p>
-          <a class="cover-link" href="#rankingTools">Explore the ranking <span aria-hidden="true">↓</span></a>
-        </div>
+        <h1 id="pageTitle">Live Crypto Influencer Ranking</h1>
         <div class="cover-art" aria-hidden="true">
           <span class="cover-mark"></span>
         </div>
@@ -40,6 +23,10 @@
     </div>
 
     <section class="list-card" aria-labelledby="pageTitle">
+      <nav class="main-tabs" aria-label="Views">
+        <button class="active" type="button" data-tab="live" aria-current="page">Ranking</button>
+        <button type="button" data-tab="paper">Paper trading</button>
+      </nav>
       <div class="ranking-tools" id="rankingTools">
         <div class="ranking-toolbar">
           <div class="ranking-period" role="group" aria-label="Scoring period">
@@ -136,6 +123,6 @@
   </main>
   <div id="modalRoot"></div>
 
-  <script src="./app.js?v=20261120-mobile-brand" defer></script>
+  <script src="./app.js?v=20261120-live-banner" defer></script>
 </body>
 </html>
