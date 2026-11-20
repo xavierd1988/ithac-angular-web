@@ -129,8 +129,8 @@ button, input, select { font-weight: 500; }
   color: var(--cover-text);
   background: var(--midnight);
   background:
-    radial-gradient(ellipse at 84% 42%, #4160ff 0, transparent 49%),
-    linear-gradient(112deg, var(--cover-ink) 5%, var(--midnight) 45%, var(--royal) 86%);
+    radial-gradient(ellipse at 82% 44%, #6780ff55 0, #6780ff00 54%),
+    linear-gradient(114deg, var(--cover-ink) 5%, var(--midnight) 42%, var(--royal) 100%);
 }
 
 .cover-copy {
@@ -140,6 +140,7 @@ button, input, select { font-weight: 500; }
 }
 
 .cover-art {
+  --mark-size: clamp(124px, 24vw, 286px);
   position: absolute;
   inset: 0 0 0 48%;
   display: grid;
@@ -147,27 +148,35 @@ button, input, select { font-weight: 500; }
   place-items: center;
 }
 
-.cover-art::before,
-.cover-art::after {
+.cover-art::before {
   position: absolute;
-  width: min(74%, 385px);
+  width: calc(var(--mark-size) * 1.28);
   aspect-ratio: 1;
-  border: 1px solid #acbaf54f;
+  border: 1px solid #cad6ff46;
   border-radius: 50%;
+  background: radial-gradient(circle, #94aaff16, #94aaff00 70%);
   content: "";
 }
 
-.cover-art::after {
-  width: min(92%, 480px);
-  border-color: #a6b8ff35;
+.cover-mark {
+  position: relative;
+  width: var(--mark-size);
+  aspect-ratio: 366 / 345;
+  filter: drop-shadow(0 12px 18px #02093e70);
 }
 
-.cover-art img {
-  z-index: 1;
-  display: block;
-  width: clamp(124px, 24vw, 286px);
-  height: auto;
-  filter: drop-shadow(0 14px 24px #02093eaa);
+.cover-mark::before {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(143deg, #fff0b5 0%, #f9d96f 28%, #e9ad30 54%, #ffe08a 78%, #d59d26 100%);
+  /* Outline of the original 366 × 345 mobile app mark. */
+  clip-path: polygon(
+    8.2% 7%, 48.9% 33%, 89% 7%, 89% 13.9%,
+    51.9% 38.3%, 51.9% 67.5%, 89% 91.3%, 89% 98%,
+    48.9% 72.5%, 8.7% 98.3%, 8.7% 91.6%, 46.2% 67.5%,
+    45.9% 38.3%, 8.5% 13.9%
+  );
+  content: "";
 }
 
 .page-intro h1 {
@@ -538,13 +547,15 @@ body[data-view="paper"] .page-intro p { color: var(--muted); }
   .cover-link { margin-top: 15px; }
   .page-intro {
     background:
-      radial-gradient(ellipse at 82% 88%, #4160ff 0, transparent 58%),
-      linear-gradient(150deg, var(--cover-ink) 5%, var(--midnight) 50%, var(--royal) 100%);
+      radial-gradient(ellipse at 80% 88%, #6780ff55 0, #6780ff00 60%),
+      linear-gradient(150deg, var(--cover-ink) 5%, var(--midnight) 48%, var(--royal) 100%);
   }
-  .cover-art { position: relative; inset: auto; height: clamp(145px, 40vw, 208px); }
-  .cover-art img { width: clamp(116px, 32vw, 175px); }
-  .cover-art::before { width: min(46%, 225px); }
-  .cover-art::after { width: min(62%, 270px); }
+  .cover-art {
+    --mark-size: clamp(116px, 32vw, 175px);
+    position: relative;
+    inset: auto;
+    height: clamp(154px, 44vw, 235px);
+  }
   body[data-view="paper"] .cover-copy { padding: 27px 22px; }
   .featured-cards { grid-template-columns: minmax(0, 1fr); gap: 6px; }
   .featured-card { min-height: 58px; padding: 6px 10px; gap: 10px; }
