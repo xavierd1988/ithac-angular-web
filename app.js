@@ -90,6 +90,7 @@
 
   const searchSnapshot = debounce(() => void loadSnapshot(), 240);
   let cryptoPanelsRequest = null;
+  let actionAccounts = null;
   let didInit = false;
   function boot() {
     if (didInit) return;
@@ -104,6 +105,9 @@
   }
 
   function init() {
+    window.dispatchEvent(new CustomEvent('ithac:action-source', {
+      detail: { loadCalls: (username) => getJson(`/api/crypto/reputation/${encodeURIComponent(username)}/detail?window=day&take=20`) }
+    }));
     els.prevPage.addEventListener('click', () => goToPage(rankingPage(liveRows()).pageIndex - 1));
     els.nextPage.addEventListener('click', () => goToPage(rankingPage(liveRows()).nextPage));
     els.showMore.addEventListener('click', showMoreRows);
@@ -398,6 +402,11 @@
   }
 
   function renderAll() {
+    const accounts = state.allInfluencers.length ? state.allInfluencers : state.page.items;
+    if (accounts !== actionAccounts) {
+      actionAccounts = accounts;
+      window.dispatchEvent(new CustomEvent('ithac:action-accounts', { detail: accounts }));
+    }
     renderTop();
     renderRankingControls();
     renderScanner();
