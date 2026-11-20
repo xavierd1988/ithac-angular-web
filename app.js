@@ -38,6 +38,8 @@
     jobs: [],
     events: [],
     allInfluencers: [],
+    allInfluencersReady: false,
+    allInfluencersLoading: false,
     allInfluencersLoadedAt: 0,
     timex: [],
     reputationWindow: 'day',
@@ -250,6 +252,7 @@
       if (options.resetListScroll) els.list.scrollTop = 0;
     } catch (error) {
       if (requestId !== state.snapshotSeq) return;
+      void loadAllInfluencers();
       const fallbackLoaded = await loadInfluencerFallback(requestId, error, options);
       if (fallbackLoaded) return;
       state.loadError = error instanceof Error ? error.message : 'Unable to load live data';
@@ -292,15 +295,18 @@
 
   async function loadAllInfluencers(force = false) {
     const now = Date.now();
-    if (!force && state.allInfluencers.length && now - state.allInfluencersLoadedAt < 60_000) return;
+    if (state.allInfluencersLoading || (!force && now - state.allInfluencersLoadedAt < 60_000)) return;
+    state.allInfluencersLoading = true;
     try {
       const rows = await getJson('/api/influencers');
-      if (!Array.isArray(rows)) return;
-      state.allInfluencers = rows;
-      state.allInfluencersLoadedAt = Date.now();
-      renderAll();
+      if (Array.isArray(rows)) state.allInfluencers = rows;
     } catch {
       // Snapshot paging remains usable when the full list endpoint is unavailable.
+    } finally {
+      state.allInfluencersLoading = false;
+      state.allInfluencersReady = true;
+      state.allInfluencersLoadedAt = Date.now();
+      renderAll();
     }
   }
 
@@ -581,7 +587,8 @@
       renderPaper();
       return;
     }
-    if (state.sortMode === 'score' && !state.reputationReady.has(state.reputationWindow)) {
+    if (state.sortMode === 'score' &&
+        (!state.reputationReady.has(state.reputationWindow) || !state.allInfluencersReady)) {
       els.list.replaceChildren(emptyNode('Loading ranking…', ''));
       return;
     }
@@ -609,10 +616,15 @@
       displayRowNumber(row, offset + index + 1),
       existing.get(row.username)
     ));
-    if (state.reputationErrors.has(state.reputationWindow)) {
-      nodes.unshift(els.list.querySelector('.score-notice') ||
-        emptyNode('Scores temporarily unavailable', 'You can still open account details.'));
-      nodes[0].classList.add('score-notice');
+    const scoresUnavailable = state.sortMode === 'score' && state.reputationErrors.has(state.reputationWindow);
+    if (scoresUnavailable || (state.sortMode === 'score' && !hasFullList)) {
+      const title = scoresUnavailable ? 'Scores temporarily unavailable' : 'Full list temporarily unavailable';
+      const message = scoresUnavailable ? 'You can still open account details.' : 'Only accounts on this page are shown.';
+      const previousNotice = els.list.querySelector('.score-notice');
+      const notice = previousNotice?.dataset.noticeTitle === title ? previousNotice : emptyNode(title, message);
+      notice.dataset.noticeTitle = title;
+      notice.classList.add('score-notice');
+      nodes.unshift(notice);
     }
     nodes.forEach((node, index) => {
       const current = els.list.children[index];
@@ -1351,7 +1363,10 @@
     if (state.sortMode === 'scanner' && Number.isFinite(Number(row._sourceIndex))) {
       return Number(row._sourceIndex) + 1;
     }
-    return state.allInfluencers.length ? (row._listRank ?? fallback) : fallback;
+    if (state.reputationErrors.has(state.reputationWindow)) return '–';
+    if (state.allInfluencers.length) return row._listRank ?? fallback;
+    const rank = Number(row._reputation?.rank);
+    return Number.isSafeInteger(rank) && rank > 0 ? rank : '–';
   }
 
   function isActiveRow(row) {
