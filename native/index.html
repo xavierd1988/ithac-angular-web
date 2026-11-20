@@ -9,120 +9,138 @@
   <link rel="icon" type="image/png" href="./ithac-app-mark.png">
   <link rel="apple-touch-icon" href="./ithac-app-touch.png">
   <link rel="stylesheet" href="./styles.css?v=20260714-call-compact">
-  <link rel="stylesheet" href="./ranking.css?v=20261120-avenir">
+  <link rel="stylesheet" href="./ranking.css?v=20261120-live-chat">
 </head>
 <body>
   <main class="app-shell">
     <div class="page-intro">
       <div class="cover-inner">
-        <h1 id="pageTitle">Live Crypto Influencer Ranking</h1>
+        <h1 id="pageTitle"><span class="live-word"><span class="live-diode" aria-hidden="true"></span>Live</span> Crypto Influencer Ranking</h1>
         <div class="cover-art" aria-hidden="true">
           <span class="cover-mark"></span>
         </div>
       </div>
     </div>
 
-    <section class="list-card" aria-labelledby="pageTitle">
-      <nav class="main-tabs" aria-label="Views">
-        <button class="active" type="button" data-tab="live" aria-current="page">Ranking</button>
-        <button type="button" data-tab="paper">Paper trading</button>
-      </nav>
-      <div class="ranking-tools" id="rankingTools">
-        <div class="ranking-toolbar">
-          <div class="ranking-period" role="group" aria-label="Scoring period">
-            <button class="period-button active" type="button" data-reputation-window="day" aria-pressed="true">1 day</button>
-            <button class="period-button" type="button" data-reputation-window="week" aria-pressed="false">1 week</button>
-            <button class="period-button" type="button" data-reputation-window="month" aria-pressed="false">1 month</button>
+    <div class="ranking-layout">
+      <section class="list-card" aria-labelledby="pageTitle">
+        <div class="ranking-tools" id="rankingTools">
+          <div class="ranking-toolbar">
+            <div class="ranking-period" role="group" aria-label="Scoring period">
+              <button class="period-button active" type="button" data-reputation-window="day" aria-pressed="true">1 day</button>
+              <button class="period-button" type="button" data-reputation-window="week" aria-pressed="false">1 week</button>
+              <button class="period-button" type="button" data-reputation-window="month" aria-pressed="false">1 month</button>
+            </div>
+            <label class="ranking-search">
+              <span>Find an account</span>
+              <input id="rankingSearch" type="search" placeholder="Search by name" autocomplete="off">
+            </label>
           </div>
-          <label class="ranking-search">
-            <span>Find an account</span>
-            <input id="rankingSearch" type="search" placeholder="Search by name" autocomplete="off">
-          </label>
-        </div>
 
-        <div class="utility-disclosures">
-          <details class="ranking-options">
-            <summary>Ranking options</summary>
-            <div class="options-content">
-              <label>
-                Order
-                <select id="rankingOrder">
-                  <option value="score">Highest score</option>
-                  <option value="scanner">Scanner order</option>
-                </select>
-              </label>
-              <p id="rankingStats"></p>
-            </div>
-          </details>
-
-          <details class="scanner-disclosure">
-            <summary>Live activity</summary>
-            <div id="livePositionBar" class="live-position-bar" aria-label="Live scraper position">
-              <section class="scanner-head">
-                <span class="live-dot" aria-hidden="true"></span>
-                <span class="live-kicker">Live scraper</span>
-                <strong id="scannerTitle">Connecting</strong>
-                <em id="scannerMeta">Waiting for live data</em>
-              </section>
-              <section class="scanner-metrics" aria-label="Scraper counters">
-                <span><b id="scannerProgressText">0%</b><em>progress</em></span>
-                <span><b id="scannerDone">0</b><em>done</em></span>
-                <span><b id="scannerRunning">0</b><em>running</em></span>
-                <span><b id="scannerQueued">0</b><em>queued</em></span>
-                <span><b id="scannerResources">0/0 · 0/0</b><em>sessions · proxies</em></span>
-              </section>
-              <div class="scanner-progress-track" aria-hidden="true">
-                <i id="scannerProgressBar"></i>
+          <div class="utility-disclosures">
+            <details class="ranking-options">
+              <summary>Ranking options</summary>
+              <div class="options-content">
+                <label>
+                  Order
+                  <select id="rankingOrder">
+                    <option value="score">Highest score</option>
+                    <option value="scanner">Scanner order</option>
+                  </select>
+                </label>
+                <p id="rankingStats"></p>
               </div>
-            </div>
-            <div id="scannerPath"></div>
-          </details>
-        </div>
-      </div>
+            </details>
 
-      <section id="featuredRanking" class="featured-ranking" aria-labelledby="featuredTitle" hidden>
-        <div class="featured-heading">
-          <h2 id="featuredTitle">Ranking leaders</h2>
-          <span id="featuredPeriod"></span>
+            <details class="scanner-disclosure">
+              <summary>Live activity</summary>
+              <div id="livePositionBar" class="live-position-bar" aria-label="Live scraper position">
+                <section class="scanner-head">
+                  <span class="live-dot" aria-hidden="true"></span>
+                  <span class="live-kicker">Live scraper</span>
+                  <strong id="scannerTitle">Connecting</strong>
+                  <em id="scannerMeta">Waiting for live data</em>
+                </section>
+                <section class="scanner-metrics" aria-label="Scraper counters">
+                  <span><b id="scannerProgressText">0%</b><em>progress</em></span>
+                  <span><b id="scannerDone">0</b><em>done</em></span>
+                  <span><b id="scannerRunning">0</b><em>running</em></span>
+                  <span><b id="scannerQueued">0</b><em>queued</em></span>
+                  <span><b id="scannerResources">0/0 · 0/0</b><em>sessions · proxies</em></span>
+                </section>
+                <div class="scanner-progress-track" aria-hidden="true">
+                  <i id="scannerProgressBar"></i>
+                </div>
+              </div>
+              <div id="scannerPath"></div>
+            </details>
+          </div>
         </div>
-        <div id="featuredCards" class="featured-cards"></div>
+
+        <section id="featuredRanking" class="featured-ranking" aria-labelledby="featuredTitle" hidden>
+          <div class="featured-heading">
+            <h2 id="featuredTitle">Ranking leaders</h2>
+            <span id="featuredPeriod"></span>
+          </div>
+          <div id="featuredCards" class="featured-cards"></div>
+        </section>
+
+        <div id="loadError" class="load-error ranking-error" role="status" hidden></div>
+        <h2 class="full-ranking-title">Full ranking</h2>
+        <div id="leaderboardHead" class="leaderboard-head" aria-hidden="true">
+          <span>Rank</span><span>Name</span><span>Score</span><span>Calls</span><span></span>
+        </div>
+        <div id="list" class="list">
+          <p class="empty">Loading ranking…</p>
+        </div>
+
+        <div class="incremental-ranking" id="incrementalRanking" hidden>
+          <button type="button" id="showMore" aria-controls="list">Show more</button>
+        </div>
+        <details class="page-navigation" id="pageNavigation">
+          <summary>Browse pages <strong id="pageStatus"></strong></summary>
+          <nav class="pager" aria-label="Ranking pages">
+            <button id="prevPage" type="button" aria-label="Previous page">Previous</button>
+            <div class="page-numbers" id="pageNumbers"></div>
+            <button id="nextPage" type="button" aria-label="Next page">Next</button>
+            <label>
+              Rows
+              <select id="pageSize">
+                <option value="25" selected>25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+                <option value="250">250</option>
+                <option value="500">500</option>
+                <option value="1000">1000</option>
+              </select>
+            </label>
+          </nav>
+        </details>
       </section>
-
-      <div id="loadError" class="load-error ranking-error" role="status" hidden></div>
-      <h2 class="full-ranking-title">Full ranking</h2>
-      <div id="leaderboardHead" class="leaderboard-head" aria-hidden="true">
-        <span>Rank</span><span>Name</span><span>Score</span><span>Calls</span><span></span>
-      </div>
-      <div id="list" class="list">
-        <p class="empty">Loading ranking…</p>
-      </div>
-
-      <div class="incremental-ranking" id="incrementalRanking" hidden>
-        <button type="button" id="showMore" aria-controls="list">Show more</button>
-      </div>
-      <details class="page-navigation" id="pageNavigation">
-        <summary>Browse pages <strong id="pageStatus"></strong></summary>
-        <nav class="pager" aria-label="Ranking pages">
-          <button id="prevPage" type="button" aria-label="Previous page">Previous</button>
-          <div class="page-numbers" id="pageNumbers"></div>
-          <button id="nextPage" type="button" aria-label="Next page">Next</button>
-          <label>
-            Rows
-            <select id="pageSize">
-              <option value="25" selected>25</option>
-              <option value="50">50</option>
-              <option value="100">100</option>
-              <option value="250">250</option>
-              <option value="500">500</option>
-              <option value="1000">1000</option>
-            </select>
-          </label>
-        </nav>
-      </details>
-    </section>
+      <aside class="chat-sidebar" aria-label="Live chat">
+        <details id="chatPanel" class="chat-panel">
+          <summary>Live chat <span id="chatConnection" class="chat-connection"></span></summary>
+          <div class="chat-content">
+            <div id="chatMessages" class="chat-messages" role="log" aria-label="Messages" aria-relevant="additions"></div>
+            <p id="chatEmpty" class="chat-empty" hidden>No messages yet.</p>
+            <form id="chatForm" class="chat-form">
+              <label for="chatNickname">Nickname</label>
+              <input id="chatNickname" name="nickname" type="text" maxlength="32" required autocomplete="nickname">
+              <label for="chatInput">Message</label>
+              <textarea id="chatInput" name="message" rows="2" maxlength="280" required placeholder="Write a message"></textarea>
+              <div class="chat-actions">
+                <span id="chatStatus" role="status"></span>
+                <button id="chatSend" type="submit">Send</button>
+              </div>
+            </form>
+          </div>
+        </details>
+      </aside>
+    </div>
   </main>
   <div id="modalRoot"></div>
 
-  <script src="./app.js?v=20261120-avenir" defer></script>
+  <script src="./app.js?v=20261120-live-chat" defer></script>
+  <script src="./chat.js?v=20261120-live-chat" defer></script>
 </body>
 </html>
