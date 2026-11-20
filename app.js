@@ -831,7 +831,7 @@
     if (els.featuredPeriod.textContent !== period) els.featuredPeriod.textContent = period;
     const markup = leaders.map((row) => {
       const rank = row._listRank;
-      const name = row.displayName || `@${row.username}`;
+      const name = accountDisplayName(row);
       const score = reputationScore(row._reputation);
       const label = `Open rank ${rank}, ${name}, score ${formatScore(score)}`;
       return `
@@ -841,7 +841,6 @@
             ${avatarHtml(row)}
             <span class="featured-name">
               <strong>${escapeHtml(name)}</strong>
-              <small>@${escapeHtml(row.username)}</small>
             </span>
           </span>
           <span class="featured-score">
@@ -1193,7 +1192,7 @@
     const selected = state.selectedUsername?.toLowerCase() === row.username.toLowerCase();
     const reputation = row._reputation;
     const score = reputationScore(reputation);
-    const name = row.displayName || `@${row.username}`;
+    const name = accountDisplayName(row);
     const profileLabel = `Open @${row.username} on X`;
     const calls = reputation ? reputationScoredCount(reputation) : '–';
     const summaryKey = JSON.stringify([rank, name, row.profileImageUrl, score, calls]);
@@ -1210,7 +1209,6 @@
             ${avatarHtml(row)}
             <span class="leaderboard-name">
               <strong>${escapeHtml(name)}</strong>
-              <small>@${escapeHtml(row.username)}</small>
             </span>
           </span>
           <span class="leaderboard-score ${scoreClass(score)}"><span class="visually-hidden">Score </span>${formatScore(score)}</span>
@@ -1240,7 +1238,7 @@
         <div class="entry-overview">
           <section class="entry-block">
             <a class="entry-profile" href="${escapeAttr(xProfileUrl(row.username))}" target="_blank" rel="noopener noreferrer" aria-label="${escapeAttr(profileLabel)}">
-              Profile on X <span aria-hidden="true">↗</span>
+              @${escapeHtml(row.username)} <span aria-hidden="true">↗</span>
             </a>
             <span class="entry-followers">${formatFollowers(row.followersCount)}</span>
             <div class="progress-cell">
@@ -1316,6 +1314,11 @@
         <em>avg ${formatScore(avg)} · ${Number(reputation.scoredCount ?? 0)}</em>
       </button>
     `;
+  }
+
+  function accountDisplayName(row) {
+    const name = String(row.displayName || '').trim();
+    return name && name.toLowerCase() !== `@${row.username.toLowerCase()}` ? name : 'Name unavailable';
   }
 
   function xProfileUrl(username) {
