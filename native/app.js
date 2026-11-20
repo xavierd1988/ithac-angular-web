@@ -83,6 +83,9 @@
     rankingStats: byId('rankingStats'),
     rankingSearch: byId('rankingSearch'),
     rankingOrder: byId('rankingOrder'),
+    featuredRanking: byId('featuredRanking'),
+    featuredPeriod: byId('featuredPeriod'),
+    featuredCards: byId('featuredCards'),
     scannerPath: byId('scannerPath'),
     scannerDisclosure: document.querySelector('.scanner-disclosure'),
     leaderboardHead: byId('leaderboardHead'),
@@ -139,6 +142,10 @@
         state.selectedReputation = null;
         renderAll();
       });
+    });
+    els.featuredCards.addEventListener('click', (event) => {
+      const card = event.target.closest('.featured-card');
+      if (card) jumpToRankingRow(card.dataset.username);
     });
     els.scannerDisclosure.addEventListener('toggle', renderScanner);
     els.list.addEventListener('click', handleListClick);
@@ -410,6 +417,7 @@
     renderRankingControls();
     renderScanner();
     const rows = state.activeTab === 'live' ? liveRows() : [];
+    renderFeatured(rows);
     renderPager(rows);
     renderList(rows);
     renderModal();
@@ -463,9 +471,10 @@
 
   function renderTabs() {
     const ranking = state.activeTab === 'live';
-    els.pageTitle.textContent = ranking ? 'Influencer ranking' : 'Paper trading';
+    document.body.dataset.view = state.activeTab;
+    els.pageTitle.textContent = ranking ? 'Crypto Influencer Ranking' : 'Paper trading';
     els.pageDescription.textContent = ranking
-      ? 'Crypto calls scored over one day, one week, or one month.'
+      ? 'Compare how crypto calls perform over one day, one week, or one month.'
       : 'Simulated positions and their results.';
     els.rankingTools.hidden = !ranking;
     els.leaderboardHead.hidden = !ranking;
@@ -774,6 +783,54 @@
     els.rankingStats.textContent = `${periods.join(' · ')} · ${state.allInfluencers.length || state.page.total} accounts total`;
   }
 
+  function renderFeatured(rows) {
+    const windowKey = state.reputationWindow;
+    const ready = state.activeTab === 'live' && state.sortMode === 'score' &&
+      !state.query && state.status === 'all' && !state.priorityOnly &&
+      state.allInfluencersReady && state.allInfluencers.length > 0 &&
+      state.reputationReady.has(windowKey) && !state.reputationErrors.has(windowKey);
+    const leaders = ready ? rows.slice(0, 3)
+      .filter((row) => Number.isFinite(reputationScore(row._reputation))) : [];
+    els.featuredRanking.hidden = leaders.length === 0;
+    if (els.featuredRanking.hidden) return;
+
+    const period = reputationWindowLabel(windowKey).toLowerCase();
+    if (els.featuredPeriod.textContent !== period) els.featuredPeriod.textContent = period;
+    const markup = leaders.map((row) => {
+      const rank = row._listRank;
+      const name = row.displayName || `@${row.username}`;
+      const score = reputationScore(row._reputation);
+      const label = `Open rank ${rank}, ${name}, score ${formatScore(score)}`;
+      return `
+        <button class="featured-card" type="button" data-username="${escapeAttr(row.username)}" aria-label="${escapeAttr(label)}">
+          <span class="featured-rank">#${rank}</span>
+          <span class="featured-identity">
+            ${avatarHtml(row)}
+            <span class="featured-name">
+              <strong>${escapeHtml(name)}</strong>
+              <small>@${escapeHtml(row.username)}</small>
+            </span>
+          </span>
+          <span class="featured-score">
+            <strong>${formatScore(score)}</strong>
+            <small>Score</small>
+          </span>
+        </button>
+      `;
+    }).join('');
+
+    if (els.featuredCards.dataset.markup === markup) return;
+    const active = document.activeElement?.closest('.featured-card');
+    els.featuredCards.dataset.markup = markup;
+    els.featuredCards.innerHTML = markup;
+    els.featuredCards.querySelectorAll('.featured-card').forEach((card) => {
+      prepareRankingAvatar(card.querySelector('.avatar'), card.dataset.username);
+      if (active?.dataset.username === card.dataset.username) {
+        card.focus({ preventScroll: true });
+      }
+    });
+  }
+
   function renderScanner() {
     if (!els.scannerDisclosure.open || state.activeTab !== 'live') return;
     const username = document.activeElement?.dataset.jumpUsername;
@@ -816,7 +873,7 @@
       </div>
     `;
     wrap.querySelectorAll('[data-jump-username]').forEach((button) => {
-      button.addEventListener('click', () => jumpToScannerRow(button.dataset.jumpUsername || ''));
+      button.addEventListener('click', () => jumpToRankingRow(button.dataset.jumpUsername || ''));
     });
     return wrap;
   }
@@ -855,7 +912,7 @@
     return rows.findIndex((row) => String(row.username || '').toLowerCase() === lower);
   }
 
-  function jumpToScannerRow(username) {
+  function jumpToRankingRow(username) {
     state.query = '';
     els.rankingSearch.value = '';
     const rows = liveRows();
@@ -869,8 +926,9 @@
     renderAll();
     const entry = [...els.list.querySelectorAll('.leaderboard-entry')]
       .find((element) => element.dataset.username.toLowerCase() === lower);
-    entry?.querySelector('summary')?.focus({ preventScroll: true });
-    entry?.scrollIntoView({ block: 'nearest' });
+    const summary = entry?.querySelector('summary');
+    summary?.focus({ preventScroll: true });
+    summary?.scrollIntoView({ block: 'nearest' });
     void loadPosts(username);
   }
 
@@ -1126,19 +1184,7 @@
           <span class="leaderboard-chevron" aria-hidden="true"></span>
         </summary>
       `;
-      const avatar = entry.querySelector('.avatar');
-      if (avatar.tagName === 'IMG') {
-        avatar.alt = '';
-        avatar.addEventListener('error', () => {
-          const initials = document.createElement('span');
-          initials.className = 'avatar avatar-fallback';
-          initials.textContent = row.username.slice(0, 1).toUpperCase();
-          initials.setAttribute('aria-hidden', 'true');
-          avatar.replaceWith(initials);
-        }, { once: true });
-      } else {
-        avatar.setAttribute('aria-hidden', 'true');
-      }
+      prepareRankingAvatar(entry.querySelector('.avatar'), row.username);
       entry.querySelector('summary').addEventListener('click', (event) => {
         event.preventDefault();
         const wasOpen = entry.open;
@@ -2104,6 +2150,21 @@
       return `<img class="avatar" src="${escapeAttr(row.profileImageUrl)}" alt="@${escapeAttr(row.username)}" loading="lazy" referrerpolicy="no-referrer">`;
     }
     return `<span class="avatar avatar-fallback">${escapeHtml(row.username.slice(0, 1).toUpperCase())}</span>`;
+  }
+
+  function prepareRankingAvatar(avatar, username) {
+    if (avatar.tagName !== 'IMG') {
+      avatar.setAttribute('aria-hidden', 'true');
+      return;
+    }
+    avatar.alt = '';
+    avatar.addEventListener('error', () => {
+      const initials = document.createElement('span');
+      initials.className = 'avatar avatar-fallback';
+      initials.textContent = username.slice(0, 1).toUpperCase();
+      initials.setAttribute('aria-hidden', 'true');
+      avatar.replaceWith(initials);
+    }, { once: true });
   }
 
   function resourceText(item) {
