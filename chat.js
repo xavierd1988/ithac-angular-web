@@ -16,6 +16,20 @@
   let after = null;
   let loading = false;
   let polling = null;
+  let checkingPresence = false;
+  const viewer = getViewerId();
+
+  function getViewerId() {
+    const id = Array.from(crypto.getRandomValues(new Uint8Array(16)), (byte) => byte.toString(16).padStart(2, '0')).join('');
+    try {
+      const saved = localStorage.getItem('ithac-chat-viewer');
+      if (/^[0-9a-f]{32}$/.test(saved || '')) return saved;
+      localStorage.setItem('ithac-chat-viewer', id);
+    } catch {
+      // A browser with storage disabled uses a temporary identifier.
+    }
+    return id;
+  }
 
   panel.open = window.matchMedia('(min-width: 961px)').matches;
   try {
@@ -72,24 +86,36 @@
       while (messages.children.length > 100) messages.firstElementChild.remove();
       if (atBottom) messages.scrollTop = messages.scrollHeight;
       empty.hidden = messages.children.length > 0;
-      connection.dataset.state = 'live';
-      connection.textContent = 'Live';
+      empty.textContent = 'No messages yet.';
     } catch {
-      connection.dataset.state = 'offline';
-      connection.textContent = 'Reconnecting';
+      if (!messages.children.length) {
+        empty.hidden = false;
+        empty.textContent = 'Chat temporarily unavailable.';
+      }
     } finally {
       loading = false;
     }
   }
 
+  async function refreshPresence() {
+    if (document.hidden || checkingPresence) return;
+    checkingPresence = true;
+    try {
+      const data = await request(`/presence?viewer=${viewer}`);
+      if (!Number.isSafeInteger(data.online) || data.online < 0) throw new Error('Invalid presence');
+      connection.dataset.state = 'live';
+      connection.textContent = `${data.online} online`;
+    } catch {
+      connection.dataset.state = 'offline';
+      connection.textContent = 'Offline';
+    } finally {
+      checkingPresence = false;
+    }
+  }
+
   function updatePolling() {
     window.clearInterval(polling);
-    if (!panel.open) {
-      connection.textContent = '';
-      return;
-    }
-    if (document.hidden) return;
-    if (!connection.textContent) connection.textContent = 'Connecting';
+    if (!panel.open || document.hidden) return;
     void refresh();
     polling = window.setInterval(refresh, 4000);
   }
@@ -128,6 +154,11 @@
   });
 
   panel.addEventListener('toggle', updatePolling);
-  document.addEventListener('visibilitychange', updatePolling);
+  document.addEventListener('visibilitychange', () => {
+    updatePolling();
+    void refreshPresence();
+  });
   updatePolling();
+  void refreshPresence();
+  window.setInterval(refreshPresence, 5000);
 })();
