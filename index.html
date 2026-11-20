@@ -3,64 +3,117 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="color-scheme" content="dark">
-  <meta name="theme-color" content="#030303">
-  <title>Ithac Live Scraper</title>
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#f8f8f3">
+  <title>ITHAC · Influencer ranking</title>
   <link rel="icon" href="./favicon.ico?v=20260707-paper" sizes="any">
   <link rel="shortcut icon" href="./favicon.ico?v=20260707-paper">
   <link rel="icon" type="image/svg+xml" href="./favicon.svg?v=20260707-paper">
   <link rel="apple-touch-icon" href="./apple-touch-icon.png?v=20260707-paper">
-  <link rel="mask-icon" href="./safari-pinned-tab.svg?v=20260707-paper" color="#c9972b">
+  <link rel="mask-icon" href="./safari-pinned-tab.svg?v=20260707-paper" color="#21604b">
   <link rel="stylesheet" href="./styles.css?v=20260714-call-compact">
+  <link rel="stylesheet" href="./ranking.css?v=20261120-ranking">
 </head>
 <body>
-  <main class="app-shell">
-    <header id="livePositionBar" class="live-position-bar" aria-label="Live scraper position">
-      <section class="scanner-head">
-        <span class="live-dot"></span>
-        <span class="live-kicker">Live scraper</span>
-        <strong id="scannerTitle">connecting</strong>
-        <em id="scannerMeta">waiting for live data</em>
-      </section>
-      <section class="scanner-metrics" aria-label="Scraper counters">
-        <span><b id="scannerProgressText">0%</b><em>progress</em></span>
-        <span><b id="scannerDone">0</b><em>done</em></span>
-        <span><b id="scannerRunning">0</b><em>running</em></span>
-        <span><b id="scannerQueued">0</b><em>queued</em></span>
-        <span><b id="scannerResources">0/0 · 0/0</b><em>sessions · proxies</em></span>
-      </section>
-      <div class="scanner-progress-track" aria-hidden="true">
-        <i id="scannerProgressBar"></i>
-      </div>
-    </header>
-
-    <section class="list-card">
-      <nav class="main-tabs" aria-label="Scraper views">
-        <button class="active" type="button" data-tab="live">Live ranking</button>
-        <button type="button" data-tab="paper">Paper</button>
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="wordmark" href="./">ITHAC</a>
+      <nav class="main-tabs" aria-label="Views">
+        <button class="active" type="button" data-tab="live" aria-current="page">Ranking</button>
+        <button type="button" data-tab="paper">Paper trading</button>
       </nav>
-      <nav class="pager" aria-label="Influencer pages">
-        <button id="prevPage" type="button">Previous</button>
+    </div>
+  </header>
+
+  <main class="app-shell">
+    <div class="page-intro">
+      <h1 id="pageTitle">Influencer ranking</h1>
+      <p id="pageDescription">Crypto calls scored over one day, one week, or one month.</p>
+    </div>
+
+    <section class="list-card" aria-labelledby="pageTitle">
+      <div class="ranking-tools" id="rankingTools">
+        <div class="ranking-toolbar">
+          <div class="ranking-period" role="group" aria-label="Scoring period">
+            <button class="period-button active" type="button" data-reputation-window="day" aria-pressed="true">1 day</button>
+            <button class="period-button" type="button" data-reputation-window="week" aria-pressed="false">1 week</button>
+            <button class="period-button" type="button" data-reputation-window="month" aria-pressed="false">1 month</button>
+          </div>
+          <label class="ranking-search">
+            <span>Find an account</span>
+            <input id="rankingSearch" type="search" placeholder="Name or @handle" autocomplete="off">
+          </label>
+        </div>
+
+        <div class="utility-disclosures">
+          <details class="ranking-options">
+            <summary>Ranking options</summary>
+            <div class="options-content">
+              <label>
+                Order
+                <select id="rankingOrder">
+                  <option value="score">Highest score</option>
+                  <option value="scanner">Scanner order</option>
+                </select>
+              </label>
+              <p id="rankingStats"></p>
+            </div>
+          </details>
+
+          <details class="scanner-disclosure">
+            <summary>Live activity</summary>
+            <div id="livePositionBar" class="live-position-bar" aria-label="Live scraper position">
+              <section class="scanner-head">
+                <span class="live-dot" aria-hidden="true"></span>
+                <span class="live-kicker">Live scraper</span>
+                <strong id="scannerTitle">Connecting</strong>
+                <em id="scannerMeta">Waiting for live data</em>
+              </section>
+              <section class="scanner-metrics" aria-label="Scraper counters">
+                <span><b id="scannerProgressText">0%</b><em>progress</em></span>
+                <span><b id="scannerDone">0</b><em>done</em></span>
+                <span><b id="scannerRunning">0</b><em>running</em></span>
+                <span><b id="scannerQueued">0</b><em>queued</em></span>
+                <span><b id="scannerResources">0/0 · 0/0</b><em>sessions · proxies</em></span>
+              </section>
+              <div class="scanner-progress-track" aria-hidden="true">
+                <i id="scannerProgressBar"></i>
+              </div>
+            </div>
+            <div id="scannerPath"></div>
+          </details>
+        </div>
+      </div>
+
+      <div id="loadError" class="load-error ranking-error" role="status" hidden></div>
+      <div id="leaderboardHead" class="leaderboard-head" aria-hidden="true">
+        <span>Rank</span><span>Account</span><span>Score</span><span>Calls</span><span></span>
+      </div>
+      <div id="list" class="list">
+        <p class="empty">Loading ranking…</p>
+      </div>
+
+      <nav class="pager" aria-label="Ranking pages">
         <strong id="pageStatus">Page 1 / 1</strong>
+        <button id="prevPage" type="button" aria-label="Previous page">Previous</button>
         <div class="page-numbers" id="pageNumbers"></div>
-        <button id="nextPage" type="button">Next</button>
+        <button id="nextPage" type="button" aria-label="Next page">Next</button>
         <label>
           Rows
           <select id="pageSize">
+            <option value="25" selected>25</option>
+            <option value="50">50</option>
             <option value="100">100</option>
-            <option value="250" selected>250</option>
+            <option value="250">250</option>
             <option value="500">500</option>
             <option value="1000">1000</option>
           </select>
         </label>
       </nav>
-
-      <div id="loadError" class="load-error" hidden></div>
-      <div id="list" class="list" aria-live="polite"></div>
     </section>
   </main>
   <div id="modalRoot"></div>
 
-  <script src="./app.js?v=20261120-api-domain" defer></script>
+  <script src="./app.js?v=20261120-ranking" defer></script>
 </body>
 </html>

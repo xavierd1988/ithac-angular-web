@@ -13,7 +13,7 @@
   ];
   const state = {
     pageIndex: 0,
-    pageSize: 250,
+    pageSize: 25,
     query: '',
     status: 'all',
     priorityOnly: false,
@@ -32,7 +32,7 @@
     activeTab: 'live',
     selectedPosts: new Map(),
     run: null,
-    page: { pageIndex: 0, pageSize: 250, total: 0, items: [] },
+    page: { pageIndex: 0, pageSize: 25, total: 0, items: [] },
     sessions: [],
     proxies: [],
     jobs: [],
@@ -46,8 +46,11 @@
       week: [],
       month: []
     },
+    reputationReady: new Set(),
+    reputationErrors: new Set(),
     reputationDetails: new Map(),
     paper: null,
+    paperPanelOpen: false,
     paperSync: null,
     paperBusy: false,
     paperError: null,
@@ -72,12 +75,24 @@
     nextPage: byId('nextPage'),
     pageSize: byId('pageSize'),
     loadError: byId('loadError'),
+    pageTitle: byId('pageTitle'),
+    pageDescription: byId('pageDescription'),
+    rankingTools: byId('rankingTools'),
+    rankingStats: byId('rankingStats'),
+    rankingSearch: byId('rankingSearch'),
+    rankingOrder: byId('rankingOrder'),
+    scannerPath: byId('scannerPath'),
+    scannerDisclosure: document.querySelector('.scanner-disclosure'),
+    leaderboardHead: byId('leaderboardHead'),
+    periodButtons: document.querySelectorAll('.period-button'),
     list: byId('list'),
     mainTabs: document.querySelectorAll('[data-tab]'),
     pager: document.querySelector('.pager'),
     modalRoot: byId('modalRoot')
   };
 
+  const searchSnapshot = debounce(() => void loadSnapshot(), 240);
+  let cryptoPanelsRequest = null;
   let didInit = false;
   function boot() {
     if (didInit) return;
@@ -95,11 +110,37 @@
     els.prevPage.addEventListener('click', () => goToPage(state.pageIndex - 1));
     els.nextPage.addEventListener('click', () => goToPage(state.pageIndex + 1));
     els.pageSize.addEventListener('change', () => {
-      state.pageSize = Number(els.pageSize.value) || 250;
+      state.pageSize = Number(els.pageSize.value) || 25;
       state.pageIndex = 0;
+      state.selectedUsername = null;
+      renderAll();
       void loadSnapshot({ resetListScroll: true });
     });
+    els.rankingSearch.addEventListener('input', () => {
+      state.query = els.rankingSearch.value.trim().replace(/^@+/, '');
+      state.pageIndex = 0;
+      state.selectedUsername = null;
+      renderAll();
+      if (!state.allInfluencers.length) searchSnapshot();
+    });
+    els.rankingOrder.addEventListener('change', () => {
+      state.sortMode = els.rankingOrder.value;
+      state.selectedUsername = null;
+      state.pageIndex = 0;
+      renderAll();
+    });
+    els.periodButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        if (state.reputationWindow === button.dataset.reputationWindow) return;
+        state.reputationWindow = button.dataset.reputationWindow;
+        state.pageIndex = 0;
+        state.selectedReputation = null;
+        renderAll();
+      });
+    });
+    els.scannerDisclosure.addEventListener('toggle', renderScanner);
     els.list.addEventListener('click', handleListClick);
+    els.modalRoot.addEventListener('keydown', handleModalKey);
     els.mainTabs.forEach((button) => {
       button.addEventListener('click', () => setTab(button.dataset.tab || 'live'));
     });
@@ -171,6 +212,9 @@
 
   async function loadSnapshot(options = {}) {
     const requestId = ++state.snapshotSeq;
+    const requestedPage = state.pageIndex;
+    const requestedPageSize = state.pageSize;
+    const requestedQuery = state.query;
     const query = new URLSearchParams({
       query: state.query,
       status: state.status,
@@ -192,8 +236,10 @@
       state.run = snapshot.run;
       state.page = snapshot.influencerPage;
       mergeInfluencerRows(snapshot.influencerPage?.items ?? []);
-      state.pageIndex = clampPageIndex(snapshot.influencerPage.pageIndex, snapshot.influencerPage.total, snapshot.influencerPage.pageSize);
-      state.pageSize = snapshot.influencerPage.pageSize;
+      if (!state.allInfluencers.length && state.pageIndex === requestedPage &&
+          state.pageSize === requestedPageSize && state.query === requestedQuery) {
+        state.pageIndex = snapshot.influencerPage.pageIndex;
+      }
       state.sessions = snapshot.sessions ?? [];
       state.proxies = snapshot.proxies ?? [];
       state.jobs = jobs.length ? jobs : (snapshot.jobs ?? []);
@@ -211,29 +257,37 @@
     }
   }
 
-  async function loadCryptoPanels() {
+  function loadCryptoPanels() {
+    if (cryptoPanelsRequest) return cryptoPanelsRequest;
+    cryptoPanelsRequest = Promise.all([
+      ...REPUTATION_WINDOWS.map(({ key }) => loadReputationWindow(key)),
+      getJson('/api/crypto/timex?take=500').then((rows) => {
+        if (Array.isArray(rows)) state.timex = rows;
+      }).catch(() => {}),
+      getJson('/api/paper/summary?sync=false').then((paper) => {
+        if (paper) state.paper = paper;
+        state.paperError = null;
+        if (state.activeTab === 'paper') renderList();
+      }).catch(() => {
+        if (!state.paper) state.paperError = 'The paper trading summary could not be loaded.';
+        if (state.activeTab === 'paper') renderList();
+      })
+    ]).finally(() => { cryptoPanelsRequest = null; });
+    return cryptoPanelsRequest;
+  }
+
+  async function loadReputationWindow(key) {
     try {
-      const [timex, repDay, repWeek, repMonth, paper] = await Promise.all([
-        getJson('/api/crypto/timex?take=500').catch(() => []),
-        getJson('/api/crypto/reputation?window=day&take=2500').catch(() => []),
-        getJson('/api/crypto/reputation?window=week&take=2500').catch(() => []),
-        getJson('/api/crypto/reputation?window=month&take=2500').catch(() => []),
-        getJson('/api/paper/summary?sync=false').catch(() => null)
-      ]);
-      state.timex = Array.isArray(timex) ? timex : [];
-      state.reputation = {
-        day: Array.isArray(repDay) ? repDay : [],
-        week: Array.isArray(repWeek) ? repWeek : [],
-        month: Array.isArray(repMonth) ? repMonth : []
-      };
-      if (paper) state.paper = paper;
-      state.paperError = null;
-      renderAll();
+      const rows = await getJson(`/api/crypto/reputation?window=${key}&take=2500`);
+      if (!Array.isArray(rows)) throw new Error('Invalid ranking response');
+      state.reputation[key] = rows;
+      state.reputationErrors.delete(key);
     } catch {
-      state.timex = [];
-      state.reputation = { day: [], week: [], month: [] };
-      renderAll();
+      if (!state.reputationReady.has(key)) state.reputationErrors.add(key);
     }
+    state.reputationReady.add(key);
+    if (state.activeTab === 'live' && state.reputationWindow === key) renderAll();
+    else renderRankingControls();
   }
 
   async function loadAllInfluencers(force = false) {
@@ -347,8 +401,11 @@
   function renderAll() {
     renderTop();
     renderTabs();
-    renderPager();
-    renderList();
+    renderRankingControls();
+    renderScanner();
+    const rows = state.activeTab === 'live' ? liveRows() : [];
+    renderPager(rows);
+    renderList(rows);
     renderModal();
   }
 
@@ -399,6 +456,13 @@
   }
 
   function renderTabs() {
+    const ranking = state.activeTab === 'live';
+    els.pageTitle.textContent = ranking ? 'Influencer ranking' : 'Paper trading';
+    els.pageDescription.textContent = ranking
+      ? 'Crypto calls scored over one day, one week, or one month.'
+      : 'Simulated positions and their results.';
+    els.rankingTools.hidden = !ranking;
+    els.leaderboardHead.hidden = !ranking;
     els.mainTabs.forEach((button) => {
       const active = button.dataset.tab === state.activeTab;
       button.classList.toggle('active', active);
@@ -450,24 +514,30 @@
     els.scannerMeta.textContent = event ? `${event.text} · ${event.at} · ${done}/${Math.max(total, 1)} complete · ${failed} failed · ${resources}` : `no active scrape · ${resources}`;
   }
 
-  function renderPager() {
+  function renderPager(rows) {
     els.pager.hidden = state.activeTab !== 'live';
+    els.loadError.hidden = state.activeTab !== 'live' || !state.loadError;
     if (state.activeTab !== 'live') return;
-    const total = liveRows().length;
-    const pageSize = state.pageSize || state.page.pageSize || 250;
+    const total = state.allInfluencers.length ? rows.length : state.page.total;
+    const pageSize = state.pageSize;
     const pageCount = Math.max(1, Math.ceil(total / Math.max(pageSize, 1)));
     const pageIndex = clampPageIndex(state.pageIndex, total, pageSize);
     const start = total ? pageIndex * pageSize + 1 : 0;
     const end = Math.min(total, start + pageSize - 1);
-    const run = state.run;
 
-    els.pageStatus.textContent = `Page ${pageIndex + 1} / ${pageCount} · ${start}-${end} of ${total} · ${run?.successCount ?? 0} complete · ${run?.failedCount ?? 0} failed`;
+    els.pageStatus.textContent = total ? `${start}–${end} of ${total}` : '0 accounts';
     els.prevPage.disabled = pageIndex <= 0;
     els.nextPage.disabled = pageIndex >= pageCount - 1;
     els.pageSize.value = String(pageSize);
 
+    const focusedPage = els.pageNumbers.contains(document.activeElement)
+      ? document.activeElement.textContent
+      : null;
     els.pageNumbers.replaceChildren(...pageButtonNodes(pageIndex, pageCount));
-    els.loadError.hidden = !state.loadError;
+    if (focusedPage) {
+      [...els.pageNumbers.querySelectorAll('button')]
+        .find((button) => button.textContent === focusedPage)?.focus({ preventScroll: true });
+    }
     els.loadError.textContent = state.loadError ? `Live API not loaded: ${state.loadError}` : '';
   }
 
@@ -483,6 +553,7 @@
       const button = document.createElement('button');
       button.type = 'button';
       button.textContent = String(page + 1);
+      button.setAttribute('aria-label', `Page ${page + 1}`);
       button.className = page === activePage ? 'active' : '';
       if (page === activePage) button.setAttribute('aria-current', 'page');
       button.addEventListener('click', () => goToPage(page));
@@ -505,31 +576,53 @@
     return out;
   }
 
-  function renderList() {
+  function renderList(allRows) {
     if (state.activeTab === 'paper') {
       renderPaper();
       return;
     }
-    const allRows = liveRows();
-    const pageSize = state.pageSize || state.page.pageSize || 250;
-    const pageIndex = clampPageIndex(state.pageIndex, allRows.length, pageSize);
-    const rows = allRows.slice(pageIndex * pageSize, pageIndex * pageSize + pageSize);
-    const nodes = [renderScannerPath(), renderReputationSwitcher()];
+    if (state.sortMode === 'score' && !state.reputationReady.has(state.reputationWindow)) {
+      els.list.replaceChildren(emptyNode('Loading ranking…', ''));
+      return;
+    }
+    const rowControl = 'summary, button:not([disabled]), a[href]';
+    const focused = document.activeElement;
+    const focusedRow = focused?.closest('.leaderboard-entry');
+    const focusedIndex = focusedRow ? [...focusedRow.querySelectorAll(rowControl)].indexOf(focused) : -1;
+    allRows ??= liveRows();
+    const pageSize = state.pageSize;
+    const hasFullList = state.allInfluencers.length > 0;
+    const pageIndex = clampPageIndex(state.pageIndex, hasFullList ? allRows.length : state.page.total, pageSize);
+    const offset = pageIndex * pageSize;
+    const rows = hasFullList ? allRows.slice(offset, offset + pageSize) : allRows;
     if (!rows.length) {
-      const empty = document.createElement('article');
-      empty.className = 'empty';
-      empty.innerHTML = `<strong>No handle</strong><br><span>${escapeHtml(state.loadError ? 'The backend did not answer this browser yet.' : 'No influencer on this page.')}</span>`;
-      els.list.replaceChildren(...nodes, empty);
+      const title = state.loadError ? 'Ranking unavailable' : state.lastSnapshotAt ? 'No matching accounts' : 'Loading ranking…';
+      const body = state.loadError ? 'The live API could not be reached.' : '';
+      els.list.replaceChildren(emptyNode(title, body));
       return;
     }
 
-    rows.forEach((row, index) => {
-      nodes.push(renderRow(row, displayRowNumber(row, pageIndex * pageSize + index + 1)));
-      if (state.selectedUsername?.toLowerCase() === row.username.toLowerCase()) {
-        nodes.push(renderDetail(row));
-      }
+    const existing = new Map([...els.list.querySelectorAll('.leaderboard-entry')]
+      .map((entry) => [entry.dataset.username, entry]));
+    const nodes = rows.map((row, index) => renderRow(
+      row,
+      displayRowNumber(row, offset + index + 1),
+      existing.get(row.username)
+    ));
+    if (state.reputationErrors.has(state.reputationWindow)) {
+      nodes.unshift(els.list.querySelector('.score-notice') ||
+        emptyNode('Scores temporarily unavailable', 'You can still open account details.'));
+      nodes[0].classList.add('score-notice');
+    }
+    nodes.forEach((node, index) => {
+      const current = els.list.children[index];
+      if (current !== node) els.list.insertBefore(node, current || null);
     });
-    els.list.replaceChildren(...nodes);
+    while (els.list.children.length > nodes.length) els.list.lastElementChild.remove();
+    if (focusedIndex >= 0) {
+      const nextRow = nodes.find((row) => row.dataset.username === focusedRow.dataset.username);
+      if (document.activeElement !== focused) nextRow?.querySelectorAll(rowControl)[focusedIndex]?.focus({ preventScroll: true });
+    }
   }
 
   function renderTimex() {
@@ -586,9 +679,9 @@
   }
 
   function liveRows() {
-    const rows = enrichedInfluencerRows().filter(matchesLiveFilters);
-    rows.sort(compareLiveRows);
-    return rows;
+    return enrichedInfluencerRows().sort(compareLiveRows)
+      .map((row, index) => ({ ...row, _listRank: index + 1 }))
+      .filter(matchesLiveFilters);
   }
 
   function enrichedInfluencerRows() {
@@ -650,53 +743,34 @@
     return REPUTATION_WINDOWS.find((item) => item.key === key)?.label ?? '1 DAY';
   }
 
-  function renderReputationSwitcher() {
-    const wrap = document.createElement('section');
-    wrap.className = 'reputation-switcher merged-ranking-switcher';
-    const total = liveRows().length;
-    const scored = currentReputationRows().length;
-    const activeLabel = reputationWindowLabel(state.reputationWindow);
-    const activeScored = reputationRowsForWindow(state.reputationWindow).filter((row) => reputationScoredCount(row) > 0).length;
-    const avg = windowAverageScore(state.reputationWindow);
-    wrap.innerHTML = `
-      <div>
-        <strong>${state.sortMode === 'scanner' ? 'Scanner order + scores' : `${activeLabel} best scores + scraper`}</strong>
-        <span>${activeScored} aliases with ${activeLabel} calls · ${scored} scored in ${activeLabel} · sorted by highest score first · avg ${formatScore(avg)} · ${total} total handles.</span>
-      </div>
-      <div class="reputation-window-buttons">
-        <button type="button" data-sort-mode="scanner" class="${state.sortMode === 'scanner' ? 'active' : ''}">
-          SCANNER
-          <em>natural list</em>
-        </button>
-        <button type="button" data-sort-mode="score" class="${state.sortMode === 'score' ? 'active' : ''}">
-          SCORE
-          <em>best first</em>
-        </button>
-        ${REPUTATION_WINDOWS.map((item) => `
-          <button type="button" data-reputation-window="${escapeAttr(item.key)}" class="${state.reputationWindow === item.key ? 'active' : ''}">
-            ${escapeHtml(item.label)}
-            <em>${(state.reputation?.[item.key] ?? []).length} scored · avg ${formatScore(windowAverageScore(item.key))}</em>
-          </button>
-        `).join('')}
-      </div>
-    `;
-    wrap.querySelectorAll('[data-sort-mode]').forEach((button) => {
-      button.addEventListener('click', () => {
-        state.sortMode = button.dataset.sortMode === 'score' ? 'score' : 'scanner';
-        state.selectedUsername = null;
-        state.pageIndex = 0;
-        renderAll();
-      });
+  function renderRankingControls() {
+    if (state.activeTab !== 'live') return;
+    els.periodButtons.forEach((button) => {
+      const active = button.dataset.reputationWindow === state.reputationWindow;
+      button.classList.toggle('active', active);
+      button.setAttribute('aria-pressed', String(active));
     });
-    wrap.querySelectorAll('[data-reputation-window]').forEach((button) => {
-      button.addEventListener('click', () => {
-        state.reputationWindow = button.dataset.reputationWindow || 'day';
-        state.selectedReputation = null;
-        state.pageIndex = 0;
-        renderAll();
-      });
+    els.leaderboardHead.firstElementChild.textContent = state.sortMode === 'scanner' ? 'Order' : 'Rank';
+    const periods = REPUTATION_WINDOWS.map(({ key, label }) => {
+      if (state.reputationErrors.has(key)) return `${label.toLowerCase()}: unavailable`;
+      if (!state.reputationReady.has(key)) return `${label.toLowerCase()}: loading`;
+      const ranks = reputationRowsForWindow(key);
+      const withCalls = ranks.filter((row) => reputationScoredCount(row) > 0).length;
+      const average = formatScore(windowAverageScore(key));
+      return `${label.toLowerCase()}: ${withCalls} accounts with calls, ${ranks.length} ranked, average ${average}`;
     });
-    return wrap;
+    els.rankingStats.textContent = `${periods.join(' · ')} · ${state.allInfluencers.length || state.page.total} accounts total`;
+  }
+
+  function renderScanner() {
+    if (!els.scannerDisclosure.open || state.activeTab !== 'live') return;
+    const username = document.activeElement?.dataset.jumpUsername;
+    const path = renderScannerPath();
+    els.scannerPath.replaceChildren(path);
+    if (username) {
+      [...path.querySelectorAll('[data-jump-username]')]
+        .find((button) => button.dataset.jumpUsername === username)?.focus({ preventScroll: true });
+    }
   }
 
   function renderScannerPath() {
@@ -770,6 +844,8 @@
   }
 
   function jumpToScannerRow(username) {
+    state.query = '';
+    els.rankingSearch.value = '';
     const rows = liveRows();
     const lower = String(username || '').toLowerCase();
     const index = rows.findIndex((row) => String(row.username || '').toLowerCase() === lower);
@@ -777,7 +853,13 @@
     const pageSize = state.pageSize || state.page.pageSize || 250;
     state.pageIndex = Math.floor(index / Math.max(pageSize, 1));
     state.selectedUsername = username;
+    state.selectedMentionKey = null;
     renderAll();
+    const entry = [...els.list.querySelectorAll('.leaderboard-entry')]
+      .find((element) => element.dataset.username.toLowerCase() === lower);
+    entry?.querySelector('summary')?.focus({ preventScroll: true });
+    entry?.scrollIntoView({ block: 'nearest' });
+    void loadPosts(username);
   }
 
   function renderPaper() {
@@ -793,10 +875,15 @@
     const openTrades = paper.openTrades || [];
     const closedTrades = paper.closedTrades || [];
     const allTrades = [...openTrades, ...closedTrades].sort(comparePaperTradesByProgress);
-    const active = run?.status === 'active';
-    const view = document.createElement('section');
-    view.className = 'paper-view';
+    const activeSummary = document.activeElement?.matches('.paper-disclosure > summary');
+    const view = document.createElement('details');
+    view.className = 'paper-view paper-disclosure';
+    view.open = state.paperPanelOpen;
+    view.addEventListener('toggle', () => {
+      if (view.isConnected) state.paperPanelOpen = view.open;
+    });
     view.innerHTML = `
+      <summary>Trades and run details</summary>
       <section class="paper-list-card">
         <header class="paper-list-head">
           <div>
@@ -812,6 +899,7 @@
       </section>
     `;
     els.list.replaceChildren(view);
+    if (activeSummary) view.querySelector('summary').focus({ preventScroll: true });
     restorePaperScroll(scrollState);
   }
 
@@ -997,70 +1085,102 @@
     return empty;
   }
 
-  function renderRow(row, rank) {
-    const article = document.createElement('article');
-    article.className = [
-      'influencer-row',
-      normalizeJobStatus(row.status),
-      isActiveRow(row) ? 'scraping' : '',
-      state.selectedUsername?.toLowerCase() === row.username.toLowerCase() ? 'selected' : '',
-      row.enabled ? '' : 'disabled'
-    ].filter(Boolean).join(' ');
-    article.dataset.username = row.username;
-
-    const progress = rowProgress(row);
-    const status = rowStatusLabel(row);
-    const steps = scrapeSteps(row);
-    const profileUrl = xProfileUrl(row.username);
-    const profileLabel = `Open @${row.username} on X`;
+  function renderRow(row, rank, previous) {
+    const selected = state.selectedUsername?.toLowerCase() === row.username.toLowerCase();
     const reputation = row._reputation;
-    article.innerHTML = `
-      ${isTraceRow(row) ? '<div class="scan-beam"></div>' : ''}
-      <div class="row-main">
-        <span class="rank">${rank}</span>
-        <section class="identity">
-          <a class="avatar-link x-profile-link" href="${escapeAttr(profileUrl)}" target="_blank" rel="noopener noreferrer" aria-label="${escapeAttr(profileLabel)}">
+    const score = reputationScore(reputation);
+    const name = row.displayName || `@${row.username}`;
+    const profileLabel = `Open @${row.username} on X`;
+    const calls = reputation ? reputationScoredCount(reputation) : '–';
+    const summaryKey = JSON.stringify([rank, name, row.profileImageUrl, score, calls]);
+    const entry = previous || document.createElement('details');
+    entry.className = 'leaderboard-entry';
+    entry.dataset.username = row.username;
+    entry.open = selected;
+    if (entry.dataset.summaryKey !== summaryKey) {
+      entry.dataset.summaryKey = summaryKey;
+      entry.innerHTML = `
+        <summary class="leaderboard-summary">
+          <span class="leaderboard-rank"><span class="visually-hidden">Rank </span>${rank}</span>
+          <span class="leaderboard-account">
             ${avatarHtml(row)}
-          </a>
-          <a class="identity-text x-profile-link" href="${escapeAttr(profileUrl)}" target="_blank" rel="noopener noreferrer" aria-label="${escapeAttr(profileLabel)}">
-            <strong>${escapeHtml(row.displayName || `@${row.username}`)}</strong>
-            <em>@${escapeHtml(row.username)} · ${formatFollowers(row.followersCount)}</em>
-          </a>
-        </section>
-        <section class="progress-cell">
-          <div class="row-line">
-            <strong>${status}</strong>
-            <time>${scrapeMinute(row)}</time>
-          </div>
-          <p class="row-subline">${rowMeta(row)}</p>
-          <div class="progress-track"><span class="${normalizeJobStatus(row.status) === 'failed' ? 'failed' : ''}" style="width:${progress}%"></span></div>
-          <div class="steps">${steps.map(stageHtml).join('')}</div>
-        </section>
-        ${rankingCellHtml(row, reputation, status)}
-      </div>
-    `;
-    article.querySelectorAll('.x-profile-link').forEach((link) => {
-      link.addEventListener('click', (event) => event.stopPropagation());
-    });
-    article.querySelectorAll('[data-reputation-username]').forEach((reputationButton) => {
-      reputationButton.addEventListener('click', (event) => {
+            <span class="leaderboard-name">
+              <strong>${escapeHtml(name)}</strong>
+              <small>@${escapeHtml(row.username)}</small>
+            </span>
+          </span>
+          <span class="leaderboard-score ${scoreClass(score)}"><span class="visually-hidden">Score </span>${formatScore(score)}</span>
+          <span class="leaderboard-calls"><span class="visually-hidden">Scored calls </span>${calls}</span>
+          <span class="leaderboard-chevron" aria-hidden="true"></span>
+        </summary>
+      `;
+      const avatar = entry.querySelector('.avatar');
+      if (avatar.tagName === 'IMG') {
+        avatar.alt = '';
+        avatar.addEventListener('error', () => {
+          const initials = document.createElement('span');
+          initials.className = 'avatar avatar-fallback';
+          initials.textContent = row.username.slice(0, 1).toUpperCase();
+          initials.setAttribute('aria-hidden', 'true');
+          avatar.replaceWith(initials);
+        }, { once: true });
+      } else {
+        avatar.setAttribute('aria-hidden', 'true');
+      }
+      entry.querySelector('summary').addEventListener('click', (event) => {
         event.preventDefault();
-        event.stopPropagation();
-        const windowKey = reputationButton.dataset.reputationWindow || state.reputationWindow;
-        const selected = row._reputations?.[windowKey] || reputation;
-        if (!selected) return;
-        state.selectedReputation = selected;
-        renderModal();
-        void loadReputationDetail(selected);
+        const wasOpen = entry.open;
+        state.selectedUsername = wasOpen ? null : row.username;
+        state.selectedMentionKey = null;
+        renderList();
+        if (!wasOpen) void loadPosts(row.username);
       });
-    });
-    article.addEventListener('click', () => {
-      const wasSelected = state.selectedUsername?.toLowerCase() === row.username.toLowerCase();
-      state.selectedUsername = wasSelected ? null : row.username;
-      renderList();
-      if (!wasSelected) void loadPosts(row.username);
-    });
-    return article;
+    }
+
+    entry.querySelector('.leaderboard-detail')?.remove();
+    if (selected) {
+      const details = document.createElement('div');
+      const status = rowStatusLabel(row);
+      const progress = rowProgress(row);
+      const steps = scrapeSteps(row);
+      details.className = 'leaderboard-detail';
+      details.innerHTML = `
+        <div class="entry-overview">
+          <section class="entry-block">
+            <a class="entry-profile" href="${escapeAttr(xProfileUrl(row.username))}" target="_blank" rel="noopener noreferrer" aria-label="${escapeAttr(profileLabel)}">
+              Profile on X <span aria-hidden="true">↗</span>
+            </a>
+            <span class="entry-followers">${formatFollowers(row.followersCount)}</span>
+            <div class="progress-cell">
+              <div class="row-line">
+                <strong>${status}${row.enabled ? '' : ' · disabled'}${isTraceRow(row) ? ' · recent activity' : ''}</strong>
+                <time>${scrapeMinute(row)}</time>
+              </div>
+              <p class="row-subline">${rowMeta(row)}</p>
+              <div class="progress-track" aria-label="Scrape progress: ${progress}%"><span class="${normalizeJobStatus(row.status) === 'failed' ? 'failed' : ''}" style="width:${progress}%"></span></div>
+              <div class="steps">${steps.map(stageHtml).join('')}</div>
+            </div>
+          </section>
+          <section class="entry-rankings" aria-label="Scores by period">
+            ${rankingCellHtml(row, reputation, status)}
+          </section>
+        </div>
+      `;
+      details.append(renderDetail(row));
+      entry.append(details);
+      details.querySelectorAll('[data-reputation-username]').forEach((button) => {
+        button.addEventListener('click', () => {
+          const windowKey = button.dataset.reputationWindow || state.reputationWindow;
+          const selectedReputation = row._reputations?.[windowKey] || reputation;
+          if (!selectedReputation) return;
+          state.selectedReputation = selectedReputation;
+          renderModal();
+          void loadReputationDetail(selectedReputation);
+        });
+      });
+    }
+
+    return entry;
   }
 
   function rankingCellHtml(row, reputation, status) {
@@ -1178,7 +1298,9 @@
   }
 
   function goToPage(pageIndex) {
-    const total = state.activeTab === 'live' ? liveRows().length : (state.page.total || 0);
+    const total = state.activeTab === 'live' && state.allInfluencers.length
+      ? liveRows().length
+      : state.page.total;
     const pageSize = state.pageSize || state.page.pageSize || 250;
     const next = clampPageIndex(pageIndex, total, pageSize);
     if (next === state.pageIndex) return;
@@ -1186,10 +1308,14 @@
     state.selectedUsername = null;
     if (state.activeTab === 'live' && state.allInfluencers.length) {
       renderAll();
-      els.list.scrollTop = 0;
+      els.leaderboardHead.scrollIntoView({ block: 'start' });
       return;
     }
-    void loadSnapshot({ resetListScroll: true });
+    void loadSnapshot({ resetListScroll: true }).then(() => {
+      if (state.activeTab === 'live' && state.pageIndex === next) {
+        els.leaderboardHead.scrollIntoView({ block: 'start' });
+      }
+    });
   }
 
   function activeJob() {
@@ -1225,7 +1351,7 @@
     if (state.sortMode === 'scanner' && Number.isFinite(Number(row._sourceIndex))) {
       return Number(row._sourceIndex) + 1;
     }
-    return fallback;
+    return state.allInfluencers.length ? (row._listRank ?? fallback) : fallback;
   }
 
   function isActiveRow(row) {
@@ -1437,26 +1563,47 @@
   }
 
   function renderModal() {
-    if (state.selectedSignal) {
-      els.modalRoot.replaceChildren(signalModal(state.selectedSignal));
+    const wasOpen = Boolean(els.modalRoot.firstElementChild);
+    const active = document.activeElement;
+    const previousLinks = [...els.modalRoot.querySelectorAll('button, a[href]')];
+    const focusIndex = previousLinks.indexOf(active);
+    const dialog = state.selectedSignal ? signalModal(state.selectedSignal)
+      : state.selectedReputation ? reputationModal(state.selectedReputation) : null;
+    els.modalRoot.replaceChildren(...(dialog ? [dialog] : []));
+    if (dialog) {
+      const controls = [...dialog.querySelectorAll('button, a[href]')];
+      (controls[focusIndex] || controls[0])?.focus({ preventScroll: true });
+    } else if (wasOpen && (!active || !active.isConnected)) {
+      els.list.querySelector('.leaderboard-entry[open] > summary')?.focus({ preventScroll: true });
+    }
+  }
+
+  function handleModalKey(event) {
+    if (event.key === 'Escape') {
+      state.selectedSignal = null;
+      state.selectedReputation = null;
+      renderModal();
       return;
     }
-    if (state.selectedReputation) {
-      els.modalRoot.replaceChildren(reputationModal(state.selectedReputation));
-      return;
+    if (event.key !== 'Tab') return;
+    const controls = [...els.modalRoot.querySelectorAll('button, a[href]')];
+    const first = controls[0];
+    const last = controls.at(-1);
+    if (event.shiftKey ? document.activeElement === first : document.activeElement === last) {
+      event.preventDefault();
+      (event.shiftKey ? last : first)?.focus();
     }
-    els.modalRoot.replaceChildren();
   }
 
   function signalModal(signal) {
     const backdrop = document.createElement('div');
     backdrop.className = 'modal-backdrop';
     backdrop.innerHTML = `
-      <section class="modal-card">
+      <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="dialogTitle">
         <header>
           <div>
             <span class="eyebrow">TIMEX</span>
-            <h2>${escapeHtml(signal.serialRef || `Signal #${signal.id}`)}</h2>
+            <h2 id="dialogTitle">${escapeHtml(signal.serialRef || `Signal #${signal.id}`)}</h2>
           </div>
           <button type="button" class="menu-close">Close</button>
         </header>
@@ -1499,11 +1646,11 @@
     const label = reputationWindowLabel(row.window || state.reputationWindow);
     backdrop.className = 'modal-backdrop';
     backdrop.innerHTML = `
-      <section class="modal-card reputation-detail-card">
+      <section class="modal-card reputation-detail-card" role="dialog" aria-modal="true" aria-labelledby="dialogTitle">
         <header>
           <div>
             <span class="eyebrow">Scored only</span>
-            <h2>@${escapeHtml(row.username || '-')} · ${escapeHtml(label)}</h2>
+            <h2 id="dialogTitle">@${escapeHtml(row.username || '-')} · ${escapeHtml(label)}</h2>
           </div>
           <button type="button" class="menu-close">Close</button>
         </header>
