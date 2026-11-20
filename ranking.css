@@ -18,11 +18,14 @@
   --violet: #654692;
   --orange: #86561f;
   --radius: 8px;
-  --content-width: 1100px;
+  --content-width: 1180px;
   --gutter: clamp(16px, 4.2vw, 56px);
   --row-padding: clamp(12px, 2.4vw, 24px);
   --ranking-columns: 68px minmax(0, 1fr) 112px 112px 24px;
   --ranking-gap: clamp(10px, 2.3vw, 30px);
+  --cover-ink: #102620;
+  --cover-text: #fff9eb;
+  --cover-blush: #f2d89c;
   font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-weight: 400;
 }
@@ -42,8 +45,8 @@ button, input, select { font-weight: 500; }
 }
 
 .site-header {
-  border-bottom: 1px solid var(--line);
-  background: var(--surface);
+  border-bottom: 1px solid #36524a;
+  background: var(--cover-ink);
 }
 
 .site-header-inner,
@@ -64,10 +67,11 @@ button, input, select { font-weight: 500; }
   display: inline-flex;
   align-items: center;
   gap: 9px;
-  color: var(--ink);
-  font-size: 20px;
-  font-weight: 790;
-  letter-spacing: 0.11em;
+  color: var(--cover-text);
+  font-family: "Iowan Old Style", Georgia, serif;
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -0.055em;
   line-height: 1;
   text-decoration: none;
 }
@@ -80,15 +84,14 @@ button, input, select { font-weight: 500; }
   background: transparent;
 }
 
-.site-header .main-tabs button,
-.site-header .main-tabs button.active:hover {
+.site-header .main-tabs button {
   align-self: stretch;
   min-height: 67px;
   border: 0;
   border-radius: 0;
   border-bottom: 2px solid transparent;
   padding: 0 2px;
-  color: var(--muted);
+  color: #d5dfd6;
   background: transparent;
   font-size: 13px;
   font-weight: 650;
@@ -98,37 +101,106 @@ button, input, select { font-weight: 500; }
 .site-header .main-tabs button.active,
 .site-header .main-tabs button.active:hover,
 .site-header .main-tabs button[aria-current="page"] {
-  border-bottom-color: var(--gold);
-  color: var(--gold);
+  border-bottom-color: var(--cover-blush);
+  color: var(--cover-text);
   background: transparent;
 }
 
-.site-header .main-tabs button:hover { color: var(--gold); }
+.site-header .main-tabs button:is(:hover, :focus-visible) { color: var(--cover-blush); }
+.site-header :is(a, button):focus-visible { outline-color: var(--cover-blush); }
 
 .app-shell {
   display: block;
-  padding: clamp(38px, 6vw, 76px) 0 clamp(34px, 5vw, 68px);
+  padding: clamp(20px, 3.2vw, 42px) 0 clamp(34px, 5vw, 68px);
 }
 
-.page-intro { margin: 0 0 clamp(24px, 4vw, 42px); }
+.page-intro {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  min-height: clamp(285px, 30vw, 390px);
+  align-items: center;
+  overflow: hidden;
+  margin: 0 0 clamp(23px, 3vw, 36px);
+  border-radius: 12px;
+  color: var(--cover-text);
+  background: var(--cover-ink);
+}
+
+.cover-copy {
+  z-index: 1;
+  width: 61%;
+  padding: clamp(28px, 4.6vw, 64px);
+}
+
+.cover-art {
+  position: absolute;
+  inset: 0 0 0 39%;
+}
+
+.cover-art img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 56% 52%;
+}
+
+.cover-art::after {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, var(--cover-ink) 0, #10262095 22%, #10262000 56%);
+  content: "";
+}
 
 .page-intro h1 {
+  max-inline-size: 17ch;
   margin: 0;
-  color: var(--ink);
+  color: var(--cover-text);
   font-family: "Iowan Old Style", "Palatino Linotype", Georgia, serif;
-  font-size: clamp(37px, 6.5vw, 71px);
-  font-weight: 500;
-  letter-spacing: -0.058em;
-  line-height: 1.04;
-  text-wrap: balance;
+  font-size: clamp(42px, 5.8vw, 78px);
+  font-weight: 520;
+  letter-spacing: -0.061em;
+  line-height: 0.96;
 }
 
 .page-intro p {
-  margin: 12px 0 0;
-  color: var(--muted);
-  font-size: clamp(14px, 1.6vw, 16px);
+  max-width: 35ch;
+  margin: 16px 0 0;
+  color: #d9e5dc;
+  font-size: clamp(14px, 1.45vw, 16px);
   line-height: 1.55;
 }
+
+.cover-link {
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  gap: 12px;
+  margin-top: 23px;
+  border: 1px solid var(--cover-blush);
+  border-radius: 4px;
+  padding: 0 14px;
+  color: var(--cover-ink);
+  background: var(--cover-blush);
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.cover-link:hover { background: #ffedc3; }
+.cover-link:focus-visible { outline-color: var(--cover-blush); }
+
+body[data-view="paper"] .page-intro {
+  min-height: auto;
+  background: var(--surface);
+}
+
+body[data-view="paper"] .cover-copy { width: 100%; }
+body[data-view="paper"] .cover-art,
+body[data-view="paper"] .cover-link { display: none; }
+body[data-view="paper"] .page-intro h1 { max-inline-size: none; color: var(--ink); }
+body[data-view="paper"] .page-intro p { color: var(--muted); }
 
 .list-card {
   min-height: 0;
@@ -326,6 +398,134 @@ button, input, select { font-weight: 500; }
   max-width: 100%;
   color: var(--ink);
   background: var(--panel);
+}
+
+.featured-ranking {
+  margin-inline: var(--row-padding);
+  padding: 16px 0 22px;
+  border-top: 1px solid var(--line);
+}
+
+.featured-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.featured-heading h2 {
+  margin: 0;
+  color: var(--ink);
+  font-family: "Iowan Old Style", Georgia, serif;
+  font-size: clamp(20px, 2.6vw, 30px);
+  font-weight: 600;
+  letter-spacing: -0.045em;
+}
+
+.featured-heading > span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.featured-cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.featured-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  min-width: 0;
+  min-height: 85px;
+  align-items: center;
+  gap: clamp(6px, 1vw, 12px);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 11px;
+  color: var(--ink);
+  background: var(--panel);
+  text-align: left;
+}
+
+.featured-card:first-child {
+  border-color: #23483b;
+  color: var(--cover-text);
+  background: #23483b;
+}
+
+.featured-card:hover { border-color: var(--gold); background: var(--panel-strong); }
+.featured-card:first-child:hover { border-color: var(--cover-blush); background: var(--cover-ink); }
+.featured-card:focus-visible { outline-offset: 2px; }
+
+.featured-rank {
+  color: var(--gold);
+  font-family: "Iowan Old Style", Georgia, serif;
+  font-size: clamp(16px, 1.75vw, 24px);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.featured-card:first-child .featured-rank { color: var(--cover-blush); }
+
+.featured-identity {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+}
+
+.featured-identity .avatar {
+  width: clamp(28px, 3.4vw, 44px);
+  height: clamp(28px, 3.4vw, 44px);
+  flex: 0 0 auto;
+  border-color: var(--line-strong);
+  color: var(--gold);
+  background: var(--surface);
+}
+
+.featured-name,
+.featured-score {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.featured-name > * {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.featured-name strong { font-size: clamp(12px, 1.15vw, 15px); }
+.featured-name small, .featured-score small { color: var(--muted); font-size: 11px; }
+.featured-card:first-child small { color: #d9e5dc; }
+.featured-score { text-align: end; font-variant-numeric: tabular-nums; }
+.featured-score strong { color: var(--green); font-size: clamp(16px, 2vw, 25px); font-weight: 750; }
+.featured-card:first-child .featured-score strong { color: var(--cover-blush); }
+
+@media (max-width: 850px) {
+  .featured-card { column-gap: 6px; padding-inline: 8px; }
+  .featured-identity { gap: 6px; }
+}
+
+@media (max-width: 640px) {
+  .page-intro { display: grid; min-height: 0; }
+  .cover-copy { width: 100%; padding: 27px 22px 8px; }
+  .page-intro h1 { max-width: 11ch; font-size: clamp(39px, 9.8vw, 56px); }
+  .page-intro p { margin-top: 12px; }
+  .cover-link { margin-top: 15px; }
+  .cover-art { position: relative; inset: auto; height: clamp(145px, 40vw, 238px); }
+  .cover-art img { object-position: 56% 54%; }
+  .cover-art::after { background: linear-gradient(180deg, var(--cover-ink), #10262000 44%); }
+  body[data-view="paper"] .cover-copy { padding: 27px 22px; }
+  .featured-cards { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+  .featured-card { min-height: 58px; padding: 6px 10px; gap: 10px; }
+  .featured-identity .avatar { width: 34px; height: 34px; }
+  .featured-name strong { font-size: 13px; }
 }
 
 .leaderboard-head,
@@ -692,7 +892,7 @@ button.ranking-cell:hover {
   .site-header-inner, .site-header .main-tabs button { min-height: 58px; }
   .site-header .main-tabs { gap: 11px; }
   .site-header .main-tabs button { font-size: 12px; }
-  .wordmark { font-size: 17px; }
+  .wordmark { font-size: 24px; }
   .ranking-toolbar { gap: 8px; }
   .ranking-period { flex-basis: fit-content; }
   .ranking-search { flex: 1 0 65%; order: 2; margin-inline-start: 0; }

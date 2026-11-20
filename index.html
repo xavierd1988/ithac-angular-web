@@ -4,15 +4,15 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light">
-  <meta name="theme-color" content="#f8f8f3">
-  <title>ITHAC · Influencer ranking</title>
+  <meta name="theme-color" content="#102620">
+  <title>ITHAC · Crypto Influencer Ranking</title>
   <link rel="icon" href="./favicon.ico?v=20260707-paper" sizes="any">
   <link rel="shortcut icon" href="./favicon.ico?v=20260707-paper">
   <link rel="icon" type="image/svg+xml" href="./favicon.svg?v=20260707-paper">
   <link rel="apple-touch-icon" href="./apple-touch-icon.png?v=20260707-paper">
   <link rel="mask-icon" href="./safari-pinned-tab.svg?v=20260707-paper" color="#21604b">
   <link rel="stylesheet" href="./styles.css?v=20260714-call-compact">
-  <link rel="stylesheet" href="./ranking.css?v=20261120-ranking">
+  <link rel="stylesheet" href="./ranking.css?v=20261120-cover">
 </head>
 <body>
   <header class="site-header">
@@ -27,8 +27,17 @@
 
   <main class="app-shell">
     <div class="page-intro">
-      <h1 id="pageTitle">Influencer ranking</h1>
-      <p id="pageDescription">Crypto calls scored over one day, one week, or one month.</p>
+      <div class="cover-copy">
+        <h1 id="pageTitle">Crypto Influencer Ranking</h1>
+        <p id="pageDescription">Compare how crypto calls perform over one day, one week, or one month.</p>
+        <a class="cover-link" href="#rankingTools">Explore the ranking <span aria-hidden="true">↓</span></a>
+      </div>
+      <div class="cover-art" aria-hidden="true">
+        <img src="./ithac-ranking-cover.jpg"
+          srcset="./ithac-ranking-cover-small.jpg 720w, ./ithac-ranking-cover.jpg 1280w"
+          sizes="(max-width: 640px) 100vw, 610px"
+          alt="" width="1280" height="853" fetchpriority="high">
+      </div>
     </div>
 
     <section class="list-card" aria-labelledby="pageTitle">
@@ -85,6 +94,14 @@
         </div>
       </div>
 
+      <section id="featuredRanking" class="featured-ranking" aria-labelledby="featuredTitle" hidden>
+        <div class="featured-heading">
+          <h2 id="featuredTitle">Ranking leaders</h2>
+          <span id="featuredPeriod"></span>
+        </div>
+        <div id="featuredCards" class="featured-cards"></div>
+      </section>
+
       <div id="loadError" class="load-error ranking-error" role="status" hidden></div>
       <div id="leaderboardHead" class="leaderboard-head" aria-hidden="true">
         <span>Rank</span><span>Account</span><span>Score</span><span>Calls</span><span></span>
@@ -114,6 +131,6 @@
   </main>
   <div id="modalRoot"></div>
 
-  <script src="./app.js?v=20261120-ranking-2" defer></script>
+  <script src="./app.js?v=20261120-cover" defer></script>
 </body>
 </html>
