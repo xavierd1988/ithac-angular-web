@@ -2,12 +2,19 @@
   'use strict';
 
   const ARMY_SIZE = 10;
-  let registry = null;
+  const SERVER_ADDRESS = 'Server address (178.105.42.115, no proxy)';
+  let army = null;
+  let armyTimer = null;
 
-  fetch('./robots.json?v=20261121-history', { cache: 'no-store' })
-    .then((response) => (response.ok ? response.json() : null))
-    .then((data) => { registry = data; render(); })
-    .catch(() => { registry = { robots: [], legacy: [] }; render(); });
+  async function loadArmy() {
+    try {
+      if (typeof window.ithacGetJson !== 'function') throw new Error('API not ready');
+      army = await window.ithacGetJson('/api/monitor/robots');
+    } catch {
+      army = army || { robots: [], events: [] };
+    }
+    render();
+  }
 
   const main = document.querySelector('main.app-shell');
   const garage = document.getElementById('garageView');
@@ -49,8 +56,12 @@
       }
       showTab(currentTab());
       window.scrollTo(0, 0);
-      render();
+      clearInterval(armyTimer);
+      const start = () => void loadArmy();
+      if (typeof window.ithacGetJson === 'function') start(); else setTimeout(start, 1500);
+      armyTimer = setInterval(loadArmy, 60_000);
     } else if (!garage.hidden) {
+      clearInterval(armyTimer);
       garage.hidden = true;
       main.hidden = false;
       document.body.classList.remove('in-garage');
@@ -83,19 +94,6 @@
       : '';
   }
 
-  function robotStatus(session) {
-    if (!session) return { key: 'pending', label: 'Waiting for login' };
-    const health = String(session.health || '').toLowerCase();
-    const error = String(session.lastError || '');
-    if (session.enabled && health === 'available') return { key: 'active', label: 'Active' };
-    if (session.enabled && health === 'coolingdown') {
-      const until = session.cooldownUntil ? ` until ${eastern(session.cooldownUntil, true)}` : '';
-      return { key: 'paused', label: `Paused by X${until}` };
-    }
-    if (/brid|throttl|vieux posts|old posts/i.test(error)) return { key: 'throttled', label: 'Throttled by X' };
-    return { key: 'offline', label: 'Offline' };
-  }
-
   function eastern(value, timeOnly = false) {
     const d = new Date(value);
     if (!Number.isFinite(d.getTime())) return '';
@@ -103,14 +101,6 @@
       ? { timeZone: 'America/New_York', hour: 'numeric', minute: '2-digit' }
       : { timeZone: 'America/New_York', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' };
     return `${d.toLocaleString('en-US', options)} ET`;
-  }
-
-  function settingsLine(entry) {
-    const preset = registry?.settingsPresets?.[entry.preset];
-    if (!preset) return '';
-    return `${escapeHtml(preset.label)}: ${preset.postsPerPass} posts / pass, ${escapeHtml(preset.requestsPerPass)} request(s) / pass, ` +
-      `min ${preset.minSecondsBetweenPasses} s between passes, ~${escapeHtml(preset.approxRequestsPerMinute)} requests / min ` +
-      `<span class="robot-since">since ${eastern(entry.from)}</span>`;
   }
 
   function timeline(events) {
@@ -122,91 +112,109 @@
       </li>`).join('')}</ol>`;
   }
 
-  function lastEvent(robot) {
-    const event = (robot.events || [])[robot.events.length - 1];
-    return event ? `<p class="robot-last"><span>Latest:</span> ${escapeHtml(event.text)} <time>${eastern(event.at)}</time></p>` : '';
+  function duration(fromValue, toValue) {
+    const ms = new Date(toValue).getTime() - new Date(fromValue).getTime();
+    if (!Number.isFinite(ms) || ms < 0) return '–';
+    const min = Math.round(ms / 60000);
+    if (min < 60) return `${min} min`;
+    const h = Math.floor(min / 60);
+    if (h < 48) return `${h} h ${String(min % 60).padStart(2, '0')}`;
+    return `${Math.round(h / 24)} days`;
+  }
+
+  function lifeStatus(robot) {
+    const status = String(robot.status || '');
+    if (status === 'alive') {
+      const health = String(robot.health || '').toLowerCase();
+      if (robot.enabled && health === 'coolingdown') {
+        return { key: 'paused', label: `Paused by X${robot.cooldown_until ? ` until ${eastern(robot.cooldown_until, true)}` : ''}` };
+      }
+      return { key: 'active', label: 'Alive' };
+    }
+    if (status === 'testing') return { key: 'pending', label: 'Birth test…' };
+    if (status === 'retired') return { key: 'throttled', label: 'Retired' };
+    return { key: 'throttled', label: 'Dead' };
+  }
+
+  function robotCard(robot, events, working) {
+    const status = lifeStatus(robot);
+    const alive = robot.status === 'alive' || robot.status === 'testing';
+    const address = robot.address === 'server' ? SERVER_ADDRESS : (robot.address === 'proxy' ? 'Proxy (June setup)' : robot.address || '–');
+    const lifeRows = alive
+      ? `<div><dt>Born</dt><dd>${eastern(robot.born_at)}</dd></div>
+         <div><dt>Alive for</dt><dd>${duration(robot.born_at, new Date())}</dd></div>
+         <div><dt>Reads since birth</dt><dd>${Number(robot.passes_since_birth || 0).toLocaleString()} · ${Number(robot.posts_since_birth || 0).toLocaleString()} new posts</dd></div>
+         <div><dt>Reads today</dt><dd>${Number(robot.reads_today || 0).toLocaleString()}</dd></div>`
+      : `<div><dt>Born</dt><dd>${eastern(robot.born_at)}</dd></div>
+         <div><dt>Died</dt><dd>${robot.died_at ? eastern(robot.died_at) : '–'}</dd></div>
+         <div><dt>Lived</dt><dd>${robot.died_at ? duration(robot.born_at, robot.died_at) : '–'}</dd></div>
+         <div><dt>Work done</dt><dd>${robot.passes_alive != null ? `${Number(robot.passes_alive).toLocaleString()} reads · ${Number(robot.new_posts_alive || 0).toLocaleString()} new posts` : '–'}</dd></div>`;
+    const busy = working.get(robot.session_name);
+    const activity = robot.status === 'alive'
+      ? (busy ? `Reading @${escapeHtml(busy)} now` : `Last read ${timeAgo(robot.last_used_at)}`)
+      : robot.status === 'testing' ? 'Being tested on reference influencers'
+      : escapeHtml(robot.death_reason || '');
+    const last = events[events.length - 1];
+    return `
+      <article class="robot-card robot-wide robot-${status.key}">
+        <div class="robot-avatar" aria-hidden="true"><span class="robot-eye"></span><span class="robot-eye"></span></div>
+        <div class="robot-body">
+          <div class="robot-title"><strong>${escapeHtml(robot.label)}</strong><span class="robot-pill">${escapeHtml(status.label)}</span></div>
+          <p class="robot-identity">${escapeHtml(robot.identity || 'X account')}</p>
+          <dl>
+            <div><dt>Address</dt><dd>${escapeHtml(address)}</dd></div>
+            ${lifeRows}
+          </dl>
+          <p class="robot-activity">${activity}</p>
+          ${last ? `<p class="robot-last"><span>Latest:</span> ${escapeHtml(last.text)} <time>${eastern(last.at)}</time></p>` : ''}
+          ${events.length ? `<details class="robot-details"><summary>History (${events.length} events)</summary>${timeline(events)}</details>` : ''}
+        </div>
+      </article>`;
   }
 
   function render() {
-    if (!grid || !registry) return;
-    const sessions = new Map((latest?.sessions || []).map((session) => [session.name, session]));
+    if (!grid || !army) return;
     const working = new Map();
     for (const job of latest?.jobs || []) {
       if (String(job.status || '').toLowerCase() === 'running' && job.sessionName) working.set(job.sessionName, job.username);
     }
-
-    const robots = (registry.robots || []).slice(0, ARMY_SIZE);
-    const cards = robots.map((robot) => {
-      const session = sessions.get(robot.session);
-      const status = robotStatus(session);
-      const identity = [robot.handle, robot.email].filter(Boolean).map(escapeHtml).join(' · ') || 'X account';
-      const address = robot.address === 'server' ? (registry.serverAddress || 'Server address') : robot.address;
-      const busy = working.get(robot.session);
-      const activity = !session ? 'Not connected yet'
-        : busy ? `Reading @${escapeHtml(busy)} now`
-        : `Last read ${timeAgo(session.lastUsedAt)}`;
-      const stats = robot.stats
-        ? `<div><dt>Before ban</dt><dd>${robot.stats.healthyPasses} passes · ${robot.stats.newPostsBeforeBan.toLocaleString()} new posts · ${robot.stats.minutesBeforeBan} min</dd></div>`
-        : '';
-      const settings = (robot.settings || []).map(settingsLine).filter(Boolean);
-      return `
-        <article class="robot-card robot-wide robot-${status.key}">
-          <div class="robot-avatar" aria-hidden="true"><span class="robot-eye"></span><span class="robot-eye"></span></div>
-          <div class="robot-body">
-            <div class="robot-title"><strong>${escapeHtml(robot.id)}</strong><span class="robot-pill">${escapeHtml(status.label)}</span></div>
-            <p class="robot-identity">${identity}</p>
-            <dl>
-              <div><dt>Address</dt><dd>${escapeHtml(address)}</dd></div>
-              <div><dt>Reads today</dt><dd>${session ? Number(session.dailyJobCount || 0).toLocaleString() : '–'}</dd></div>
-              ${stats}
-            </dl>
-            <p class="robot-activity">${activity}</p>
-            ${lastEvent(robot)}
-            ${settings.length ? `<details class="robot-details"><summary>Settings</summary><ul class="robot-settings">${settings.map((line) => `<li>${line}</li>`).join('')}</ul></details>` : ''}
-            ${robot.events?.length ? `<details class="robot-details"><summary>History (${robot.events.length} events)</summary>${timeline(robot.events)}</details>` : ''}
-          </div>
-        </article>`;
-    });
-
-    if (robots.length < ARMY_SIZE) {
-      const first = robots.length + 1;
-      const free = ARMY_SIZE - robots.length;
-      cards.push(`
-        <article class="robot-card robot-empty" aria-label="Free robot slots">
-          <div class="robot-avatar" aria-hidden="true"></div>
-          <div class="robot-body">
-            <div class="robot-title"><strong>X${first}${free > 1 ? ` – X${ARMY_SIZE}` : ''}</strong><span class="robot-pill">${free} free slot${free > 1 ? 's' : ''}</span></div>
-            <p class="robot-activity">Waiting for X accounts</p>
-          </div>
-        </article>`);
+    const eventsBy = new Map();
+    for (const event of army.events || []) {
+      if (!eventsBy.has(event.session_name)) eventsBy.set(event.session_name, []);
+      eventsBy.get(event.session_name).push(event);
     }
+    const number = (robot) => Number(String(robot.label).replace(/\D/g, '')) || 0;
+    const all = army.robots || [];
+    const army10 = all.filter((robot) => robot.status !== 'retired');
+    const retired = all.filter((robot) => robot.status === 'retired');
+    const order = { alive: 0, testing: 1, dead: 2 };
+    army10.sort((a, b) => (order[a.status] ?? 3) - (order[b.status] ?? 3) || number(a) - number(b));
 
-    const legacy = (registry.legacy || []).map((robot) => `
-      <article class="robot-card robot-wide robot-legacy robot-throttled">
-        <div class="robot-avatar" aria-hidden="true"><span class="robot-eye"></span><span class="robot-eye"></span></div>
+    const living = army10.filter((robot) => robot.status === 'alive' || robot.status === 'testing');
+    const dead = army10.filter((robot) => robot.status === 'dead');
+    const lives = dead.filter((robot) => robot.died_at).map((robot) => new Date(robot.died_at) - new Date(robot.born_at)).filter((ms) => ms > 0);
+    const avg = lives.length ? duration(0, lives.reduce((a, b) => a + b, 0) / lives.length) : '–';
+    const stats = `
+      <div class="army-stats">
+        <div><strong>${army10.length}</strong><span>robots born</span></div>
+        <div><strong>${living.length}</strong><span>alive</span></div>
+        <div><strong>${dead.length}</strong><span>dead</span></div>
+        <div><strong>${avg}</strong><span>average life</span></div>
+        <div><strong>${Math.max(0, ARMY_SIZE - living.length)}</strong><span>free places (target ${ARMY_SIZE})</span></div>
+      </div>`;
+    const addCard = `
+      <article class="robot-card robot-empty robot-add">
+        <div class="robot-avatar" aria-hidden="true"></div>
         <div class="robot-body">
-          <div class="robot-title"><strong>${escapeHtml(robot.id)}</strong><span class="robot-pill">Retired</span></div>
-          <p class="robot-identity">${escapeHtml(robot.label)}</p>
-          <dl>
-            <div><dt>Active</dt><dd>${escapeHtml(robot.period)}</dd></div>
-            <div><dt>Passes</dt><dd>${Number(robot.passes).toLocaleString()}</dd></div>
-            <div><dt>Posts stored</dt><dd>${Number(robot.newPosts).toLocaleString()}</dd></div>
-          </dl>
-          <details class="robot-details"><summary>History</summary>${timeline(robot.events)}</details>
+          <div class="robot-title"><strong>New robot</strong><span class="robot-pill">${Math.max(0, ARMY_SIZE - living.length)} free</span></div>
+          <p class="robot-activity">Create an X account, then open <code>ITHAC-Ajouter-un-robot.command</code> on the Mac and sign in. The robot is tested and put to work automatically.</p>
         </div>
-      </article>`);
-
-    grid.innerHTML = cards.join('') +
+      </article>`;
+    const cards = army10.map((robot) => robotCard(robot, eventsBy.get(robot.session_name) || [], working));
+    const legacy = retired.map((robot) => robotCard(robot, eventsBy.get(robot.session_name) || [], working));
+    grid.innerHTML = stats + cards.join('') + addCard +
       (legacy.length ? `<h3 class="robots-legacy-title">Retired accounts (before November 2026)</h3>${legacy.join('')}` : '');
-
-    const statuses = robots.map((robot) => robotStatus(sessions.get(robot.session)).key);
-    const count = (key) => statuses.filter((value) => value === key).length;
-    const parts = [`${count('active')} active`];
-    if (count('paused')) parts.push(`${count('paused')} paused`);
-    if (count('throttled')) parts.push(`${count('throttled')} throttled`);
-    if (count('pending')) parts.push(`${count('pending')} waiting for login`);
-    parts.push(`${robots.length}/${ARMY_SIZE} slots used`);
-    summary.textContent = parts.join(' · ');
+    summary.textContent = `${living.length} alive · ${dead.length} dead · pace: 1 read per robot every 15 s or more`;
   }
 
   window.addEventListener('ithac:resources', (event) => {
@@ -486,7 +494,14 @@
     const open = location.hash.startsWith('#garage');
     clearInterval(summaryTimer);
     if (!open) return;
-    const start = () => { void loadSummary(); if (!rows.length) void loadRows(false); };
+    const start = () => {
+      void loadSummary();
+      if (!rows.length) void loadRows(false);
+      getJson('/api/monitor/robots').then((data) => {
+        for (const robot of data?.robots || []) robotsBySession[robot.session_name] = robot.label;
+        if (rows.length) renderRows();
+      }).catch(() => {});
+    };
     if (typeof window.ithacGetJson === 'function') start(); else setTimeout(start, 1500);
     summaryTimer = setInterval(loadSummary, 60_000);
   }

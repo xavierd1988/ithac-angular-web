@@ -393,3 +393,11 @@ main.app-shell[hidden],
   .garage-header h1 { font-size: 26px; }
   .journal-table th:nth-child(6), .journal-table td:nth-child(6), .journal-table th:nth-child(7), .journal-table td:nth-child(7) { display: none; }
 }
+
+/* ---------- Robot army (live lifecycle) ---------- */
+.army-stats { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; }
+.army-stats div { display: grid; gap: 2px; padding: 10px 12px; border: 1px solid var(--line, #dde2ea); border-radius: 10px; background: #fff; }
+.army-stats strong { font-size: 20px; }
+.army-stats span { color: var(--muted, #4f5e72); font-size: 12px; }
+.robot-add code { font-size: 11px; }
+.robot-event-born::before, .robot-event-revived::before { background: #2fd49a; }
