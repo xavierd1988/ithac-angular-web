@@ -5,10 +5,12 @@
   const ROBOT_ACCOUNTS = {
     session_02: 'Old account',
     session_04: '@Dinel…8079',
-    session_05: '@XDine…0196'
+    session_05: '@XDine…0196',
+    session_06: 'xavi…155 (Yahoo)',
+    session_07: 'xavi…36 (Yahoo)'
   };
   // Proxies configured with no real proxy: the robot reads from the server's own address.
-  const SERVER_ADDRESS_PROXIES = new Set(['proxy-us-04', 'proxy-us-05']);
+  const SERVER_ADDRESS_PROXIES = new Set(['proxy-us-04', 'proxy-us-05', 'proxy-us-06', 'proxy-us-07']);
   const ARMY_SIZE = 10;
 
   const main = document.querySelector('main.app-shell');
