@@ -304,3 +304,26 @@ main.app-shell[hidden],
 .robot-card dd { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .robot-title strong { white-space: nowrap; }
 .robots-summary { margin-bottom: 4px; }
+
+/* Robot records: identity, settings and history */
+.robots-grid { grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); align-items: start; }
+.robot-identity { margin: 4px 0 0; font-size: 13px; font-weight: 600; overflow-wrap: anywhere; }
+.robot-pending .robot-pill { background: #e7ecfb; color: #274db9; }
+.robot-pending .robot-eye { background: #9fb3ea; }
+.robot-card dl div { align-items: baseline; }
+.robot-card dd { white-space: normal; overflow: visible; text-overflow: clip; }
+.robot-details { margin-top: 8px; font-size: 12px; }
+.robot-details > summary { cursor: pointer; color: var(--accent, #294882); font-weight: 650; }
+.robot-settings { margin: 6px 0 0; padding-left: 16px; color: var(--ink, #1b263b); }
+.robot-settings li + li { margin-top: 4px; }
+.robot-since { color: var(--muted, #4f5e72); }
+.robot-timeline { display: grid; gap: 6px; margin: 8px 0 0; padding: 0 0 0 12px; list-style: none; border-left: 2px solid var(--line, #dde2ea); }
+.robot-event { position: relative; display: grid; gap: 1px; }
+.robot-event::before { content: ""; position: absolute; left: -18px; top: 4px; width: 10px; height: 10px; border-radius: 50%; background: #9fb0c8; }
+.robot-event time { color: var(--muted, #4f5e72); font-size: 11px; font-weight: 650; }
+.robot-event-start::before, .robot-event-connect::before { background: #2fd49a; }
+.robot-event-pause::before, .robot-event-settings::before { background: #f5c542; }
+.robot-event-ban::before, .robot-event-disable::before { background: #e05a5e; }
+.robot-event-retest::before { background: #274db9; }
+.robots-legacy-title { grid-column: 1 / -1; margin: 10px 0 0; font-size: 15px; color: var(--muted, #4f5e72); }
+.robot-legacy { opacity: .85; }
