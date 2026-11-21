@@ -59,7 +59,6 @@
   const els = {
     livePositionBar: byId('livePositionBar'),
     scannerTitle: byId('scannerTitle'),
-    garageScanStatus: document.getElementById('garageScanStatus'),
     scannerMeta: byId('scannerMeta'),
     scannerProgressText: byId('scannerProgressText'),
     scannerProgressBar: byId('scannerProgressBar'),
@@ -77,7 +76,6 @@
     loadError: byId('loadError'),
     rankingStats: byId('rankingStats'),
     rankingSearch: byId('rankingSearch'),
-    garageResultsCount: document.getElementById('garageResultsCount'),
     rankingOrder: byId('rankingOrder'),
     featuredRanking: byId('featuredRanking'),
     featuredPeriod: byId('featuredPeriod'),
@@ -120,10 +118,6 @@
       state.selectedUsername = null;
       renderAll();
       void loadSnapshot({ resetListScroll: true });
-    });
-    document.getElementById('garageRankingForm')?.addEventListener('submit', (event) => {
-      event.preventDefault();
-      window.location.hash = 'rankingResults';
     });
     els.rankingSearch.addEventListener('input', () => {
       state.query = els.rankingSearch.value.trim().replace(/^@+/, '');
@@ -471,32 +465,22 @@
     const progress = total ? Math.max(0, Math.min(100, ((done + failed) / Math.max(total, 1)) * 100)) : 0;
 
     els.livePositionBar.className = `live-position-bar ${status}`;
-    const liveStatus = state.loadError ? 'unavailable' : !run ? 'loading' : String(run.status || 'idle').toLowerCase();
-    const statusLabels = {
-      loading: 'Connecting', running: 'Scanning', paused: 'Paused', failed: 'Scan ended with errors',
-      completed: 'Scan complete', blocked: 'Waiting for resources', queued: 'Waiting to scan',
-      cancelled: 'Scan cancelled', unavailable: 'Live data unavailable'
-    };
-    if (els.garageScanStatus) {
-      els.garageScanStatus.dataset.status = liveStatus;
-      els.garageScanStatus.textContent = statusLabels[liveStatus] || 'Idle';
-    }
-    els.scannerProgressText.textContent = total ? `${Math.round(progress)}%` : '–';
+    els.scannerProgressText.textContent = `${Math.round(progress)}%`;
     els.scannerProgressBar.style.transform = `scaleX(${(progress / 100).toFixed(3)})`;
-    els.scannerDone.textContent = String(done + failed);
+    els.scannerDone.textContent = String(done);
     els.scannerRunning.textContent = String(running);
     els.scannerQueued.textContent = String(queued);
     els.scannerResources.textContent = resourcesShort;
 
     if (active) {
       const rowPos = rowPosition(active.username);
-      els.scannerTitle.textContent = `${running > 0 ? 'Checking' : 'Last checked'} @${active.username}`;
+      els.scannerTitle.textContent = `now @${active.username}`;
       els.scannerMeta.textContent = `${rowPos} · ${resourceText(active)} · started ${formatTime(active.startedAt || active.updatedAt)} · ${done}/${Math.max(total, 1)} complete · ${failed} failed · ${resources}`;
       return;
     }
 
     if (status === 'running') {
-      const label = eventUser ? `Last checked @${eventUser}` : 'Waiting for the next account';
+      const label = eventUser ? `last @${eventUser}` : `Run #${run?.id ?? '-'} active`;
       els.scannerTitle.textContent = label;
       els.scannerMeta.textContent = event
         ? `${event.text} · ${event.at} · ${done}/${Math.max(total, 1)} complete · ${failed} failed · ${resources}`
@@ -504,7 +488,7 @@
       return;
     }
 
-    els.scannerTitle.textContent = eventUser ? `Last checked @${eventUser}` : 'No account being checked';
+    els.scannerTitle.textContent = eventUser ? `last @${eventUser}` : 'idle';
     els.scannerMeta.textContent = event ? `${event.text} · ${event.at} · ${done}/${Math.max(total, 1)} complete · ${failed} failed · ${resources}` : `no active scrape · ${resources}`;
   }
 
@@ -533,12 +517,6 @@
     els.showMore.disabled = els.incrementalRanking.hidden;
 
     els.pageStatus.textContent = total ? `${offset + 1}–${end} of ${total}` : '0 accounts';
-    const countText = !state.lastSnapshotAt && !hasFullList
-      ? (state.loadError ? 'Ranking unavailable' : 'Loading accounts…')
-      : `${total.toLocaleString()} ${total === 1 ? 'account' : 'accounts'}`;
-    if (els.garageResultsCount && els.garageResultsCount.textContent !== countText) {
-      els.garageResultsCount.textContent = countText;
-    }
     els.prevPage.disabled = pageIndex <= 0;
     els.nextPage.disabled = !hasMore;
     els.pageSize.value = String(state.pageSize);
@@ -921,7 +899,6 @@
     const lower = String(username || '').toLowerCase();
     const index = rows.findIndex((row) => String(row.username || '').toLowerCase() === lower);
     if (index < 0) return;
-    window.dispatchEvent(new CustomEvent('ithac:show-ranking'));
     const pageSize = state.pageSize || state.page.pageSize || 250;
     state.pageIndex = Math.floor(index / Math.max(pageSize, 1));
     state.pagesShown = 1;
