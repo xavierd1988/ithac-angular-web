@@ -1,0 +1,306 @@
+/* Main view: ranking only, full width. Garage view: everything else. */
+main.app-shell[hidden],
+.garage-view[hidden] {
+  display: none !important;
+}
+
+.ranking-layout.ranking-layout-solo {
+  grid-template-columns: minmax(0, 1fr);
+  width: min(1180px, calc(100% - 2 * clamp(16px, 2vw, 34px)));
+  margin-inline: auto;
+  padding-inline-start: 0;
+}
+
+/* ---------- Garage door (bottom of the main page) ---------- */
+.garage-entry {
+  display: flex;
+  justify-content: center;
+  padding: clamp(28px, 5vw, 56px) 16px clamp(36px, 6vw, 72px);
+}
+
+.garage-door {
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  color: var(--ink, #1b263b);
+  text-decoration: none;
+}
+
+.garage-door-frame {
+  position: relative;
+  display: grid;
+  gap: 5px;
+  width: min(320px, 78vw);
+  padding: 14px 14px 10px;
+  border: 3px solid #1b263b;
+  border-bottom-width: 0;
+  border-radius: 14px 14px 0 0;
+  background: linear-gradient(180deg, #24365e, #1b263b);
+  box-shadow: 0 14px 30px #1b263b29;
+  overflow: hidden;
+}
+
+.garage-door-panel {
+  display: block;
+  height: 26px;
+  border-radius: 4px;
+  background: repeating-linear-gradient(90deg, #dfe6f2 0 22%, #c9d3e4 22% 25%);
+  box-shadow: inset 0 -3px 0 #a9b6cc;
+  transition: transform 380ms cubic-bezier(.2, .8, .2, 1);
+}
+
+.garage-door-handle {
+  position: absolute;
+  left: 50%;
+  bottom: 18px;
+  width: 54px;
+  height: 7px;
+  border-radius: 4px;
+  background: #f5c542;
+  transform: translateX(-50%);
+  transition: transform 380ms cubic-bezier(.2, .8, .2, 1);
+}
+
+.garage-door:hover .garage-door-panel,
+.garage-door:focus-visible .garage-door-panel {
+  transform: translateY(-12px);
+}
+
+.garage-door:hover .garage-door-handle,
+.garage-door:focus-visible .garage-door-handle {
+  transform: translate(-50%, -12px);
+}
+
+.garage-door:focus-visible {
+  outline: 3px solid #294882;
+  outline-offset: 6px;
+  border-radius: 14px;
+}
+
+.garage-door-label {
+  display: grid;
+  justify-items: center;
+  gap: 3px;
+  text-align: center;
+}
+
+.garage-door-label strong {
+  font-size: 18px;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.garage-door-label em {
+  color: var(--muted, #4f5e72);
+  font-size: 13px;
+  font-style: normal;
+}
+
+/* ---------- Garage page ---------- */
+.garage-view {
+  position: relative;
+  width: min(1180px, calc(100% - 2 * clamp(16px, 2vw, 34px)));
+  margin: 0 auto;
+  padding: clamp(18px, 3vw, 34px) 0 64px;
+}
+
+.garage-shutter {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  pointer-events: none;
+  background: repeating-linear-gradient(180deg, #dfe6f2 0 46px, #c9d3e4 46px 52px);
+  transform: translateY(-100%);
+}
+
+.garage-view.garage-opening .garage-shutter {
+  animation: garage-open 760ms cubic-bezier(.65, 0, .35, 1) both;
+}
+
+@keyframes garage-open {
+  from { transform: translateY(0); }
+  to { transform: translateY(-100%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .garage-view.garage-opening .garage-shutter { animation: none; }
+  .garage-door-panel, .garage-door-handle { transition: none; }
+}
+
+.garage-header {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 22px;
+}
+
+.garage-header h1 {
+  margin: 4px 0 0;
+  font-size: clamp(26px, 4vw, 38px);
+}
+
+.garage-header p {
+  margin: 0;
+  color: var(--muted, #4f5e72);
+}
+
+.garage-back {
+  justify-self: start;
+  color: var(--accent, #294882);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.garage-back:hover { text-decoration: underline; }
+
+.garage-panel {
+  margin-bottom: 18px;
+  padding: clamp(14px, 2.4vw, 24px);
+  border: 1px solid var(--line, #dde2ea);
+  border-radius: 12px;
+  background: var(--surface, #fff);
+}
+
+.garage-panel h2 {
+  margin: 0 0 12px;
+  font-size: 18px;
+}
+
+.garage-panel-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.garage-note,
+.robots-summary {
+  color: var(--muted, #4f5e72);
+  font-size: 13px;
+}
+
+.garage-note { margin: 0 0 14px; }
+
+.garage-panel .action-sidebar {
+  position: static;
+  max-width: 420px;
+}
+
+/* ---------- Robots ---------- */
+.robots-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 12px;
+}
+
+.robot-card {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--line, #dde2ea);
+  border-radius: 10px;
+  background: #f8fafd;
+}
+
+.robot-avatar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 44px;
+  height: 40px;
+  border-radius: 10px 10px 8px 8px;
+  background: #1b263b;
+}
+
+.robot-avatar::before {
+  content: "";
+  position: absolute;
+  top: -7px;
+  left: 50%;
+  width: 3px;
+  height: 7px;
+  background: #1b263b;
+  transform: translateX(-50%);
+}
+
+.robot-eye {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #9fb0c8;
+}
+
+.robot-active .robot-eye { background: #2fd49a; box-shadow: 0 0 6px #2fd49a; }
+.robot-paused .robot-eye { background: #f5c542; }
+.robot-throttled .robot-eye { background: #e05a5e; }
+
+.robot-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.robot-pill {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #e8edf4;
+  color: #4f5e72;
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.robot-active .robot-pill { background: #dcf3ea; color: #126450; }
+.robot-paused .robot-pill { background: #fbf0d4; color: #86561f; }
+.robot-throttled .robot-pill { background: #f8dfe0; color: #aa3337; }
+
+.robot-card dl {
+  display: grid;
+  gap: 2px;
+  margin: 8px 0 0;
+  font-size: 12px;
+}
+
+.robot-card dl div {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.robot-card dt { color: var(--muted, #4f5e72); }
+.robot-card dd { margin: 0; font-weight: 600; text-align: right; }
+
+.robot-activity {
+  margin: 8px 0 0;
+  color: var(--muted, #4f5e72);
+  font-size: 12px;
+}
+
+.robot-empty {
+  border-style: dashed;
+  background: transparent;
+  opacity: .7;
+}
+
+.robot-empty .robot-avatar { background: #dde2ea; }
+.robot-empty .robot-avatar::before { background: #dde2ea; }
+
+/* Options were styled as a floating menu inside the old drawer: keep them inline in the garage. */
+.garage-panel .options-content {
+  position: static;
+  min-width: 0;
+  margin-top: 6px;
+  box-shadow: none;
+}
+
+.garage-panel .ranking-tools-secondary { padding-top: 0; }
+.garage-panel .ranking-search { width: min(100%, 300px); margin-inline-start: 0; }
+.robots-grid { grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); }
+.robot-card dt { white-space: nowrap; }
+.robot-card dd { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.robot-title strong { white-space: nowrap; }
+.robots-summary { margin-bottom: 4px; }
