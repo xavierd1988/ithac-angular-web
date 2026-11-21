@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="./styles.css?v=20260714-call-compact">
   <link rel="stylesheet" href="./ranking.css?v=20261120-action">
   <link rel="stylesheet" href="./action-robot.css?v=20261120-action">
+  <link rel="stylesheet" href="./garage.css?v=20261121-garage">
 </head>
 <body>
   <main class="app-shell">
@@ -23,7 +24,7 @@
       </div>
     </div>
 
-    <div class="ranking-layout">
+    <div class="ranking-layout ranking-layout-solo">
       <section class="list-card" aria-labelledby="pageTitle">
         <div class="ranking-tools ranking-tools-primary">
           <div class="ranking-period" role="group" aria-label="Scoring period">
@@ -53,34 +54,46 @@
         <div class="incremental-ranking" id="incrementalRanking" hidden>
           <button type="button" id="showMore" aria-controls="list">Show more</button>
         </div>
-        <details class="page-navigation" id="pageNavigation">
-          <summary>Browse pages <strong id="pageStatus"></strong></summary>
-          <nav class="pager" aria-label="Ranking pages">
-            <button id="prevPage" type="button" aria-label="Previous page">Previous</button>
-            <div class="page-numbers" id="pageNumbers"></div>
-            <button id="nextPage" type="button" aria-label="Next page">Next</button>
-            <label>
-              Rows
-              <select id="pageSize">
-                <option value="25" selected>25</option>
-                <option value="50">50</option>
-                <option value="100">100</option>
-                <option value="250">250</option>
-                <option value="500">500</option>
-                <option value="1000">1000</option>
-              </select>
-            </label>
-          </nav>
-        </details>
-        <details class="ranking-extras">
-          <summary>Search, options and activity</summary>
+      </section>
+    </div>
+
+    <div class="garage-entry">
+      <a class="garage-door" href="#garage" aria-label="Open the garage: search, options, live activity and scraper robots">
+        <span class="garage-door-frame" aria-hidden="true">
+          <span class="garage-door-panel"></span><span class="garage-door-panel"></span><span class="garage-door-panel"></span><span class="garage-door-panel"></span>
+          <span class="garage-door-handle"></span>
+        </span>
+        <span class="garage-door-label"><strong>Garage</strong><em>Search, options, live activity and scraper robots</em></span>
+      </a>
+    </div>
+  </main>
+
+  <section id="garageView" class="garage-view" aria-labelledby="garageTitle" hidden>
+    <div class="garage-shutter" aria-hidden="true"></div>
+    <header class="garage-header">
+      <a class="garage-back" href="#">&larr; Back to the ranking</a>
+      <h1 id="garageTitle">Garage</h1>
+      <p>Everything behind the ranking: the scraper robots, live activity, search and options.</p>
+    </header>
+
+    <section class="garage-panel garage-robots" aria-labelledby="robotsTitle">
+      <div class="garage-panel-head">
+        <h2 id="robotsTitle">Scraper robots</h2>
+        <span id="robotsSummary" class="robots-summary">Loading…</span>
+      </div>
+      <p class="garage-note">Each robot reads X with its own account. X slows down accounts that read too fast, so every robot keeps a safe pace.</p>
+      <div id="robotsGrid" class="robots-grid"></div>
+    </section>
+
+    <section class="garage-panel" aria-labelledby="activityTitle">
+      <h2 id="activityTitle">Live activity, search and options</h2>
           <div class="ranking-tools ranking-tools-secondary">
             <label class="ranking-search">
               <span>Find an account</span>
               <input id="rankingSearch" type="search" placeholder="Search by name" autocomplete="off">
             </label>
             <div class="utility-disclosures">
-              <details class="ranking-options">
+              <details class="ranking-options" open>
                 <summary>Ranking options</summary>
                 <div class="options-content">
                   <label>
@@ -94,7 +107,7 @@
                 </div>
               </details>
 
-              <details class="scanner-disclosure">
+              <details class="scanner-disclosure" open>
                 <summary>Live activity</summary>
                 <div id="livePositionBar" class="live-position-bar" aria-label="Live scraper position">
                   <section class="scanner-head">
@@ -118,8 +131,32 @@
               </details>
             </div>
           </div>
+    </section>
+
+    <section class="garage-panel" aria-labelledby="pagesTitle">
+      <h2 id="pagesTitle">Ranking pages</h2>
+        <details class="page-navigation" id="pageNavigation" open>
+          <summary>Browse pages <strong id="pageStatus"></strong></summary>
+          <nav class="pager" aria-label="Ranking pages">
+            <button id="prevPage" type="button" aria-label="Previous page">Previous</button>
+            <div class="page-numbers" id="pageNumbers"></div>
+            <button id="nextPage" type="button" aria-label="Next page">Next</button>
+            <label>
+              Rows
+              <select id="pageSize">
+                <option value="25" selected>25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+                <option value="250">250</option>
+                <option value="500">500</option>
+                <option value="1000">1000</option>
+              </select>
+            </label>
+          </nav>
         </details>
-      </section>
+    </section>
+
+    <section class="garage-panel garage-action" aria-label="Action simulator">
       <aside class="action-sidebar" aria-labelledby="actionTitle">
         <details id="actionPanel" class="action-panel" data-robot-state="watching" open>
           <summary class="action-heading">
@@ -168,11 +205,12 @@
           </div>
         </details>
       </aside>
-    </div>
-  </main>
+    </section>
+  </section>
   <div id="modalRoot"></div>
 
   <script src="./action.js?v=20261120-action" defer></script>
-  <script src="./app.js?v=20261121-active" defer></script>
+  <script src="./app.js?v=20261121-garage" defer></script>
+  <script src="./garage.js?v=20261121-garage" defer></script>
 </body>
 </html>

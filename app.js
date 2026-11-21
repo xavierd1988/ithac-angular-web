@@ -254,6 +254,9 @@
       state.lastSnapshotAt = new Date();
       hydrateSelectedPostsFromRecent(posts);
       renderAll();
+      window.dispatchEvent(new CustomEvent('ithac:resources', {
+        detail: { sessions: state.sessions, proxies: state.proxies, run: state.run, jobs: state.jobs }
+      }));
       if (options.resetListScroll) els.list.scrollTop = 0;
     } catch (error) {
       if (requestId !== state.snapshotSeq) return;
