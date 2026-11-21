@@ -361,3 +361,35 @@ main.app-shell[hidden],
 .journal-detail blockquote { margin: 0 0 8px; padding: 8px 12px; border-left: 3px solid var(--accent, #294882); background: #fff; white-space: pre-wrap; }
 .journal-detail p { margin: 0 0 6px; color: var(--ink, #1b263b); }
 .journal-more { display: flex; justify-content: center; margin-top: 12px; }
+
+/* ---------- Friendlier garage: tabs, overview, compact robots ---------- */
+.garage-tabs { position: sticky; top: 0; z-index: 5; display: flex; gap: 6px; margin: 0 0 16px; padding: 8px 0; overflow-x: auto; background: var(--bg, #f7f7f4); scrollbar-width: none; }
+.garage-tabs::-webkit-scrollbar { display: none; }
+.garage-tabs a { flex: none; padding: 8px 14px; border: 1px solid var(--line, #dde2ea); border-radius: 999px; background: #fff; color: var(--ink, #1b263b); font-size: 14px; font-weight: 600; text-decoration: none; }
+.garage-tabs a:hover { border-color: var(--line-strong, #b9c4d5); }
+.garage-tabs a.active { border-color: var(--accent, #294882); background: var(--accent, #294882); color: #fff; }
+.garage-panel[hidden] { display: none !important; }
+.health-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr)); gap: 12px; }
+.health-card { position: relative; display: grid; grid-template-columns: 16px minmax(0, 1fr); gap: 12px; padding: 14px 14px 14px 12px; border: 1px solid var(--line, #dde2ea); border-radius: 12px; background: #f8fafd; }
+.health-card div { display: grid; gap: 3px; }
+.health-card span { color: var(--muted, #4f5e72); font-size: 12px; font-weight: 650; }
+.health-card strong { font-size: 20px; line-height: 1.2; }
+.health-card small { color: var(--muted, #4f5e72); font-size: 12px; }
+.health-light { width: 14px; height: 14px; margin-top: 3px; border-radius: 50%; background: #9fb0c8; }
+.health-good .health-light { background: #2fd49a; }
+.health-warn .health-light { background: #f5c542; }
+.health-bad .health-light { background: #e05a5e; }
+.health-word { position: absolute; top: 12px; right: 12px; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-style: normal; font-weight: 700; }
+.health-good .health-word { background: #dcf3ea; color: #126450; }
+.health-warn .health-word { background: #fbf0d4; color: #86561f; }
+.health-bad .health-word { background: #f8dfe0; color: #aa3337; }
+.overview-subtitle { margin: 20px 0 8px; font-size: 15px; }
+.attention-list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.attention-list li { padding: 10px 12px; border-left: 3px solid #f5c542; border-radius: 0; background: #fffaf0; font-size: 14px; }
+.robot-last { margin: 6px 0 0; font-size: 12px; }
+.robot-last span { color: var(--muted, #4f5e72); font-weight: 650; }
+.robot-last time { display: block; color: var(--muted, #4f5e72); font-size: 11px; }
+@media (max-width: 640px) {
+  .garage-header h1 { font-size: 26px; }
+  .journal-table th:nth-child(6), .journal-table td:nth-child(6), .journal-table th:nth-child(7), .journal-table td:nth-child(7) { display: none; }
+}

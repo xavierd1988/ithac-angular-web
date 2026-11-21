@@ -16,20 +16,41 @@
   let latest = null;
   let lastScrollY = 0;
 
+  const TABS = ['overview', 'robots', 'journal', 'activity', 'tools'];
+
+  function currentTab() {
+    const tab = location.hash.split('/')[1] || 'overview';
+    return TABS.includes(tab) ? tab : 'overview';
+  }
+
+  function showTab(tab) {
+    for (const panel of garage.querySelectorAll('[data-tab-panel]')) {
+      panel.hidden = panel.dataset.tabPanel !== tab;
+    }
+    for (const link of garage.querySelectorAll('.garage-tabs [data-tab]')) {
+      const active = link.dataset.tab === tab;
+      link.classList.toggle('active', active);
+      if (active) link.setAttribute('aria-current', 'page'); else link.removeAttribute('aria-current');
+    }
+  }
+
   function route() {
-    const open = location.hash === '#garage';
+    const open = location.hash.startsWith('#garage');
     if (!main || !garage) return;
-    if (open && garage.hidden) {
-      lastScrollY = window.scrollY;
-      main.hidden = true;
-      garage.hidden = false;
-      document.body.classList.add('in-garage');
-      garage.classList.remove('garage-opening');
-      void garage.offsetWidth; // restart the door animation
-      garage.classList.add('garage-opening');
+    if (open) {
+      if (garage.hidden) {
+        lastScrollY = window.scrollY;
+        main.hidden = true;
+        garage.hidden = false;
+        document.body.classList.add('in-garage');
+        garage.classList.remove('garage-opening');
+        void garage.offsetWidth; // restart the door animation
+        garage.classList.add('garage-opening');
+      }
+      showTab(currentTab());
       window.scrollTo(0, 0);
       render();
-    } else if (!open && !garage.hidden) {
+    } else if (!garage.hidden) {
       garage.hidden = true;
       main.hidden = false;
       document.body.classList.remove('in-garage');
@@ -101,6 +122,11 @@
       </li>`).join('')}</ol>`;
   }
 
+  function lastEvent(robot) {
+    const event = (robot.events || [])[robot.events.length - 1];
+    return event ? `<p class="robot-last"><span>Latest:</span> ${escapeHtml(event.text)} <time>${eastern(event.at)}</time></p>` : '';
+  }
+
   function render() {
     if (!grid || !registry) return;
     const sessions = new Map((latest?.sessions || []).map((session) => [session.name, session]));
@@ -135,19 +161,22 @@
               ${stats}
             </dl>
             <p class="robot-activity">${activity}</p>
+            ${lastEvent(robot)}
             ${settings.length ? `<details class="robot-details"><summary>Settings</summary><ul class="robot-settings">${settings.map((line) => `<li>${line}</li>`).join('')}</ul></details>` : ''}
-            ${robot.events?.length ? `<details class="robot-details" open><summary>History</summary>${timeline(robot.events)}</details>` : ''}
+            ${robot.events?.length ? `<details class="robot-details"><summary>History (${robot.events.length} events)</summary>${timeline(robot.events)}</details>` : ''}
           </div>
         </article>`;
     });
 
-    for (let slot = robots.length; slot < ARMY_SIZE; slot++) {
+    if (robots.length < ARMY_SIZE) {
+      const first = robots.length + 1;
+      const free = ARMY_SIZE - robots.length;
       cards.push(`
-        <article class="robot-card robot-empty" aria-label="Free robot slot">
+        <article class="robot-card robot-empty" aria-label="Free robot slots">
           <div class="robot-avatar" aria-hidden="true"></div>
           <div class="robot-body">
-            <div class="robot-title"><strong>X${slot + 1}</strong><span class="robot-pill">Free slot</span></div>
-            <p class="robot-activity">Waiting for an X account</p>
+            <div class="robot-title"><strong>X${first}${free > 1 ? ` – X${ARMY_SIZE}` : ''}</strong><span class="robot-pill">${free} free slot${free > 1 ? 's' : ''}</span></div>
+            <p class="robot-activity">Waiting for X accounts</p>
           </div>
         </article>`);
     }
@@ -356,6 +385,49 @@
     return (list || []).filter((item) => !status || item.status === status).reduce((sum, item) => sum + item.count, 0);
   }
 
+
+  function renderOverview(s) {
+    const healthEl = document.getElementById('garageHealth');
+    const attentionEl = document.getElementById('garageAttention');
+    const overviewUpdated = document.getElementById('overviewUpdated');
+    if (!healthEl || !attentionEl) return;
+    const robots = s.robots || [];
+    const active = robots.filter((r) => r.enabled && String(r.health).toLowerCase() === 'available').length;
+    const paused = robots.filter((r) => r.enabled && String(r.health).toLowerCase() === 'coolingdown').length;
+    const recentPerHour = s.scraping?.recentPostsScrapedLastHour ?? 0;
+    const aiPerHour = count(s.analysis?.lastHour);
+    const waiting = s.analysis?.recentPostsWaiting ?? 0;
+    const scored24 = s.pricing?.scoredLast24h ?? 0;
+    const errors = count(s.pricing?.windowsByStatus, 'price_start_error') + count(s.pricing?.windowsByStatus, 'price_history_error');
+    const scoredTotal = count(s.pricing?.windowsByStatus, 'scored');
+    const errorShare = scoredTotal + errors ? errors / (scoredTotal + errors) : 0;
+    const level = (good, warn) => (good ? 'good' : warn ? 'warn' : 'bad');
+    const steps = [
+      { name: '1. Collect', tone: level(active >= 2 && recentPerHour > 0, active >= 1), value: `${active} robot${active === 1 ? '' : 's'} working`,
+        note: `${recentPerHour.toLocaleString()} recent posts per hour${paused ? ` · ${paused} paused by X` : ''}` },
+      { name: '2. AI analysis', tone: level(waiting < 200, waiting < 1000), value: `${aiPerHour.toLocaleString()} posts per hour`,
+        note: `${waiting.toLocaleString()} recent posts waiting` },
+      { name: '3. Calls', tone: level((s.signals?.createdLast24h ?? 0) > 50, (s.signals?.createdLast24h ?? 0) > 0), value: `${(s.signals?.createdLast24h ?? 0).toLocaleString()} in 24 h`,
+        note: `${s.signals?.createdLastHour ?? 0} in the last hour` },
+      { name: '4. Prices & scores', tone: level(errorShare < 0.05, errorShare < 0.2), value: `${scored24.toLocaleString()} scores in 24 h`,
+        note: `${Math.round(errorShare * 100)}% of windows stuck on a price error` }
+    ];
+    healthEl.innerHTML = steps.map((step) => `
+      <div class="health-card health-${step.tone}">
+        <span class="health-light" aria-hidden="true"></span>
+        <div><span>${esc(step.name)}</span><strong>${esc(step.value)}</strong><small>${esc(step.note)}</small></div>
+        <em class="health-word">${step.tone === 'good' ? 'OK' : step.tone === 'warn' ? 'Watch' : 'Problem'}</em>
+      </div>`).join('');
+    const items = [];
+    if (active === 0) items.push('No X robot is working: collection is stopped. Connect a new X account.');
+    else if (active === 1) items.push('Only one X robot is working. If X throttles it, collection stops: add more accounts.');
+    if (waiting >= 200) items.push(`The AI cannot keep up: ${waiting.toLocaleString()} recent posts are waiting (free Groq quota).`);
+    if (errorShare >= 0.05) items.push(`${errors.toLocaleString()} call windows have no price (unknown coin id or missing entry price).`);
+    if (!items.length) items.push('Nothing urgent: every step is running normally.');
+    attentionEl.innerHTML = items.map((item) => `<li>${esc(item)}</li>`).join('');
+    if (overviewUpdated) overviewUpdated.textContent = `Updated ${new Date(s.generatedAt).toLocaleTimeString('en-US', { timeZone: 'America/New_York', hour: 'numeric', minute: '2-digit' })} ET · refreshes every minute`;
+  }
+
   async function loadSummary() {
     try {
       const s = await getJson('/api/monitor/summary');
@@ -369,6 +441,7 @@
       ];
       summaryEl.innerHTML = cards.map(([label, value, note]) =>
         `<div class="journal-card"><span>${esc(label)}</span><strong>${esc(value)}</strong><small>${esc(note)}</small></div>`).join('');
+      renderOverview(s);
       updatedEl.textContent = `Updated ${new Date(s.generatedAt).toLocaleTimeString('en-US', { timeZone: 'America/New_York', hour: 'numeric', minute: '2-digit' })} ET`;
     } catch {
       summaryEl.innerHTML = '<p class="garage-note">Pipeline summary unavailable.</p>';
@@ -410,7 +483,7 @@
   });
 
   function onRoute() {
-    const open = location.hash === '#garage';
+    const open = location.hash.startsWith('#garage');
     clearInterval(summaryTimer);
     if (!open) return;
     const start = () => { void loadSummary(); if (!rows.length) void loadRows(false); };
