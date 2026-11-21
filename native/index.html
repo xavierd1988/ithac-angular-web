@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="./styles.css?v=20260714-call-compact">
   <link rel="stylesheet" href="./ranking.css?v=20261120-action">
   <link rel="stylesheet" href="./action-robot.css?v=20261120-action">
-  <link rel="stylesheet" href="./garage.css?v=20261121-friendly">
+  <link rel="stylesheet" href="./garage.css?v=20261121-history">
 </head>
 <body>
   <main class="app-shell">
@@ -32,7 +32,6 @@
             <button class="period-button" type="button" data-reputation-window="week" aria-pressed="false">1 week</button>
             <button class="period-button" type="button" data-reputation-window="month" aria-pressed="false">1 month</button>
           </div>
-          <a class="garage-entry-link garage-entry-shortcut" href="#garage">Garage <span aria-hidden="true">↗</span></a>
         </div>
 
         <section id="featuredRanking" class="featured-ranking" aria-labelledby="featuredTitle" hidden>
@@ -44,7 +43,7 @@
         </section>
 
         <div id="loadError" class="load-error ranking-error" role="status" hidden></div>
-        <h2 id="rankingResults" class="full-ranking-title" tabindex="-1">Full ranking</h2>
+        <h2 class="full-ranking-title">Full ranking</h2>
         <div id="leaderboardHead" class="leaderboard-head" aria-hidden="true">
           <span>Rank</span><span>Name</span><span>Score</span><span>Calls</span><span></span>
         </div>
@@ -59,173 +58,159 @@
     </div>
 
     <div class="garage-entry">
-      <a class="garage-door garage-entry-link" href="#garage" aria-label="Open Garage">
+      <a class="garage-door" href="#garage" aria-label="Open the garage: search, options, live activity and scraper robots">
         <span class="garage-door-frame" aria-hidden="true">
           <span class="garage-door-panel"></span><span class="garage-door-panel"></span><span class="garage-door-panel"></span><span class="garage-door-panel"></span>
           <span class="garage-door-handle"></span>
         </span>
-        <span class="garage-door-label"><strong>Garage</strong><em>Scraper activity, ranking tools and simulator</em></span>
+        <span class="garage-door-label"><strong>Garage</strong><em>Search, options, live activity and scraper robots</em></span>
       </a>
     </div>
   </main>
 
-  <main id="garageView" class="garage-view" aria-labelledby="garageTitle" hidden>
+  <section id="garageView" class="garage-view" aria-labelledby="garageTitle" hidden>
+    <div class="garage-shutter" aria-hidden="true"></div>
     <header class="garage-header">
-      <a class="garage-back" href="#"><span aria-hidden="true">←</span> Back to ranking</a>
-      <h1 id="garageTitle" tabindex="-1">Garage</h1>
+      <a class="garage-back" href="#">&larr; Back to the ranking</a>
+      <h1 id="garageTitle">Garage</h1>
+      <p>Everything behind the ranking: the scraper robots, live activity, search and options.</p>
     </header>
 
-    <nav class="garage-nav" aria-label="Garage sections">
-      <a href="#garage-live">Live activity</a>
-      <a href="#garage-robots">Robots</a>
-      <a href="#garage-ranking">Ranking tools</a>
-      <a href="#garage-simulator">Simulator</a>
-    </nav>
-
-    <div class="garage-layout">
-      <div class="garage-column">
-        <section id="garage-live" class="garage-panel garage-live" aria-labelledby="activityTitle" tabindex="-1">
-          <div class="garage-panel-head">
-            <h2 id="activityTitle">Live activity</h2>
-            <span id="garageScanStatus" class="garage-scan-status" data-status="loading">Connecting</span>
-          </div>
-          <div id="livePositionBar" class="live-position-bar" aria-label="Live scraper progress">
-            <div class="scanner-head"><strong id="scannerTitle">Waiting for live data</strong></div>
-            <div class="scanner-metrics" aria-label="Scraper counters">
-              <span><b id="scannerProgressText">–</b><em>Progress</em></span>
-              <span><b id="scannerDone">–</b><em>Checked</em></span>
-              <span><b id="scannerRunning">–</b><em>In progress</em></span>
-              <span><b id="scannerQueued">–</b><em>Waiting</em></span>
-            </div>
-            <div class="scanner-progress-track" aria-hidden="true"><i id="scannerProgressBar"></i></div>
-          </div>
-          <details class="scanner-disclosure garage-disclosure">
-            <summary>Scan details</summary>
-            <div class="garage-scan-detail">
-              <p id="scannerMeta">Waiting for live data</p>
-              <p><strong id="scannerResources">–</strong> available sessions · proxies</p>
-            </div>
-            <div id="scannerPath"></div>
-          </details>
-        </section>
-
-        <section id="garage-robots" class="garage-panel garage-robots" aria-labelledby="robotsTitle" tabindex="-1">
-          <div class="garage-panel-head">
-            <h2 id="robotsTitle">Scraper robots</h2>
-            <span id="robotsSummary" class="robots-summary">Loading robots…</span>
-          </div>
-          <div id="robotsGrid" class="robots-grid"></div>
-          <details id="garageFreeSlots" class="garage-disclosure" hidden>
-            <summary id="garageFreeSummary">Available slots</summary>
-            <div id="garageFreeGrid" class="robots-grid"></div>
-          </details>
-          <details id="garageRetired" class="garage-disclosure" hidden>
-            <summary id="garageRetiredSummary">Retired robots</summary>
-            <div id="garageRetiredGrid" class="robots-grid"></div>
-          </details>
-        </section>
+    <section class="garage-panel garage-robots" aria-labelledby="robotsTitle">
+      <div class="garage-panel-head">
+        <h2 id="robotsTitle">Scraper robots</h2>
+        <span id="robotsSummary" class="robots-summary">Loading…</span>
       </div>
+      <p class="garage-note">Each robot reads X with its own account. X slows down accounts that read too fast, so every robot keeps a safe pace.</p>
+      <div id="robotsGrid" class="robots-grid"></div>
+    </section>
 
-      <div class="garage-column">
-        <section id="garage-ranking" class="garage-panel garage-ranking" aria-labelledby="rankingToolsTitle" tabindex="-1">
-          <h2 id="rankingToolsTitle">Ranking tools</h2>
-          <form id="garageRankingForm" class="garage-ranking-form">
-            <label for="rankingSearch">Find an account</label>
-            <input id="rankingSearch" type="search" placeholder="Search by name" autocomplete="off">
-            <label for="rankingOrder">Sort by</label>
-            <select id="rankingOrder">
-              <option value="score">Highest score</option>
-              <option value="scanner">Scan order</option>
-            </select>
-            <div class="garage-ranking-actions">
-              <button type="submit">View ranking <span aria-hidden="true">→</span></button>
-              <span id="garageResultsCount" role="status">Loading accounts…</span>
-            </div>
-          </form>
+    <section class="garage-panel" aria-labelledby="activityTitle">
+      <h2 id="activityTitle">Live activity, search and options</h2>
+          <div class="ranking-tools ranking-tools-secondary">
+            <label class="ranking-search">
+              <span>Find an account</span>
+              <input id="rankingSearch" type="search" placeholder="Search by name" autocomplete="off">
+            </label>
+            <div class="utility-disclosures">
+              <details class="ranking-options" open>
+                <summary>Ranking options</summary>
+                <div class="options-content">
+                  <label>
+                    Order
+                    <select id="rankingOrder">
+                      <option value="score">Highest score</option>
+                      <option value="scanner">Scanner order</option>
+                    </select>
+                  </label>
+                  <p id="rankingStats"></p>
+                </div>
+              </details>
 
-          <details class="page-navigation garage-disclosure" id="pageNavigation">
-            <summary>Browse pages <strong id="pageStatus"></strong></summary>
-            <nav class="pager" aria-label="Ranking pages">
-              <button id="prevPage" type="button" aria-label="Previous page">Previous</button>
-              <div class="page-numbers" id="pageNumbers"></div>
-              <button id="nextPage" type="button" aria-label="Next page">Next</button>
-              <label>
-                Rows per page
-                <select id="pageSize">
-                  <option value="25" selected>25</option>
-                  <option value="50">50</option>
-                  <option value="100">100</option>
-                  <option value="250">250</option>
-                  <option value="500">500</option>
-                  <option value="1000">1000</option>
-                </select>
-              </label>
-            </nav>
-          </details>
-          <details class="garage-disclosure">
-            <summary>Ranking statistics</summary>
-            <p id="rankingStats" class="garage-ranking-stats"></p>
-          </details>
-        </section>
-
-        <section id="garage-simulator" class="garage-panel garage-action" aria-labelledby="simulatorTitle" tabindex="-1">
-          <h2 id="simulatorTitle">Simulator</h2>
-          <div class="action-sidebar">
-            <details id="actionPanel" class="action-panel" data-robot-state="watching" open>
-              <summary class="action-heading">
-                <span>Practice with test chips</span>
-                <span class="action-mode">Practice only</span>
-                <span id="actionSignalNotice" class="action-notice" aria-live="polite"></span>
-              </summary>
-              <div class="action-content">
-                <div class="action-robot" aria-hidden="true">
-                  <div class="action-robot-body">
-                    <span class="action-robot-arm action-robot-arm-left"></span>
-                    <span class="action-robot-arm action-robot-arm-right"></span>
-                    <span class="action-robot-head"><span class="action-robot-visor"></span></span>
-                    <span class="action-robot-chip"></span>
+              <details class="scanner-disclosure" open>
+                <summary>Live activity</summary>
+                <div id="livePositionBar" class="live-position-bar" aria-label="Live scraper position">
+                  <section class="scanner-head">
+                    <span class="live-dot" aria-hidden="true"></span>
+                    <span class="live-kicker">Live scraper</span>
+                    <strong id="scannerTitle">Connecting</strong>
+                    <em id="scannerMeta">Waiting for live data</em>
+                  </section>
+                  <section class="scanner-metrics" aria-label="Scraper counters">
+                    <span><b id="scannerProgressText">0%</b><em>progress</em></span>
+                    <span><b id="scannerDone">0</b><em>done</em></span>
+                    <span><b id="scannerRunning">0</b><em>running</em></span>
+                    <span><b id="scannerQueued">0</b><em>queued</em></span>
+                    <span><b id="scannerResources">0/0 · 0/0</b><em>sessions · proxies</em></span>
+                  </section>
+                  <div class="scanner-progress-track" aria-hidden="true">
+                    <i id="scannerProgressBar"></i>
                   </div>
-                  <span class="action-robot-stack action-robot-stack-left"></span>
-                  <span class="action-robot-stack action-robot-stack-right"></span>
                 </div>
-
-                <div class="action-wallet">
-                  <span class="action-wallet-chip" aria-hidden="true"></span>
-                  <div><strong id="actionBalance">1,000</strong> <span>test chips</span></div>
-                  <button id="actionReset" class="action-secondary" type="button" hidden>Reset chips</button>
-                </div>
-
-                <div class="action-follow">
-                  <label for="actionInfluencer">Follow an influencer</label>
-                  <input id="actionInfluencer" type="search" placeholder="Search by name" autocomplete="off" aria-controls="actionSuggestions">
-                  <ul id="actionSuggestions" class="action-suggestions" aria-label="Influencers" hidden></ul>
-                </div>
-                <p id="actionStatus" class="action-status" role="status" aria-atomic="true">Follow an influencer to be alerted to their next call.</p>
-
-                <article id="actionCall" class="action-call" aria-labelledby="actionCallTitle" hidden>
-                  <span id="actionCallSource"></span>
-                  <strong id="actionCallTitle"></strong>
-                  <span id="actionCallMeta"></span>
-                  <a id="actionPost" target="_blank" rel="noopener noreferrer" hidden>View original post</a>
-                </article>
-                <dl id="actionPosition" class="action-position" aria-label="Simulated position" hidden>
-                  <div><dt>Entry index</dt><dd id="actionEntry">–</dd></div>
-                  <div><dt>Simulated index</dt><dd id="actionMark">–</dd></div>
-                  <div><dt>Chip P&amp;L</dt><dd id="actionPnl">–</dd></div>
-                </dl>
-                <button id="actionPositionButton" class="action-primary" type="button" hidden></button>
-                <button id="actionDemo" class="action-secondary" type="button">Test a call</button>
-              </div>
-            </details>
+                <div id="scannerPath"></div>
+              </details>
+            </div>
           </div>
-        </section>
-      </div>
-    </div>
-  </main>
+    </section>
+
+    <section class="garage-panel" aria-labelledby="pagesTitle">
+      <h2 id="pagesTitle">Ranking pages</h2>
+        <details class="page-navigation" id="pageNavigation" open>
+          <summary>Browse pages <strong id="pageStatus"></strong></summary>
+          <nav class="pager" aria-label="Ranking pages">
+            <button id="prevPage" type="button" aria-label="Previous page">Previous</button>
+            <div class="page-numbers" id="pageNumbers"></div>
+            <button id="nextPage" type="button" aria-label="Next page">Next</button>
+            <label>
+              Rows
+              <select id="pageSize">
+                <option value="25" selected>25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+                <option value="250">250</option>
+                <option value="500">500</option>
+                <option value="1000">1000</option>
+              </select>
+            </label>
+          </nav>
+        </details>
+    </section>
+
+    <section class="garage-panel garage-action" aria-label="Action simulator">
+      <aside class="action-sidebar" aria-labelledby="actionTitle">
+        <details id="actionPanel" class="action-panel" data-robot-state="watching" open>
+          <summary class="action-heading">
+            <span id="actionTitle">Action</span>
+            <span class="action-mode">Simulation</span>
+            <span id="actionSignalNotice" class="action-notice" aria-live="polite"></span>
+          </summary>
+          <div class="action-content">
+            <div class="action-robot" aria-hidden="true">
+              <div class="action-robot-body">
+                <span class="action-robot-arm action-robot-arm-left"></span>
+                <span class="action-robot-arm action-robot-arm-right"></span>
+                <span class="action-robot-head"><span class="action-robot-visor"></span></span>
+                <span class="action-robot-chip"></span>
+              </div>
+              <span class="action-robot-stack action-robot-stack-left"></span>
+              <span class="action-robot-stack action-robot-stack-right"></span>
+            </div>
+
+            <div class="action-wallet">
+              <span class="action-wallet-chip" aria-hidden="true"></span>
+              <div><strong id="actionBalance">1,000</strong> <span>test chips</span></div>
+              <button id="actionReset" class="action-secondary" type="button" hidden>Reset chips</button>
+            </div>
+
+            <div class="action-follow">
+              <label for="actionInfluencer">Follow an influencer</label>
+              <input id="actionInfluencer" type="search" placeholder="Search by name" autocomplete="off" aria-controls="actionSuggestions">
+              <ul id="actionSuggestions" class="action-suggestions" aria-label="Influencers" hidden></ul>
+            </div>
+            <p id="actionStatus" class="action-status" role="status" aria-atomic="true">Follow an influencer to be alerted to their next call.</p>
+
+            <article id="actionCall" class="action-call" aria-labelledby="actionCallTitle" hidden>
+              <span id="actionCallSource"></span>
+              <strong id="actionCallTitle"></strong>
+              <span id="actionCallMeta"></span>
+              <a id="actionPost" target="_blank" rel="noopener noreferrer" hidden>View original post</a>
+            </article>
+            <dl id="actionPosition" class="action-position" aria-label="Simulated position" hidden>
+              <div><dt>Entry index</dt><dd id="actionEntry">–</dd></div>
+              <div><dt>Simulated index</dt><dd id="actionMark">–</dd></div>
+              <div><dt>Chip P&amp;L</dt><dd id="actionPnl">–</dd></div>
+            </dl>
+            <button id="actionPositionButton" class="action-primary" type="button" hidden></button>
+            <button id="actionDemo" class="action-secondary" type="button">Test a call</button>
+          </div>
+        </details>
+      </aside>
+    </section>
+  </section>
   <div id="modalRoot"></div>
 
   <script src="./action.js?v=20261120-action" defer></script>
-  <script src="./app.js?v=20261121-friendly" defer></script>
-  <script src="./garage.js?v=20261121-friendly" defer></script>
+  <script src="./app.js?v=20261121-garage" defer></script>
+  <script src="./garage.js?v=20261121-history" defer></script>
 </body>
 </html>
