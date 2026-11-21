@@ -296,7 +296,8 @@
     state.allInfluencersLoading = true;
     try {
       const rows = await getJson('/api/influencers');
-      if (Array.isArray(rows)) state.allInfluencers = rows;
+      // Disabled accounts (e.g. deleted on X) stay in the database but are hidden here.
+      if (Array.isArray(rows)) state.allInfluencers = rows.filter((row) => row && row.enabled !== false);
     } catch {
       // Snapshot paging remains usable when the full list endpoint is unavailable.
     } finally {
