@@ -191,3 +191,233 @@
     route();
   }
 })();
+
+(() => {
+  'use strict';
+
+  const rowsEl = document.getElementById('journalRows');
+  const summaryEl = document.getElementById('journalSummary');
+  const updatedEl = document.getElementById('journalUpdated');
+  const form = document.getElementById('journalFilters');
+  const moreButton = document.getElementById('journalMore');
+  const exportButton = document.getElementById('journalExport');
+  const garage = document.getElementById('garageView');
+  if (!rowsEl || !form || !garage) return;
+
+  const PAGE = 50;
+  let rows = [];
+  let nextBeforeId = null;
+  let robotsBySession = {};
+  let summaryTimer = null;
+  let loading = false;
+
+  fetch('./robots.json?v=20261121-journal', { cache: 'no-store' })
+    .then((response) => (response.ok ? response.json() : null))
+    .then((data) => {
+      for (const robot of [...(data?.robots || []), ...(data?.legacy || [])]) robotsBySession[robot.session] = robot.id;
+      if (rows.length) renderRows();
+    })
+    .catch(() => {});
+
+  const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+  const et = (value) => {
+    if (!value) return '–';
+    const d = new Date(value);
+    return Number.isFinite(d.getTime())
+      ? d.toLocaleString('en-US', { timeZone: 'America/New_York', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
+      : '–';
+  };
+  const price = (value) => {
+    if (value === null || value === undefined) return '–';
+    const n = Number(value);
+    if (!Number.isFinite(n)) return '–';
+    const digits = n >= 100 ? 2 : n >= 1 ? 4 : 8;
+    return `$${n.toLocaleString('en-US', { maximumFractionDigits: digits })}`;
+  };
+  const minutes = (value) => {
+    if (value === null || value === undefined) return '–';
+    const m = Number(value);
+    if (Math.abs(m) < 120) return `${Math.round(m)} min`;
+    if (Math.abs(m) < 2880) return `${(m / 60).toFixed(1)} h`;
+    return `${(m / 1440).toFixed(1)} d`;
+  };
+  const statusText = {
+    scored: 'Scored', historical_pending: 'Waiting for price', detected: 'Waiting', waiting_day: 'Running',
+    waiting_week: 'Running', waiting_month: 'Running', price_start_error: 'No entry price',
+    price_history_error: 'No price history', rejected: 'Rejected'
+  };
+
+  async function getJson(path) {
+    if (typeof window.ithacGetJson !== 'function') throw new Error('API not ready');
+    return window.ithacGetJson(path);
+  }
+
+  function windowCell(window) {
+    if (!window) return '<td class="jw jw-none">–</td>';
+    const status = String(window.status || '');
+    if (status === 'scored') {
+      const score = Number(window.score);
+      const tone = score >= 60 ? 'good' : score <= 40 ? 'bad' : 'flat';
+      const variation = Number(window.variationPct);
+      return `<td class="jw jw-${tone}"><strong>${Number.isFinite(score) ? score.toFixed(1) : '–'}</strong>` +
+        `<small>${Number.isFinite(variation) ? `${variation >= 0 ? '+' : ''}${variation.toFixed(2)}%` : ''} · ${price(window.exitPrice)}</small>` +
+        `<small>${et(window.exitAt)}</small></td>`;
+    }
+    const isError = status.endsWith('_error');
+    return `<td class="jw ${isError ? 'jw-error' : 'jw-wait'}"><span class="jw-pill">${esc(statusText[status] || status)}</span>` +
+      `<small>${isError ? esc(window.error || '') : `target ${et(window.targetAt)}`}</small></td>`;
+  }
+
+  function entryCell(row) {
+    const first = (row.windows || []).find((window) => window.entryPrice !== null && window.entryPrice !== undefined);
+    if (!first) return '<td class="je">–</td>';
+    return `<td class="je"><strong>${price(first.entryPrice)}</strong><small>${et(first.entryAt)}</small>` +
+      `<small class="${first.wellTimed ? 'je-ok' : 'je-late'}">${first.wellTimed ? 'on time' : 'late'} · +${minutes(first.entryLagMinutes)}</small></td>`;
+  }
+
+  function detail(row) {
+    const windows = (row.windows || []).map((window) => `
+      <tr><td>${esc(window.label || window.horizon)}</td><td>${esc(window.status)}</td><td>${price(window.entryPrice)}</td><td>${et(window.entryAt)}</td>
+      <td>${minutes(window.entryLagMinutes)}</td><td>${et(window.targetAt)}</td><td>${price(window.exitPrice)}</td><td>${et(window.exitAt)}</td>
+      <td>${window.variationPct ?? '–'}</td><td>${window.score ?? '–'}</td><td>${esc(window.error || '')}</td></tr>`).join('');
+    return `
+      <tr class="journal-detail"><td colspan="8">
+        <blockquote>${esc(row.post?.text || '(tweet text not stored)')}</blockquote>
+        <p>${row.post?.url ? `<a href="${esc(row.post.url)}" target="_blank" rel="noopener noreferrer">Open the tweet</a> · ` : ''}
+          Thesis: ${esc(row.thesis || '–')} · Confidence ${Math.round(Number(row.confidence || 0) * 100)}% · Coin id <code>${esc(row.coinId || '–')}</code> · Source ${esc(row.source)}
+          · Call #${row.id} · Post #${row.post?.id} · Job #${row.robot?.jobId ?? '–'} · Signal status ${esc(row.signalStatus)}${row.signalError ? ` (${esc(row.signalError)})` : ''}</p>
+        <p>Posted ${et(row.post?.postedAt)} · Scraped ${et(row.post?.scrapedAt)} (+${minutes(row.post?.scrapeDelayMinutes)})
+          · Analysed ${et(row.analysis?.analyzedAt)} (+${minutes(row.analysis?.delayAfterScrapeMinutes)}) by ${esc(row.analysis?.model || '–')} · Detected ${et(row.detectedAt)}</p>
+        <div class="journal-table-wrap"><table class="journal-subtable">
+          <thead><tr><th>Window</th><th>Status</th><th>Entry</th><th>Entry at</th><th>Entry lag</th><th>Target</th><th>Exit</th><th>Exit at</th><th>Var. %</th><th>Score</th><th>Error</th></tr></thead>
+          <tbody>${windows}</tbody></table></div>
+      </td></tr>`;
+  }
+
+  function renderRows() {
+    if (!rows.length) {
+      rowsEl.innerHTML = '<tr><td colspan="8">No call matches these filters.</td></tr>';
+      return;
+    }
+    rowsEl.innerHTML = rows.map((row, index) => {
+      const byHorizon = Object.fromEntries((row.windows || []).map((window) => [window.horizon, window]));
+      const robot = robotsBySession[row.robot?.session] || row.robot?.session || '–';
+      const side = String(row.direction || '').toLowerCase() === 'bearish' ? 'bear' : 'bull';
+      return `
+        <tr class="journal-row" data-index="${index}" tabindex="0" aria-expanded="false">
+          <td>${et(row.post?.postedAt)}</td>
+          <td>@${esc(row.username)}</td>
+          <td><strong>${esc(row.symbol)}</strong> <span class="side side-${side}">${side === 'bull' ? 'Long' : 'Short'}</span><small>${Math.round(Number(row.confidence || 0) * 100)}% conf.</small></td>
+          ${entryCell(row)}
+          ${windowCell(byHorizon.day)}${windowCell(byHorizon.week)}${windowCell(byHorizon.month)}
+          <td class="jp"><small>Scrape +${minutes(row.post?.scrapeDelayMinutes)}</small><small>AI +${minutes(row.analysis?.delayAfterScrapeMinutes)}</small><small>Robot ${esc(robot)}</small></td>
+        </tr>`;
+    }).join('');
+  }
+
+  function toggle(rowEl) {
+    const open = rowEl.getAttribute('aria-expanded') === 'true';
+    const next = rowEl.nextElementSibling;
+    if (open && next?.classList.contains('journal-detail')) next.remove();
+    if (!open) rowEl.insertAdjacentHTML('afterend', detail(rows[Number(rowEl.dataset.index)]));
+    rowEl.setAttribute('aria-expanded', String(!open));
+  }
+
+  function filters() {
+    const data = new FormData(form);
+    const params = new URLSearchParams({ take: String(PAGE) });
+    for (const key of ['status', 'coin', 'username']) {
+      const value = String(data.get(key) || '').trim().replace(/^@/, '');
+      if (value) params.set(key, value);
+    }
+    return params;
+  }
+
+  async function loadRows(append = false) {
+    if (loading) return;
+    loading = true;
+    try {
+      const params = filters();
+      if (append && nextBeforeId) params.set('before', String(nextBeforeId));
+      if (!append) rowsEl.innerHTML = '<tr><td colspan="8">Loading…</td></tr>';
+      const data = await getJson(`/api/monitor/journal?${params.toString()}`);
+      rows = append ? rows.concat(data.rows || []) : (data.rows || []);
+      nextBeforeId = data.nextBeforeId ?? null;
+      moreButton.hidden = !nextBeforeId;
+      renderRows();
+    } catch (error) {
+      if (!append) rowsEl.innerHTML = `<tr><td colspan="8">Journal unavailable (${esc(error?.message || 'error')}).</td></tr>`;
+    } finally {
+      loading = false;
+    }
+  }
+
+  function count(list, status) {
+    return (list || []).filter((item) => !status || item.status === status).reduce((sum, item) => sum + item.count, 0);
+  }
+
+  async function loadSummary() {
+    try {
+      const s = await getJson('/api/monitor/summary');
+      const priceErrors = count(s.pricing?.windowsByStatus, 'price_start_error') + count(s.pricing?.windowsByStatus, 'price_history_error');
+      const cards = [
+        ['Recent posts scraped', `${(s.scraping?.recentPostsScrapedLastHour ?? 0).toLocaleString()} / h`, `${(s.scraping?.postsScrapedLast24h ?? 0).toLocaleString()} posts in 24 h`],
+        ['AI analyses', `${count(s.analysis?.lastHour).toLocaleString()} / h`, `${(s.analysis?.recentPostsWaiting ?? 0).toLocaleString()} recent posts waiting`],
+        ['Calls detected', `${(s.signals?.createdLast24h ?? 0).toLocaleString()} in 24 h`, `${s.signals?.createdLastHour ?? 0} in the last hour`],
+        ['Windows scored', `${(s.pricing?.scoredLast24h ?? 0).toLocaleString()} in 24 h`, `${count(s.pricing?.windowsByStatus, 'scored').toLocaleString()} in total`],
+        ['Price errors', priceErrors.toLocaleString(), `${count(s.pricing?.windowsByStatus, 'historical_pending').toLocaleString()} waiting for price`]
+      ];
+      summaryEl.innerHTML = cards.map(([label, value, note]) =>
+        `<div class="journal-card"><span>${esc(label)}</span><strong>${esc(value)}</strong><small>${esc(note)}</small></div>`).join('');
+      updatedEl.textContent = `Updated ${new Date(s.generatedAt).toLocaleTimeString('en-US', { timeZone: 'America/New_York', hour: 'numeric', minute: '2-digit' })} ET`;
+    } catch {
+      summaryEl.innerHTML = '<p class="garage-note">Pipeline summary unavailable.</p>';
+    }
+  }
+
+  function exportCsv() {
+    const header = ['call_id', 'posted_at', 'scraped_at', 'analysed_at', 'influencer', 'symbol', 'coin_id', 'side', 'confidence', 'thesis', 'tweet_url', 'robot',
+      ...['day', 'week', 'month'].flatMap((h) => [`${h}_status`, `${h}_entry_price`, `${h}_entry_at`, `${h}_entry_lag_min`, `${h}_exit_price`, `${h}_exit_at`, `${h}_variation_pct`, `${h}_score`, `${h}_error`])];
+    const quote = (value) => `"${String(value ?? '').replace(/"/g, '""')}"`;
+    const lines = rows.map((row) => {
+      const byHorizon = Object.fromEntries((row.windows || []).map((window) => [window.horizon, window]));
+      return [row.id, row.post?.postedAt, row.post?.scrapedAt, row.analysis?.analyzedAt, row.username, row.symbol, row.coinId, row.direction, row.confidence, row.thesis, row.post?.url,
+        robotsBySession[row.robot?.session] || row.robot?.session,
+        ...['day', 'week', 'month'].flatMap((h) => {
+          const w = byHorizon[h] || {};
+          return [w.status, w.entryPrice, w.entryAt, w.entryLagMinutes, w.exitPrice, w.exitAt, w.variationPct, w.score, w.error];
+        })].map(quote).join(',');
+    });
+    const blob = new Blob([[header.join(','), ...lines].join('\n')], { type: 'text/csv' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `ithac-journal-${new Date().toISOString().slice(0, 16).replace(':', 'h')}.csv`;
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(link.href), 5000);
+  }
+
+  form.addEventListener('submit', (event) => { event.preventDefault(); void loadRows(false); });
+  moreButton.addEventListener('click', () => void loadRows(true));
+  exportButton.addEventListener('click', exportCsv);
+  rowsEl.addEventListener('click', (event) => {
+    if (event.target.closest('a')) return;
+    const rowEl = event.target.closest('.journal-row');
+    if (rowEl) toggle(rowEl);
+  });
+  rowsEl.addEventListener('keydown', (event) => {
+    const rowEl = event.target.closest('.journal-row');
+    if (rowEl && (event.key === 'Enter' || event.key === ' ')) { event.preventDefault(); toggle(rowEl); }
+  });
+
+  function onRoute() {
+    const open = location.hash === '#garage';
+    clearInterval(summaryTimer);
+    if (!open) return;
+    const start = () => { void loadSummary(); if (!rows.length) void loadRows(false); };
+    if (typeof window.ithacGetJson === 'function') start(); else setTimeout(start, 1500);
+    summaryTimer = setInterval(loadSummary, 60_000);
+  }
+  window.addEventListener('hashchange', onRoute);
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', onRoute, { once: true });
+  else onRoute();
+})();
