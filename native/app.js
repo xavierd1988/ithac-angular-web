@@ -105,6 +105,7 @@
   }
 
   function init() {
+    window.ithacGetJson = getJson;
     window.dispatchEvent(new CustomEvent('ithac:action-source', {
       detail: { loadCalls: (username) => getJson(`/api/crypto/reputation/${encodeURIComponent(username)}/detail?window=day&take=20`) }
     }));

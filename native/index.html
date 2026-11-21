@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="./styles.css?v=20260714-call-compact">
   <link rel="stylesheet" href="./ranking.css?v=20261120-action">
   <link rel="stylesheet" href="./action-robot.css?v=20261120-action">
-  <link rel="stylesheet" href="./garage.css?v=20261121-history">
+  <link rel="stylesheet" href="./garage.css?v=20261121-journal">
 </head>
 <body>
   <main class="app-shell">
@@ -83,6 +83,38 @@
       </div>
       <p class="garage-note">Each robot reads X with its own account. X slows down accounts that read too fast, so every robot keeps a safe pace.</p>
       <div id="robotsGrid" class="robots-grid"></div>
+    </section>
+
+    <section class="garage-panel garage-journal" aria-labelledby="journalTitle">
+      <div class="garage-panel-head">
+        <h2 id="journalTitle">Monitoring journal</h2>
+        <span id="journalUpdated" class="robots-summary"></span>
+      </div>
+      <p class="garage-note">Every crypto call, from the tweet to the score: when it was posted, scraped and analysed, the coin and side, the entry price, then the exit price and score after 1 day, 1 week and 1 month.</p>
+      <div id="journalSummary" class="journal-summary"></div>
+      <form id="journalFilters" class="journal-filters">
+        <label>Status
+          <select name="status">
+            <option value="">All calls</option>
+            <option value="scored">Scored</option>
+            <option value="pending">Waiting for price</option>
+            <option value="error">Price errors</option>
+          </select>
+        </label>
+        <label>Coin <input name="coin" type="search" placeholder="SOL, bitcoin…" autocomplete="off"></label>
+        <label>Influencer <input name="username" type="search" placeholder="@name" autocomplete="off"></label>
+        <button type="submit">Apply</button>
+        <button type="button" id="journalExport">Export CSV</button>
+      </form>
+      <div class="journal-table-wrap">
+        <table class="journal-table">
+          <thead>
+            <tr><th>Posted (ET)</th><th>Influencer</th><th>Call</th><th>Entry</th><th>1 day</th><th>1 week</th><th>1 month</th><th>Pipeline</th></tr>
+          </thead>
+          <tbody id="journalRows"><tr><td colspan="8">Open the garage to load the journal…</td></tr></tbody>
+        </table>
+      </div>
+      <div class="journal-more"><button type="button" id="journalMore" hidden>Load older calls</button></div>
     </section>
 
     <section class="garage-panel" aria-labelledby="activityTitle">
@@ -210,7 +242,7 @@
   <div id="modalRoot"></div>
 
   <script src="./action.js?v=20261120-action" defer></script>
-  <script src="./app.js?v=20261121-garage" defer></script>
-  <script src="./garage.js?v=20261121-history" defer></script>
+  <script src="./app.js?v=20261121-journal" defer></script>
+  <script src="./garage.js?v=20261121-journal" defer></script>
 </body>
 </html>
