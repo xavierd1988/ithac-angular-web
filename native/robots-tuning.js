@@ -1,6 +1,6 @@
-// Garage — speed gauge on each robot + "Tuning" tab (pace of each X robot). Claude 22/11/2026.
-// Reads GET /api/monitor/robots; writes POST /api/admin/robots/{session}/tuning with the admin key
-// (kept only in this browser, localStorage "ithacAdminToken").
+// Garage — robot speed gauge + speed controls inside each robot card (Robots tab). Claude 22/11/2026.
+// Data comes from garage.js (GET /api/monitor/robots). Changes: POST /api/admin/robots/{session}/tuning
+// with the admin key kept in this browser only (localStorage "ithacAdminToken").
 (() => {
   'use strict';
 
@@ -13,12 +13,15 @@
   ];
   const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const n = (v) => Number(v || 0).toLocaleString('en-US');
+  const drafts = new Map(); // session -> seconds chosen but not saved yet (survives the 60 s refresh)
 
+  function token() {
+    try { return localStorage.getItem('ithacAdminToken') || ''; } catch { return ''; }
+  }
   function intervalOf(robot, data) {
     return Number(robot.min_interval_seconds) > 0 ? Number(robot.min_interval_seconds) : Number(data?.defaultIntervalSeconds || 15);
   }
 
-  // Half-circle gauge: needle = reads in the last hour; tick = maximum allowed by the setting; red zone = X limit.
   function gauge(robot, data) {
     const value = Number(robot.passes_1h || 0);
     const interval = intervalOf(robot, data);
@@ -42,119 +45,99 @@
           <circle cx="60" cy="60" r="4" fill="#1b263b"/>
         </svg>
         <div class="speed-text"><strong>${n(value)}</strong><span>reads / hour</span>
-          <small>setting: 1 read every ${interval} s (max ${n(Math.round(cap))}/h) · ${n(robot.posts_1h)} new posts in 1 h</small></div>
+          <small>${n(robot.posts_1h)} new posts in the last hour</small></div>
       </div>`;
   }
-  window.ithacRobotGauge = gauge;
 
-  // ---------- Tuning tab ----------
-  const panel = document.getElementById('tuningPanel');
-  let data = null;
-  let timer = null;
-
-  function token() {
-    try { return localStorage.getItem('ithacAdminToken') || ''; } catch { return ''; }
+  function controls(robot, data) {
+    const saved = intervalOf(robot, data);
+    const chosen = drafts.get(robot.session_name) ?? saved;
+    return `
+      <div class="robot-tuning" data-session="${esc(robot.session_name)}" data-saved="${saved}">
+        <div class="robot-tuning-head"><span>Speed</span><em>1 read every <output>${chosen}</output> s · max ${n(Math.round(3600 / chosen))}/h</em></div>
+        <div class="tuning-presets">
+          ${PRESETS.map((p) => `<button type="button" class="tuning-preset${p.seconds === chosen ? ' active' : ''}" data-seconds="${p.seconds}" title="${esc(p.note)}">${esc(p.name)}<small>${p.seconds} s</small></button>`).join('')}
+        </div>
+        <input class="tuning-range" type="range" min="5" max="120" step="1" value="${chosen}" aria-label="Seconds between two reads">
+        <div class="tuning-actions"${chosen === saved ? ' hidden' : ''}>
+          <button type="button" class="tuning-save">Apply</button>
+          <button type="button" class="tuning-cancel">Cancel</button>
+        </div>
+        <span class="tuning-status" role="status"></span>
+      </div>`;
   }
 
-  async function save(session, seconds, statusEl) {
-    const key = token();
-    if (!key) { statusEl.textContent = 'Enter the admin key above first.'; return; }
-    if (typeof window.ithacApiUrl !== 'function') { statusEl.textContent = 'API not ready, try again in a moment.'; return; }
-    statusEl.textContent = 'Saving…';
+  // Called by garage.js for each working robot.
+  window.ithacRobotGauge = (robot, data) => gauge(robot, data) + controls(robot, data);
+
+  function setChosen(box, seconds) {
+    drafts.set(box.dataset.session, seconds);
+    box.querySelector('output').textContent = seconds;
+    box.querySelector('.robot-tuning-head em').innerHTML = `1 read every <output>${seconds}</output> s · max ${n(Math.round(3600 / seconds))}/h`;
+    box.querySelector('.tuning-range').value = seconds;
+    box.querySelectorAll('.tuning-preset').forEach((b) => b.classList.toggle('active', Number(b.dataset.seconds) === seconds));
+    const dirty = seconds !== Number(box.dataset.saved);
+    box.querySelector('.tuning-actions').hidden = !dirty;
+    if (!dirty) drafts.delete(box.dataset.session);
+  }
+
+  async function save(box) {
+    const status = box.querySelector('.tuning-status');
+    const seconds = Number(box.querySelector('.tuning-range').value);
+    if (!token()) { status.textContent = 'Add the admin key (top of this tab) to change speeds.'; return; }
+    if (typeof window.ithacApiUrl !== 'function') { status.textContent = 'API not ready, try again.'; return; }
+    status.textContent = 'Saving…';
     try {
-      const response = await fetch(window.ithacApiUrl(`/api/admin/robots/${encodeURIComponent(session)}/tuning`), {
+      const response = await fetch(window.ithacApiUrl(`/api/admin/robots/${encodeURIComponent(box.dataset.session)}/tuning`), {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-Ithac-Admin-Token': key },
+        headers: { 'Content-Type': 'application/json', 'X-Ithac-Admin-Token': token() },
         body: JSON.stringify({ minIntervalSeconds: seconds })
       });
       const body = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(body.error || body.title || `HTTP ${response.status}`);
-      statusEl.textContent = seconds ? `Saved: 1 read every ${seconds} s at most.` : 'Saved: default pace.';
-      await load();
+      drafts.delete(box.dataset.session);
+      status.textContent = 'Saved.';
+      if (typeof window.ithacReloadRobots === 'function') window.ithacReloadRobots();
     } catch (error) {
-      statusEl.textContent = `Not saved: ${error.message}`;
+      status.textContent = `Not saved: ${error.message}`;
     }
   }
 
-  function render() {
-    const list = document.getElementById('tuningRobots');
-    if (!list || !data) return;
-    const robots = (data.robots || []).filter((r) => r.status === 'alive' || r.status === 'testing')
-      .sort((a, b) => String(a.label).localeCompare(String(b.label), 'en', { numeric: true }));
-    list.innerHTML = robots.length ? robots.map((robot) => {
-      const interval = intervalOf(robot, data);
-      return `
-        <article class="tuning-card" data-session="${esc(robot.session_name)}">
-          <div class="tuning-head"><strong>${esc(robot.label)}</strong><span>${esc(robot.identity || '')}</span></div>
-          ${gauge(robot, data)}
-          <div class="tuning-presets">
-            ${PRESETS.map((p) => `<button type="button" class="tuning-preset${p.seconds === interval ? ' active' : ''}" data-seconds="${p.seconds}" title="${esc(p.note)}">${esc(p.name)}<small>${p.seconds} s</small></button>`).join('')}
-          </div>
-          <label class="tuning-slider">Custom: 1 read every <output>${interval}</output> s
-            <input type="range" min="5" max="120" step="1" value="${interval}">
-          </label>
-          <div class="tuning-actions">
-            <button type="button" class="tuning-save">Save</button>
-            <button type="button" class="tuning-reset">Default (${n(data.defaultIntervalSeconds)} s)</button>
-            <span class="tuning-status" role="status"></span>
-          </div>
-        </article>`;
-    }).join('') : '<p class="garage-note">No robot is working right now.</p>';
-  }
+  function wire() {
+    const grid = document.getElementById('robotsGrid');
+    if (!grid || grid.dataset.tuningWired) return;
+    grid.dataset.tuningWired = '1';
+    grid.addEventListener('input', (event) => {
+      const range = event.target.closest('.tuning-range');
+      if (range) setChosen(range.closest('.robot-tuning'), Number(range.value));
+    });
+    grid.addEventListener('click', (event) => {
+      const box = event.target.closest('.robot-tuning');
+      if (!box) return;
+      const preset = event.target.closest('.tuning-preset');
+      if (preset) setChosen(box, Number(preset.dataset.seconds));
+      if (event.target.closest('.tuning-cancel')) setChosen(box, Number(box.dataset.saved));
+      if (event.target.closest('.tuning-save')) void save(box);
+    });
 
-  async function load() {
-    try {
-      if (typeof window.ithacGetJson !== 'function') throw new Error('API not ready');
-      data = await window.ithacGetJson('/api/monitor/robots');
-      render();
-      const u = document.getElementById('tuningUpdated');
-      if (u) u.textContent = `Updated ${new Date().toLocaleTimeString('en-US', { timeZone: 'America/New_York', hour: 'numeric', minute: '2-digit' })} ET`;
-    } catch {
-      const u = document.getElementById('tuningUpdated');
-      if (u) u.textContent = 'Robot data unavailable right now';
-    }
-  }
-
-  if (panel) {
     const keyInput = document.getElementById('tuningKey');
     const keyState = document.getElementById('tuningKeyState');
-    const showKeyState = () => { if (keyState) keyState.textContent = token() ? 'Admin key saved in this browser.' : 'No admin key yet: settings can be viewed, not changed.'; };
-    showKeyState();
+    const show = () => {
+      if (keyState) keyState.textContent = token() ? 'Admin key saved in this browser: speeds can be changed.' : 'Viewing only. Paste the admin key once to change speeds.';
+      const box = document.getElementById('tuningKeyBox');
+      if (box) box.classList.toggle('has-key', !!token());
+    };
+    show();
     document.getElementById('tuningKeySave')?.addEventListener('click', () => {
       try { localStorage.setItem('ithacAdminToken', (keyInput?.value || '').trim()); } catch {}
       if (keyInput) keyInput.value = '';
-      showKeyState();
+      show();
     });
-    panel.addEventListener('input', (event) => {
-      const slider = event.target.closest('.tuning-slider input');
-      if (slider) slider.closest('.tuning-slider').querySelector('output').textContent = slider.value;
-    });
-    panel.addEventListener('click', (event) => {
-      const card = event.target.closest('.tuning-card');
-      if (!card) return;
-      const session = card.dataset.session;
-      const status = card.querySelector('.tuning-status');
-      const preset = event.target.closest('.tuning-preset');
-      if (preset) {
-        card.querySelectorAll('.tuning-preset').forEach((b) => b.classList.toggle('active', b === preset));
-        const slider = card.querySelector('.tuning-slider input');
-        slider.value = preset.dataset.seconds;
-        card.querySelector('.tuning-slider output').textContent = preset.dataset.seconds;
-        return;
-      }
-      if (event.target.closest('.tuning-save')) void save(session, Number(card.querySelector('.tuning-slider input').value), status);
-      if (event.target.closest('.tuning-reset')) void save(session, null, status);
+    document.getElementById('tuningKeyForget')?.addEventListener('click', () => {
+      try { localStorage.removeItem('ithacAdminToken'); } catch {}
+      show();
     });
   }
-
-  function onRoute() {
-    clearInterval(timer);
-    if (location.hash !== '#garage/tuning') return;
-    const start = () => void load();
-    if (typeof window.ithacGetJson === 'function') start(); else setTimeout(start, 1500);
-    timer = setInterval(load, 60_000);
-  }
-  window.addEventListener('hashchange', onRoute);
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', onRoute, { once: true });
-  else onRoute();
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wire, { once: true });
+  else wire();
 })();

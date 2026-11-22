@@ -124,7 +124,7 @@
 
   function onRoute() {
     clearInterval(timer);
-    if (location.hash !== '#garage/groq') return;
+    if (!['#garage/analysis', '#garage/groq', '#garage/journal'].includes(location.hash)) return;
     const start = () => void load();
     if (typeof window.ithacGetJson === 'function') start(); else setTimeout(start, 1500);
     timer = setInterval(load, 30_000);
