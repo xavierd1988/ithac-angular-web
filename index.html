@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="./styles.css?v=20260714-call-compact">
   <link rel="stylesheet" href="./ranking.css?v=20261120-action">
   <link rel="stylesheet" href="./action-robot.css?v=20261120-action">
-  <link rel="stylesheet" href="./garage.css?v=20261121-army">
+  <link rel="stylesheet" href="./garage.css?v=20261121-groq">
 </head>
 <body>
   <main class="app-shell">
@@ -81,6 +81,7 @@
       <a href="#garage/robots" data-tab="robots">Robots</a>
       <a href="#garage/journal" data-tab="journal">Journal</a>
       <a href="#garage/activity" data-tab="activity">Live &amp; search</a>
+      <a href="#garage/groq" data-tab="groq">Groq</a>
       <a href="#garage/tools" data-tab="tools">Tools</a>
     </nav>
 
@@ -183,6 +184,29 @@
           </div>
     </section>
 
+    <section class="garage-panel garage-groq" id="groqPanel" data-tab-panel="groq" aria-labelledby="groqTitle">
+      <div class="garage-panel-head">
+        <h2 id="groqTitle">Groq — AI analysis</h2>
+        <span id="groqUpdated" class="robots-summary">Loading…</span>
+      </div>
+      <p class="garage-note">Groq reads every collected post and says which coins it talks about, and whether it is bullish or bearish. Live posts go one by one; the old backlog goes in batches.</p>
+      <div id="groqCards" class="journal-summary"><p class="garage-note">Loading…</p></div>
+      <ul id="groqNotes" class="attention-list"></ul>
+      <h3 class="overview-subtitle">Pace over the last 24 hours <small id="groqPaceTotal"></small></h3>
+      <div id="groqBars" class="groq-bars" role="img" aria-label="Posts analyzed per hour"></div>
+      <p class="groq-legend"><span class="groq-key groq-key-crypto"></span>crypto <span class="groq-key groq-key-none"></span>without crypto <span class="groq-key groq-key-error"></span>errors</p>
+      <h3 class="overview-subtitle">Backlog catch-up (Batch)</h3>
+      <div id="groqBatchCards" class="journal-summary"></div>
+      <div class="journal-table-wrap">
+        <table class="groq-table">
+          <thead><tr><th>File</th><th>Status</th><th>Progress</th><th>Stored</th><th>Calls</th><th>Cost</th><th>Sent (ET)</th><th>Finished (ET)</th></tr></thead>
+          <tbody id="groqBatchRows"></tbody>
+        </table>
+      </div>
+      <h3 class="overview-subtitle">Latest errors</h3>
+      <ul id="groqErrors" class="groq-errors"></ul>
+    </section>
+
     <section class="garage-panel" data-tab-panel="tools" aria-labelledby="pagesTitle">
       <h2 id="pagesTitle">Ranking pages</h2>
         <details class="page-navigation" id="pageNavigation" open>
@@ -262,5 +286,6 @@
   <script src="./action.js?v=20261120-action" defer></script>
   <script src="./app.js?v=20261121-journal" defer></script>
   <script src="./garage.js?v=20261121-army" defer></script>
+  <script src="./groq-dept.js?v=20261121-groq" defer></script>
 </body>
 </html>

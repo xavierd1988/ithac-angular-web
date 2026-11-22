@@ -401,3 +401,28 @@ main.app-shell[hidden],
 .army-stats span { color: var(--muted, #4f5e72); font-size: 12px; }
 .robot-add code { font-size: 11px; }
 .robot-event-born::before, .robot-event-revived::before { background: #2fd49a; }
+
+/* ---------- Groq department (Claude 21/11/2026) ---------- */
+.garage-groq .journal-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; margin-bottom: 12px; }
+.garage-groq .groq-good { border-color: #9fd3b0; background: #f1fbf4; }
+.garage-groq .groq-warn { border-color: #f0cf8a; background: #fff9ec; }
+.garage-groq .groq-bad { border-color: #eaa6a6; background: #fff3f3; }
+.groq-bars { display: flex; align-items: flex-end; gap: 3px; height: 130px; padding: 6px 0; border-bottom: 1px solid var(--line, #dde2ea); }
+.groq-bar { flex: 1; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; min-width: 4px; }
+.groq-bar span { display: block; width: 100%; }
+.groq-bar-crypto, .groq-key-crypto { background: #2f7d4f; }
+.groq-bar-none, .groq-key-none { background: #9db4d6; }
+.groq-bar-error, .groq-key-error { background: #c8553d; }
+.groq-bar-empty { height: 2px; background: var(--line, #dde2ea); }
+.groq-legend { margin: 6px 0 14px; color: var(--muted, #4f5e72); font-size: 12px; }
+.groq-key { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin: 0 4px 0 10px; vertical-align: -1px; }
+.groq-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.groq-table th, .groq-table td { padding: 7px 8px; border-bottom: 1px solid var(--line, #dde2ea); text-align: left; vertical-align: top; }
+.groq-table small { color: var(--muted, #4f5e72); }
+.groq-progress { width: 110px; height: 6px; border-radius: 3px; background: var(--line, #dde2ea); overflow: hidden; }
+.groq-progress span { display: block; height: 100%; background: #2f7d4f; }
+.groq-status { font-weight: 650; }
+.groq-status-failed, .groq-status-expired { color: #b23b2a; }
+.groq-status-imported { color: #2f7d4f; }
+.groq-errors { margin: 0; padding-left: 18px; font-size: 13px; color: var(--ink, #1b263b); }
+.groq-errors time { color: var(--muted, #4f5e72); font-weight: 650; margin-right: 4px; }
