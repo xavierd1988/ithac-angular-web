@@ -835,7 +835,7 @@
     els.rankingQuality.textContent = state.reputationErrors.has(state.reputationWindow)
       ? 'The ranking is temporarily unavailable. Try again in a minute.'
       : `Each call is checked ${after} after it was posted: did the price go the way the influencer said? ` +
-        `Accounts are ranked on the average result of their own calls, from ${MINIMUM_RANKED_CALLS} calls up.` +
+        `Accounts are ranked on the average score of their calls, from ${MINIMUM_RANKED_CALLS} calls: the highest average comes first, whatever the number of calls.` +
         (report ? ` ${formatCount(report.rankings.length)} accounts ranked.` : '');
   }
 
@@ -1018,9 +1018,12 @@
     const score = reputationScore(reputation);
     const name = accountDisplayName(row);
     const profileLabel = `Open @${row.username} on X`;
-    const calls = reputation?.quality?.independentSampleCount ?? '–';
+    const graded = grading.calls(reputation);
+    const calls = graded > 0 ? formatCount(graded) : '–';
     const qualityLabel = performanceLine(reputation, score);
-    const summaryKey = JSON.stringify([rank, name, row.profileImageUrl, score, calls, qualityLabel]);
+    const lastCall = reputation?.lastCall?.postedAt ? reputation.lastCall : null;
+    const summaryKey = JSON.stringify([rank, name, row.profileImageUrl, score, calls, qualityLabel,
+      lastCall ? [lastCall.postId, lastCall.postedAt, lastCall.symbol, lastCall.direction] : null]);
     const entry = previous || document.createElement('details');
     entry.className = 'leaderboard-entry';
     entry.dataset.username = row.username;
@@ -1037,14 +1040,22 @@
               ${qualityLabel ? `<small class="grading-badge ${qualityLabel.tone}">${escapeHtml(qualityLabel.text)}</small>` : ''}
             </span>
           </span>
+          ${lastCallCellHtml(lastCall)}
           <span class="leaderboard-score ${scoreClass(score)}"><span class="visually-hidden">Score </span>${formatScore(score)}</span>
-          <span class="leaderboard-calls"><span class="visually-hidden">Scored calls </span>${calls}</span>
+          <span class="leaderboard-calls"><span class="visually-hidden">Graded calls </span>${calls}</span>
           <span class="leaderboard-chevron" aria-hidden="true"></span>
         </summary>
       `;
       prepareRankingAvatar(entry.querySelector('.avatar'), row.username);
       entry.querySelector('summary').addEventListener('click', (event) => {
         event.preventDefault();
+        // The last call opens its post, without opening or closing the account.
+        const lastButton = event.target.closest('[data-last-call]');
+        if (lastButton) {
+          event.stopPropagation();
+          if (lastCall) showPostPopover(lastButton, { ...lastCall, username: row.username });
+          return;
+        }
         const wasOpen = entry.open;
         state.selectedUsername = wasOpen ? null : row.username;
         state.selectedMentionKey = null;
@@ -1080,6 +1091,28 @@
     return entry;
   }
 
+  // The account's most recent call (graded or still in progress): when it was posted, and a button to its post.
+  function lastCallCellHtml(call) {
+    if (!call) return '<span class="leaderboard-last none"><span class="visually-hidden">No call yet</span><span aria-hidden="true">–</span></span>';
+    const short = String(call.direction || '').toLowerCase() === 'bearish';
+    const side = short ? 'Short' : 'Long';
+    const label = `Last call: ${side} ${call.symbol || ''}, posted ${formatDateTime(call.postedAt)}. Show the post`;
+    return `
+      <button type="button" class="leaderboard-last" data-last-call aria-haspopup="dialog" aria-label="${escapeAttr(label)}">
+        <span class="last-label">Last call</span>
+        <b>${escapeHtml(formatLastCallDate(call.postedAt))}</b>
+        <small>${escapeHtml(call.symbol || '–')} <span class="${short ? 'short' : 'long'}">${side}</span></small>
+      </button>
+    `;
+  }
+
+  function formatLastCallDate(value) {
+    const date = new Date(value);
+    if (!value || Number.isNaN(date.getTime())) return '–';
+    const sameYear = date.getFullYear() === new Date().getFullYear();
+    return new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric', ...(sameYear ? {} : { year: 'numeric' }), hour: 'numeric', minute: '2-digit' }).format(date);
+  }
+
   // ---------- Account panel ----------
   const PANEL_CALLS = 10;
 
@@ -1092,7 +1125,7 @@
     const posts = state.selectedPosts.get(row.username.toLowerCase());
     const reps = REPUTATION_WINDOWS.map(({ key }) => {
       const rep = row._reputations?.[key];
-      return rep ? [rep.rank, rep.competitionScore, rep.quality?.independentSampleCount] : null;
+      return rep ? [rep.rank, rep.competitionScore, grading.calls(rep)] : null;
     });
     return JSON.stringify([state.panelWindow, detailState?.loadedAt || 0, Boolean(detailState?.loading), detailState?.error || '',
       posts ? posts.length : -1, state.selectedMentionKey, state.panelPostsOpen, reps, row.followersCount, scrapeMinute(row)]);
@@ -1146,8 +1179,9 @@
   function panelWindowHtml(reputation, item, activeKey) {
     const score = reputationScore(reputation);
     const ranked = Number.isFinite(score);
-    const calls = Number(reputation?.quality?.independentSampleCount || 0);
-    const detail = ranked ? `#${reputation.rank} · ${formatScore(score)}` : calls ? `${calls} of ${MINIMUM_RANKED_CALLS} calls` : 'no call yet';
+    const calls = grading.calls(reputation);
+    const detail = ranked ? `#${reputation.rank} · ${formatScore(score)}`
+      : calls ? `${calls} of ${MINIMUM_RANKED_CALLS} calls` : reputation?.lastCall ? 'no result yet' : 'no call yet';
     return `
       <button type="button" class="account-window ${item.key === activeKey ? 'active' : ''} ${scoreClass(score)}" data-panel-window="${escapeAttr(item.key)}" aria-pressed="${item.key === activeKey}">
         <small>${escapeHtml(item.label)}</small>
@@ -1768,7 +1802,7 @@
     const score = reputationScore(row);
     const ranked = Number.isFinite(score);
     const quality = currentDetail.quality || row.quality;
-    const calls = Number(quality?.independentSampleCount || 0);
+    const calls = grading.calls(quality ? { quality } : row);
     const label = reputationWindowLabel(row.window || state.reputationWindow);
     const status = ranked ? `Rank ${row.rank}` : calls ? `Not ranked yet: ${calls} of ${MINIMUM_RANKED_CALLS} calls` : 'No graded call yet';
     backdrop.className = 'modal-backdrop';
@@ -1792,8 +1826,8 @@
         <p class="reputation-score-note">
           Each call is checked ${escapeHtml(label)} after it was posted. It scores 50, plus 5 points for every 1% the price
           moved in the called direction (minus 5 when it moved the other way), between 0 and 100. The account score is the
-          average of its calls, pulled toward 50 while there are only a few. The same call repeated on the same coin within
-          ${escapeHtml(label)} counts once. Results are before trading costs.
+          plain average of all its calls, so the highest average ranks first, whatever the number of calls. An account is
+          ranked from ${MINIMUM_RANKED_CALLS} graded calls. Results are before trading costs.
         </p>
         <section class="scored-only-panel">
           <header>
@@ -2116,7 +2150,7 @@
   function performanceLine(reputation, score) {
     if (!reputation) return null;
     const quality = reputation.quality || {};
-    const calls = Number(quality.independentSampleCount || 0);
+    const calls = grading.calls(reputation);
     if (!Number.isFinite(score)) {
       return calls ? { text: `${calls} of ${MINIMUM_RANKED_CALLS} calls needed`, tone: 'muted' } : null;
     }
@@ -2138,8 +2172,7 @@
   }
 
   function reputationScoredCount(item) {
-    const value = Number(item?.scoredCount);
-    return Number.isFinite(value) ? value : 0;
+    return grading.calls(item);
   }
 
   function windowAverageScore(windowKey) {
