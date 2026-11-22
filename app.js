@@ -1096,7 +1096,7 @@
       <button type="button" class="ranking-cell compact ${scoreClass(score)} ${active ? 'active' : ''}" data-reputation-username="${escapeAttr(row.username)}" data-reputation-window="${escapeAttr(windowItem.key)}" title="${escapeAttr(title)}">
         <small>#${escapeHtml(reputation.rank ?? '-')} · ${escapeHtml(windowItem.label)}</small>
         <strong>${formatScore(score)}</strong>
-        <em>${escapeHtml(grading.label(reputation.quality))} · ${Number(reputation.quality?.independentSampleCount || 0)} independent</em>
+        <em>${escapeHtml(grading.label(reputation.quality))} · ${Number(reputation.quality?.independentSampleCount || 0)} grouped</em>
       </button>
     `;
   }
@@ -1543,7 +1543,7 @@
         <section class="reputation-score-summary" aria-label="Reputation score summary">
           <span><b>${escapeHtml(formatScore(rankingScore))}</b><em>ranking score</em></span>
           <span><b>${escapeHtml(formatScore(tradeAverage))}</b><em>trade average</em></span>
-          <span><b>${escapeHtml(String(quality?.independentSampleCount ?? '–'))}</b><em>independent calls</em></span>
+          <span><b>${escapeHtml(String(quality?.independentSampleCount ?? '–'))}</b><em>grouped calls</em></span>
           <span><b>${escapeHtml(grading.pct(quality?.directionAccuracyPct))}</b><em>correct direction</em></span>
           <span><b>${escapeHtml(grading.pct(quality?.meanDirectionalVariationPct, true))}</b><em>mean directional move</em></span>
           <span><b>${escapeHtml(grading.pct(quality?.priceCoveragePct))}</b><em>price coverage</em></span>
@@ -1883,7 +1883,7 @@
     const sample = quality?.independentSampleCount || 0;
     const status = grading.label(quality);
     const formula = typeof explanation === 'string' ? explanation : explanation?.formula;
-    return `${status}. ${sample} independent calls; repetitions by the same author, asset, direction and publication day count once. ${typeof formula === 'string' ? formula : 'The ranking combines a score adjusted toward 50 for small samples (92%) and activity (8%).'}`;
+    return `${status}. ${sample} grouped calls; repeated predictions by the same author, asset and direction count once per evaluation horizon. ${typeof formula === 'string' ? formula : 'The ranking combines a score adjusted toward 50 for small samples (92%) and activity (8%).'}`;
   }
 
   function reputationScore(item) {
