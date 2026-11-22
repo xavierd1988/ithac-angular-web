@@ -2,14 +2,15 @@
   'use strict';
 
   const API_BASE = resolveApiBase();
+  const grading = window.IthacGrading;
   const FETCH_TIMEOUT_MS = 15_000;
   const SNAPSHOT_MIN_INTERVAL_MS = 3_000;
   const CRYPTO_REFRESH_MS = 300_000;
   const POLL_FALLBACK_MS = 5_000;
   const REPUTATION_WINDOWS = [
-    { key: 'day', label: '1 DAY' },
-    { key: 'week', label: '1 WEEK' },
-    { key: 'month', label: '1 MONTH' }
+    { key: 'day', label: 'AFTER 24H' },
+    { key: 'week', label: 'AFTER 7D' },
+    { key: 'month', label: 'AFTER 30D' }
   ];
   const state = {
     pageIndex: 0,
@@ -43,6 +44,9 @@
     allInfluencersLoadedAt: 0,
     timex: [],
     reputationWindow: 'day',
+    reputationPeriod: 'all',
+    reputationReports: {},
+    reputationRequests: {},
     reputation: {
       day: [],
       week: [],
@@ -75,6 +79,8 @@
     showMore: byId('showMore'),
     loadError: byId('loadError'),
     rankingStats: byId('rankingStats'),
+    rankingQuality: byId('rankingQuality'),
+    rankingPeriodFilter: byId('rankingPeriodFilter'),
     rankingSearch: byId('rankingSearch'),
     rankingOrder: byId('rankingOrder'),
     featuredRanking: byId('featuredRanking'),
@@ -135,6 +141,19 @@
       state.pageIndex = 0;
       state.pagesShown = 1;
       renderAll();
+    });
+    els.rankingPeriodFilter.addEventListener('change', () => {
+      state.reputationPeriod = grading.period(els.rankingPeriodFilter.value);
+      state.reputation = { day: [], week: [], month: [] };
+      state.reputationReports = {};
+      state.reputationReady.clear();
+      state.reputationErrors.clear();
+      state.reputationDetails.clear();
+      state.selectedReputation = null;
+      state.pageIndex = 0;
+      state.pagesShown = 1;
+      renderAll();
+      void Promise.all(REPUTATION_WINDOWS.map(({ key }) => loadReputationWindow(key)));
     });
     els.periodButtons.forEach((button) => {
       button.addEventListener('click', () => {
@@ -282,13 +301,21 @@
   }
 
   async function loadReputationWindow(key) {
+    const period = state.reputationPeriod;
+    const request = (state.reputationRequests[key] || 0) + 1;
+    state.reputationRequests[key] = request;
+    const current = () => request === state.reputationRequests[key] && period === state.reputationPeriod;
     try {
-      const rows = await getJson(`/api/crypto/reputation?window=${key}&take=2500`);
-      if (!Array.isArray(rows)) throw new Error('Invalid ranking response');
-      state.reputation[key] = rows;
+      const report = grading.report(await getJson(`/api/crypto/reputation/report?window=${key}&period=${period}&take=2500`), key, period);
+      if (!current()) return;
+      state.reputationReports[key] = report;
+      state.reputation[key] = [...report.rankings, ...report.unranked];
       state.reputationErrors.delete(key);
     } catch {
-      if (!state.reputationReady.has(key)) state.reputationErrors.add(key);
+      if (!current()) return;
+      state.reputationErrors.add(key);
+      state.reputation[key] = [];
+      delete state.reputationReports[key];
     }
     state.reputationReady.add(key);
     if (state.reputationWindow === key) renderAll();
@@ -758,12 +785,17 @@
     const periods = REPUTATION_WINDOWS.map(({ key, label }) => {
       if (state.reputationErrors.has(key)) return `${label.toLowerCase()}: unavailable`;
       if (!state.reputationReady.has(key)) return `${label.toLowerCase()}: loading`;
-      const ranks = reputationRowsForWindow(key);
-      const withCalls = ranks.filter((row) => reputationScoredCount(row) > 0).length;
-      const average = formatScore(windowAverageScore(key));
-      return `${label.toLowerCase()}: ${withCalls} accounts with calls, ${ranks.length} ranked, average ${average}`;
+      const report = state.reputationReports[key];
+      return `${label.toLowerCase()}: ${report?.rankings.length || 0} ranked, ${report?.unranked.length || 0} awaiting evaluation`;
     });
     els.rankingStats.textContent = `${periods.join(' · ')} · ${state.allInfluencers.length || state.page.total} accounts total`;
+    const report = state.reputationReports[state.reputationWindow];
+    const ranked = report?.rankings.length || 0;
+    const unranked = report?.unranked.length || 0;
+    els.rankingQuality.textContent = state.reputationErrors.has(state.reputationWindow)
+      ? 'Verified ranking temporarily unavailable. No unverified grades are shown.'
+      : !report ? 'Checking analysis and price quality…'
+      : `${ranked} ranked accounts · ${unranked} without a verified score · ${grading.pct(report.totals?.analysisCoveragePct)} of posts reviewed. Reviewed price predictions only. Repetitions count once; a small sample is provisional.`;
   }
 
   function renderFeatured(rows) {
@@ -772,15 +804,14 @@
       !state.query && state.status === 'all' && !state.priorityOnly &&
       state.allInfluencersReady && state.allInfluencers.length > 0 &&
       state.reputationReady.has(windowKey) && !state.reputationErrors.has(windowKey);
-    const leaders = ready ? rows.slice(0, 3)
-      .filter((row) => Number.isFinite(reputationScore(row._reputation))) : [];
+    const leaders = ready ? rows.filter((row) => row._reputation?.quality?.status === 'ready' && Number.isFinite(reputationScore(row._reputation))).slice(0, 3) : [];
     els.featuredRanking.hidden = leaders.length === 0;
     if (els.featuredRanking.hidden) return;
 
     const period = reputationWindowLabel(windowKey).toLowerCase();
     if (els.featuredPeriod.textContent !== period) els.featuredPeriod.textContent = period;
     const markup = leaders.map((row) => {
-      const rank = row._listRank;
+      const rank = row._reputation.rank;
       const name = accountDisplayName(row);
       const score = reputationScore(row._reputation);
       const label = `Open rank ${rank}, ${name}, score ${formatScore(score)}`;
@@ -946,8 +977,9 @@
     const score = reputationScore(reputation);
     const name = accountDisplayName(row);
     const profileLabel = `Open @${row.username} on X`;
-    const calls = reputation ? reputationScoredCount(reputation) : '–';
-    const summaryKey = JSON.stringify([rank, name, row.profileImageUrl, score, calls]);
+    const calls = reputation?.quality?.independentSampleCount ?? '–';
+    const qualityLabel = grading.label(reputation?.quality);
+    const summaryKey = JSON.stringify([rank, name, row.profileImageUrl, score, calls, qualityLabel]);
     const entry = previous || document.createElement('details');
     entry.className = 'leaderboard-entry';
     entry.dataset.username = row.username;
@@ -961,6 +993,7 @@
             ${avatarHtml(row)}
             <span class="leaderboard-name">
               <strong>${escapeHtml(name)}</strong>
+              <small class="grading-badge">${escapeHtml(qualityLabel)}</small>
             </span>
           </span>
           <span class="leaderboard-score ${scoreClass(score)}"><span class="visually-hidden">Score </span>${formatScore(score)}</span>
@@ -1057,13 +1090,13 @@
       `;
     }
     const score = reputationScore(reputation);
-    const avg = Number(reputation.averageScore);
+    const avg = grading.number(reputation.averageScore);
     const title = `${windowItem.label}: rank #${reputation.rank ?? '-'}, score ${formatScore(score)}, average ${formatScore(avg)}, ${Number(reputation.scoredCount ?? 0)} scored`;
     return `
       <button type="button" class="ranking-cell compact ${scoreClass(score)} ${active ? 'active' : ''}" data-reputation-username="${escapeAttr(row.username)}" data-reputation-window="${escapeAttr(windowItem.key)}" title="${escapeAttr(title)}">
         <small>#${escapeHtml(reputation.rank ?? '-')} · ${escapeHtml(windowItem.label)}</small>
         <strong>${formatScore(score)}</strong>
-        <em>avg ${formatScore(avg)} · ${Number(reputation.scoredCount ?? 0)}</em>
+        <em>${escapeHtml(grading.label(reputation.quality))} · ${Number(reputation.quality?.independentSampleCount || 0)} grouped</em>
       </button>
     `;
   }
@@ -1124,7 +1157,7 @@
     try {
       const username = String(row.username || '').trim();
       const windowKey = row.window || state.reputationWindow;
-      const detail = await getJson(`/api/crypto/reputation/${encodeURIComponent(username)}/detail?window=${encodeURIComponent(windowKey)}&take=250`);
+      const detail = await getJson(`/api/crypto/reputation/${encodeURIComponent(username)}/detail?window=${encodeURIComponent(windowKey)}&period=${state.reputationPeriod}&take=250`);
       state.reputationDetails.set(key, { loading: false, error: null, detail });
     } catch (error) {
       state.reputationDetails.set(key, {
@@ -1141,7 +1174,7 @@
   function reputationDetailKey(row) {
     const username = String(row?.username || '').trim().toLowerCase();
     const windowKey = String(row?.window || state.reputationWindow || 'day').toLowerCase();
-    return `${windowKey}:${username}`;
+    return `${state.reputationPeriod}:${windowKey}:${username}`;
   }
 
   function goToPage(pageIndex) {
@@ -1198,8 +1231,8 @@
       return Number(row._sourceIndex) + 1;
     }
     if (state.reputationErrors.has(state.reputationWindow)) return '–';
-    if (state.allInfluencers.length) return row._listRank ?? fallback;
-    const rank = Number(row._reputation?.rank);
+    if (!Number.isFinite(reputationScore(row._reputation))) return '–';
+    const rank = grading.number(row._reputation?.rank);
     return Number.isSafeInteger(rank) && rank > 0 ? rank : '–';
   }
 
@@ -1486,10 +1519,12 @@
     const history = Array.isArray(row.history) ? row.history : [];
     const detailScored = Array.isArray(detail?.scored) ? detail.scored : [];
     const detailHistory = Array.isArray(detail?.ranking?.history) ? detail.ranking.history : [];
-    const scored = detailScored.length ? detailScored : (detailHistory.length ? detailHistory : history);
+    const scored = (detailScored.length ? detailScored : (detailHistory.length ? detailHistory : history)).filter((signal) => Number.isFinite(grading.number(signal.score)));
     const ranking = detail?.ranking || row;
     const rankingScore = reputationScore(ranking);
-    const tradeAverage = Number(ranking?.averageScore);
+    const tradeAverage = Number.isFinite(rankingScore) ? grading.number(ranking?.averageScore) : NaN;
+    const quality = ranking?.quality || detail?.quality || row.quality;
+    const explanation = ranking?.explanation || detail?.explanation || row.explanation;
     const totalScored = reputationScoredCount(ranking) || scored.length;
     const shownScored = scored.length;
     const label = reputationWindowLabel(row.window || state.reputationWindow);
@@ -1498,7 +1533,7 @@
       <section class="modal-card reputation-detail-card" role="dialog" aria-modal="true" aria-labelledby="dialogTitle">
         <header>
           <div>
-            <span class="eyebrow">Scored only</span>
+            <span class="eyebrow">${escapeHtml(grading.label(quality))}</span>
             <h2 id="dialogTitle">@${escapeHtml(row.username || '-')} · ${escapeHtml(label)}</h2>
           </div>
           <button type="button" class="menu-close">Close</button>
@@ -1508,12 +1543,19 @@
         <section class="reputation-score-summary" aria-label="Reputation score summary">
           <span><b>${escapeHtml(formatScore(rankingScore))}</b><em>ranking score</em></span>
           <span><b>${escapeHtml(formatScore(tradeAverage))}</b><em>trade average</em></span>
-          <span><b>${escapeHtml(String(totalScored))}</b><em>calls used</em></span>
-          <span><b>${escapeHtml(String(shownScored))}</b><em>rows shown</em></span>
+          <span><b>${escapeHtml(String(quality?.independentSampleCount ?? '–'))}</b><em>grouped calls</em></span>
+          <span><b>${escapeHtml(grading.pct(quality?.directionAccuracyPct))}</b><em>correct direction</em></span>
+          <span><b>${escapeHtml(grading.pct(quality?.meanDirectionalVariationPct, true))}</b><em>mean directional move</em></span>
+          <span><b>${escapeHtml(grading.pct(quality?.priceCoveragePct))}</b><em>price coverage</em></span>
+          <span><b>${escapeHtml(grading.pct(quality?.analysisCoveragePct))}</b><em>analysis reviewed</em></span>
+          <span><b>${escapeHtml(String(quality?.evaluatedPostCount ?? '–'))}</b><em>evaluated posts</em></span>
         </section>
         <p class="reputation-score-note">
-          Compact row: coin, score, call -> end, entry -> exit, verdict. Click opens the X post.
+          ${escapeHtml(qualityExplanation(quality, explanation))}
+          Quotes must be observed at or before publication and the selected end time, within one hour. Missing or unreliable prices receive no grade.
+          Results describe past calls before trading costs. Click a row to open the X post.
         </p>
+        <p class="reputation-score-note">${escapeHtml(qualityCounts(quality))}</p>
         <section class="scored-only-panel">
           <header>
             <strong>Latest scored calls shown</strong>
@@ -1535,7 +1577,7 @@
   }
 
   function scoredOnlySignalHtml(signal) {
-    const score = Number(signal.score);
+    const score = grading.number(signal.score);
     const reason = signalReasonText(signal);
     const scoreText = Number.isFinite(score) ? formatScore(score) : '-';
     const symbol = signal.symbol || '-';
@@ -1554,7 +1596,7 @@
       <${tag} class="scored-only-row scored-call-link ${scoreClass(score)}"${attrs}>
         <span class="scored-call-crypto"><b>${escapeHtml(symbol)}</b><small>${escapeHtml(direction)} · ${escapeHtml(variation)}</small></span>
         <span class="scored-call-score"><b>${escapeHtml(scoreText)}</b><small>score</small></span>
-        <span class="scored-call-window"><small>${escapeHtml(callTime)} -> ${escapeHtml(endTime)}</small><small>${escapeHtml(entryPrice)} -> ${escapeHtml(exitPrice)}</small></span>
+        <span class="scored-call-window"><small>${escapeHtml(callTime)} → ${escapeHtml(endTime)}</small><small>${escapeHtml(entryPrice)} → ${escapeHtml(exitPrice)}</small><small>Quotes: ${escapeHtml(compactTime(signal.startPriceAt))} → ${escapeHtml(compactTime(signal.endPriceAt))}</small></span>
         <span class="scored-call-status"><b>${escapeHtml(verdict)}</b><small>${escapeHtml(status)}</small></span>
         <small class="scored-call-reason">${escapeHtml(reason)}</small>
       </${tag}>
@@ -1563,7 +1605,7 @@
 
   function signalOutcomeText(signal) {
     const direction = String(signal?.direction || '').toLowerCase();
-    const variation = Number(signal?.variationPct);
+    const variation = grading.number(signal?.variationPct);
     if (!Number.isFinite(variation) || (direction !== 'bullish' && direction !== 'bearish')) return 'scored call';
     const priceMove = variation > 0 ? 'price up' : variation < 0 ? 'price down' : 'flat';
     const good = direction === 'bullish' ? variation > 0 : variation < 0;
@@ -1573,6 +1615,43 @@
 
   function signalPostUrl(signal) {
     return signal.url || signal.postUrl || signal.sourceUrl || signal.Url || '';
+  }
+
+  function signalCallTime(signal) {
+    return signal.postedAt || signal.posted_at || signal.postCreatedAt || signal.post_created_at ||
+      signal.tweetCreatedAt || signal.tweet_created_at || signal.createdAt || signal.created_at ||
+      signal.mentionedAt || signal.mentioned_at || signal.callAt || signal.call_at ||
+      signal.startPriceAt || signal.start_price_at || signal.window?.startAt ||
+      signal.window?.start_at || '';
+  }
+
+  function signalEndTime(signal) {
+    return signal.endPriceAt || signal.end_price_at || signal.exitPriceAt || signal.exit_price_at ||
+      signal.exitAt || signal.exit_at || signal.targetPriceAt || signal.target_price_at ||
+      signal.window?.targetAt || signal.window?.target_at || '';
+  }
+
+  function signalEntryPrice(signal) {
+    return signal.startPriceUsd ?? signal.start_price_usd ?? signal.entryPriceUsd ??
+      signal.entry_price_usd ?? signal.priceStartUsd ?? signal.price_start_usd ??
+      signal.startPrice ?? signal.entryPrice ?? signal.window?.startPriceUsd ??
+      signal.window?.start_price_usd ?? signal.window?.startPrice;
+  }
+
+  function signalExitPrice(signal) {
+    return signal.endPriceUsd ?? signal.end_price_usd ?? signal.exitPriceUsd ??
+      signal.exit_price_usd ?? signal.priceEndUsd ?? signal.price_end_usd ??
+      signal.endPrice ?? signal.exitPrice ?? signal.window?.endPriceUsd ??
+      signal.window?.end_price_usd ?? signal.window?.endPrice;
+  }
+
+  function compactTime(value) {
+    return value ? formatMinute(value) : '-';
+  }
+
+  function compactPrice(value) {
+    const number = Number(value);
+    return Number.isFinite(number) ? formatPrice(number) : '-';
   }
 
   function pipelineSectionHtml(title, kind, signals, emptyText) {
@@ -1591,7 +1670,7 @@
 
   function pipelineSignalHtml(signal, kind, index) {
     const status = signalStatusText(signal);
-    const score = Number(signal.score);
+    const score = grading.number(signal.score);
     const endValue = Number.isFinite(score) ? formatScore(score) : status;
     return `
       <button class="history-row pipeline-row ${scoreClass(signal.score)}" type="button" data-pipeline-kind="${escapeAttr(kind)}" data-pipeline-index="${index}">
@@ -1646,7 +1725,7 @@
 
   function coinRowHtml(coin) {
     const status = String(coin.status || 'raw').toLowerCase();
-    const score = Number(coin.score ?? coin.bestScore);
+    const score = grading.number(coin.score ?? coin.bestScore);
     const hasScore = status === 'scored' && Number.isFinite(score);
     const scoreText = hasScore ? formatScore(score) : coinStatusText(status);
     const meta = coinMetaText(coin);
@@ -1689,8 +1768,8 @@
     if (coin.status === 'blocked' && coin.reason) return coin.reason;
     if (coin.status === 'waiting' && coin.lastSeenAt) return `target pending · ${formatMinute(coin.lastSeenAt)}`;
     if (coin.status === 'scored') {
-      const avg = Number(coin.averageScore);
-      const best = Number(coin.bestScore);
+      const avg = grading.number(coin.averageScore);
+      const best = grading.number(coin.bestScore);
       if (Number.isFinite(avg) && Number.isFinite(best)) return `avg ${formatScore(avg)} · best ${formatScore(best)}`;
     }
     return compactText(coin.thesis || coin.reason || '');
@@ -1785,45 +1864,8 @@
     return signal.source || '-';
   }
 
-  function signalCallTime(signal) {
-    return signal.postedAt || signal.posted_at || signal.postCreatedAt || signal.post_created_at ||
-      signal.tweetCreatedAt || signal.tweet_created_at || signal.createdAt || signal.created_at ||
-      signal.mentionedAt || signal.mentioned_at || signal.callAt || signal.call_at ||
-      signal.startPriceAt || signal.start_price_at || signal.window?.startAt ||
-      signal.window?.start_at || '';
-  }
-
-  function signalEndTime(signal) {
-    return signal.endPriceAt || signal.end_price_at || signal.exitPriceAt || signal.exit_price_at ||
-      signal.exitAt || signal.exit_at || signal.targetPriceAt || signal.target_price_at ||
-      signal.window?.targetAt || signal.window?.target_at || '';
-  }
-
-  function signalEntryPrice(signal) {
-    return signal.startPriceUsd ?? signal.start_price_usd ?? signal.entryPriceUsd ??
-      signal.entry_price_usd ?? signal.priceStartUsd ?? signal.price_start_usd ??
-      signal.startPrice ?? signal.entryPrice ?? signal.window?.startPriceUsd ??
-      signal.window?.start_price_usd ?? signal.window?.startPrice;
-  }
-
-  function signalExitPrice(signal) {
-    return signal.endPriceUsd ?? signal.end_price_usd ?? signal.exitPriceUsd ??
-      signal.exit_price_usd ?? signal.priceEndUsd ?? signal.price_end_usd ??
-      signal.endPrice ?? signal.exitPrice ?? signal.window?.endPriceUsd ??
-      signal.window?.end_price_usd ?? signal.window?.endPrice;
-  }
-
-  function compactTime(value) {
-    return value ? formatMinute(value) : '-';
-  }
-
-  function compactPrice(value) {
-    const number = Number(value);
-    return Number.isFinite(number) ? formatPrice(number) : '-';
-  }
-
   function confidenceText(value) {
-    const number = Number(value);
+    const number = grading.number(value);
     return Number.isFinite(number) ? `${Math.round(number * 100)}%` : '-';
   }
 
@@ -1832,9 +1874,20 @@
     return text.length > 180 ? `${text.slice(0, 177)}...` : text;
   }
 
+  function qualityCounts(quality) {
+    if (!quality) return 'Analysis coverage unavailable.';
+    return `${quality.reviewedPostCount || 0} / ${quality.totalPostCount || 0} posts reviewed; ${quality.actionableSignalCount || 0} directional opinions; ${quality.evaluableSignalCount || 0} evaluable signals; ${quality.repeatedSignalCount || 0} repetitions grouped. ${quality.legacyUnreviewedCount || 0} legacy signals awaiting review; ${quality.pendingSignalCount || 0} awaiting evaluation; ${quality.excludedSignalCount || 0} excluded from grading.`;
+  }
+
+  function qualityExplanation(quality, explanation) {
+    const sample = quality?.independentSampleCount || 0;
+    const status = grading.label(quality);
+    const formula = typeof explanation === 'string' ? explanation : explanation?.formula;
+    return `${status}. ${sample} grouped calls; repeated predictions by the same author, asset and direction count once per evaluation horizon. ${typeof formula === 'string' ? formula : 'The ranking combines a score adjusted toward 50 for small samples (92%) and activity (8%).'}`;
+  }
+
   function reputationScore(item) {
-    const value = Number(item?.competitionScore);
-    return Number.isFinite(value) ? value : Number(item?.averageScore);
+    return grading.score(item);
   }
 
   function reputationScoredCount(item) {
@@ -1844,15 +1897,16 @@
 
   function windowAverageScore(windowKey) {
     const rows = reputationRowsForWindow(windowKey)
-      .map((row) => Number(row.averageScore))
+      .filter((row) => Number.isFinite(reputationScore(row)))
+      .map((row) => grading.number(row.averageScore))
       .filter(Number.isFinite);
     if (!rows.length) return NaN;
     return rows.reduce((sum, score) => sum + score, 0) / rows.length;
   }
 
   function signalGraph(signal) {
-    const start = Number(signal.startPriceUsd);
-    const end = Number(signal.endPriceUsd);
+    const start = grading.number(signal.startPriceUsd);
+    const end = grading.number(signal.endPriceUsd);
     const hasEnd = Number.isFinite(end);
     const min = Math.min(start || 0, hasEnd ? end : start || 0);
     const max = Math.max(start || 0, hasEnd ? end : start || 0);
@@ -1886,7 +1940,7 @@
   }
 
   function scoreClass(score) {
-    const value = Number(score);
+    const value = grading.number(score);
     if (!Number.isFinite(value)) return 'neutral';
     if (value >= 55) return 'good';
     if (value <= 45) return 'bad';
@@ -1894,19 +1948,19 @@
   }
 
   function formatScore(score) {
-    const value = Number(score);
+    const value = grading.number(score);
     return Number.isFinite(value) ? value.toFixed(1) : '-';
   }
 
   function formatVariation(value) {
-    const number = Number(value);
+    const number = grading.number(value);
     if (!Number.isFinite(number)) return '-';
     const sign = number > 0 ? '+' : '';
     return `${sign}${number.toFixed(2)}%`;
   }
 
   function formatPrice(value) {
-    const number = Number(value);
+    const number = grading.number(value);
     if (!Number.isFinite(number)) return '-';
     if (number >= 100) return `$${number.toFixed(2)}`;
     if (number >= 1) return `$${number.toFixed(4)}`;

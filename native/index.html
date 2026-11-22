@@ -9,7 +9,7 @@
   <link rel="icon" type="image/png" sizes="64x64" href="./favicon-royal-blue.png">
   <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=20261120-royal-blue">
   <link rel="stylesheet" href="./styles.css?v=20260714-call-compact">
-  <link rel="stylesheet" href="./ranking.css?v=20261120-action">
+  <link rel="stylesheet" href="./ranking.css?v=review-20261120-action">
   <link rel="stylesheet" href="./action-robot.css?v=20261120-action">
   <link rel="stylesheet" href="./garage.css?v=20261122-v4f">
 </head>
@@ -27,12 +27,21 @@
     <div class="ranking-layout ranking-layout-solo">
       <section class="list-card" aria-labelledby="pageTitle">
         <div class="ranking-tools ranking-tools-primary">
-          <div class="ranking-period" role="group" aria-label="Scoring period">
-            <button class="period-button active" type="button" data-reputation-window="day" aria-pressed="true">1 day</button>
-            <button class="period-button" type="button" data-reputation-window="week" aria-pressed="false">1 week</button>
-            <button class="period-button" type="button" data-reputation-window="month" aria-pressed="false">1 month</button>
+          <div class="ranking-period" role="group" aria-label="Time after each publication">
+            <button class="period-button active" type="button" data-reputation-window="day" aria-pressed="true">After 24h</button>
+            <button class="period-button" type="button" data-reputation-window="week" aria-pressed="false">After 7d</button>
+            <button class="period-button" type="button" data-reputation-window="month" aria-pressed="false">After 30d</button>
           </div>
+          <label class="grading-period" for="rankingPeriodFilter">Posts published
+            <select id="rankingPeriodFilter">
+              <option value="all">All history</option>
+              <option value="7d">Last 7 days</option>
+              <option value="30d">Last 30 days</option>
+              <option value="90d">Last 90 days</option>
+            </select>
+          </label>
         </div>
+        <p class="grading-quality-note" id="rankingQuality" role="status">Checking analysis and price quality…</p>
 
         <section id="featuredRanking" class="featured-ranking" aria-labelledby="featuredTitle" hidden>
           <div class="featured-heading">
@@ -45,7 +54,7 @@
         <div id="loadError" class="load-error ranking-error" role="status" hidden></div>
         <h2 class="full-ranking-title">Full ranking</h2>
         <div id="leaderboardHead" class="leaderboard-head" aria-hidden="true">
-          <span>Rank</span><span>Name</span><span>Score</span><span>Calls</span><span></span>
+          <span>Rank</span><span>Name</span><span>Score</span><span title="Calls grouped by author, asset and direction over the evaluation horizon">Calls</span><span></span>
         </div>
         <div id="list" class="list">
           <p class="empty">Loading ranking…</p>
@@ -346,7 +355,8 @@
   <div id="modalRoot"></div>
 
   <script src="./action.js?v=20261120-action" defer></script>
-  <script src="./app.js?v=20261122-tuning" defer></script>
+  <script src="./grading-quality.js?v=20261122-review" defer></script>
+  <script src="./app.js?v=20261122-review" defer></script>
   <script src="./garage.js?v=20261122-v4f" defer></script>
 </body>
 </html>
