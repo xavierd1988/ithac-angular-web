@@ -1189,3 +1189,75 @@ button.ranking-cell:hover {
 .leaderboard-name .grading-badge.down { color:var(--red); }
 .reputation-score-note { line-height:1.7; }
 @media (max-width:560px) { .grading-quality-note { font-size:12px; text-align:left; } }
+
+/* Account panel: the latest calls first, then the calls being processed, then the raw posts. */
+.account-panel { gap: 18px; }
+.account-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 18px; }
+.account-id { display: grid; gap: 2px; min-width: 0; color: var(--muted); font-size: 12.5px; }
+.account-id .entry-profile { font-size: 15px; }
+.account-windows { display: inline-flex; flex-wrap: wrap; gap: 6px; }
+.account-window { display: grid; gap: 1px; min-width: 104px; padding: 6px 10px; border: 1px solid var(--line-strong); border-radius: 8px; background: var(--surface); color: var(--ink); font: inherit; text-align: left; cursor: pointer; }
+.account-window small { color: var(--muted); font-size: 11px; }
+.account-window b { font-size: 13px; font-weight: 650; font-variant-numeric: tabular-nums; }
+.account-window.active { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.account-window:focus-visible, .call-button:focus-visible, .price-button:focus-visible, .link-button:focus-visible, .mini-pop-close:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.calls-block { display: grid; gap: 8px; }
+.calls-title { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 12px; }
+.calls-title h3 { margin: 0; color: var(--ink); font-family: "Iowan Old Style", Georgia, serif; font-size: 18px; font-weight: 600; }
+.calls-title span { color: var(--muted); font-size: 12.5px; }
+.link-button { padding: 0; border: 0; background: none; color: var(--accent); font: inherit; font-weight: 600; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
+
+.calls-table { width: 100%; border: 1px solid var(--line); border-radius: 10px; border-collapse: separate; border-spacing: 0; overflow: hidden; background: var(--surface); font-size: 13.5px; }
+.calls-table th { padding: 8px 12px; border-bottom: 1px solid var(--line); background: var(--panel); color: var(--muted); font-size: 11.5px; font-weight: 600; text-align: left; }
+.calls-table td { padding: 8px 12px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+.calls-table tr:last-child td { border-bottom: 0; }
+.calls-table th:nth-child(1) { width: 44%; }
+.call-button { display: inline-flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; margin: -4px -6px; padding: 4px 6px; border: 0; border-radius: 6px; background: none; color: var(--ink); font: inherit; text-align: left; cursor: pointer; }
+.call-button:hover, .call-button[data-popover-open] { background: var(--panel-strong); }
+.call-button b { font-weight: 700; }
+.call-button small { color: var(--muted); font-size: 12px; }
+.call-side { padding: 1px 7px; border-radius: 999px; font-size: 11px; font-weight: 700; }
+.call-side.long { background: #e3f3ec; color: var(--green); }
+.call-side.short { background: #f9e4e4; color: var(--red); }
+.price-button { padding: 3px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); color: var(--ink); font: inherit; font-variant-numeric: tabular-nums; cursor: pointer; }
+.price-button:hover, .price-button[data-popover-open] { border-color: var(--accent); }
+.price-button.later, .price-later { color: var(--muted); font-size: 12.5px; }
+.call-result b { display: block; font-size: 14px; font-variant-numeric: tabular-nums; }
+.call-result small { color: var(--muted); font-size: 11.5px; }
+.calls-pending .call-result b { font-size: 13px; font-weight: 600; }
+.call-right { color: var(--green); }
+.call-wrong { color: var(--red); }
+.calls-empty, .calls-more { margin: 0; color: var(--muted); font-size: 13px; }
+
+.posts-disclosure > summary { width: max-content; color: var(--accent); font-size: 13px; font-weight: 600; cursor: pointer; }
+.posts-disclosure[open] > summary { margin-bottom: 10px; }
+
+/* Small popups: the post behind a call, and when each price was taken. */
+.mini-pop { position: absolute; z-index: 60; width: max-content; max-width: min(320px, calc(100vw - 24px)); padding: 12px 36px 12px 14px; border: 1px solid var(--line-strong); border-radius: 10px; background: var(--surface); color: var(--ink); box-shadow: 0 12px 32px rgba(16, 25, 52, .18); font-size: 13px; }
+.mini-pop:focus { outline: none; }
+.mini-pop.wide { max-width: min(440px, calc(100vw - 24px)); }
+.mini-pop small { display: block; color: var(--muted); font-size: 11.5px; }
+.mini-pop strong { display: block; margin: 2px 0 6px; font-size: 18px; font-variant-numeric: tabular-nums; }
+.mini-pop p { margin: 0 0 4px; line-height: 1.45; }
+.mini-pop .muted { color: var(--muted); }
+.mini-pop .post-text { margin: 6px 0 10px; font-size: 14px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; }
+.mini-pop .post-read { padding-top: 8px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12.5px; }
+.mini-pop .post-read b { color: var(--ink); }
+.mini-pop .post-open { display: inline-block; margin-top: 6px; color: var(--accent); font-weight: 600; }
+.mini-pop-close { position: absolute; top: 6px; right: 6px; width: 26px; height: 26px; border: 0; border-radius: 6px; background: none; color: var(--muted); font-size: 18px; line-height: 1; cursor: pointer; }
+.mini-pop-close:hover { background: var(--panel); }
+.mini-pop.sheet { position: fixed; top: auto; right: 8px; bottom: 8px; left: 8px; width: auto; max-width: none; max-height: 70vh; overflow: auto; }
+
+@media (max-width: 720px) {
+  .account-windows { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); width: 100%; }
+  .account-window { min-width: 0; }
+  .calls-table, .calls-table tbody, .calls-table tr, .calls-table td { display: block; }
+  .calls-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .calls-table { border: 0; background: transparent; }
+  .calls-table tbody { display: grid; gap: 8px; }
+  .calls-table tr { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px 10px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+  .calls-table td { padding: 0; border: 0; }
+  .calls-table td.call-cell { grid-column: 1 / -1; }
+  .calls-table td[data-label]:not(.call-cell)::before { content: attr(data-label); display: block; margin-bottom: 3px; color: var(--muted); font-size: 11px; font-weight: 600; }
+}

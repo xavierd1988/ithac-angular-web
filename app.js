@@ -32,6 +32,11 @@
     selectedUsername: null,
     selectedSignal: null,
     selectedMentionKey: null,
+    // Open account panel: which result window its calls show, and whether its raw post list is unfolded.
+    panelWindow: null,
+    panelPostsOpen: false,
+    panelCalls: new Map(),
+    postTexts: new Map(),
     selectedReputation: null,
     selectedPosts: new Map(),
     run: null,
@@ -454,6 +459,40 @@
   }
 
   function handleListClick(event) {
+    const postButton = event.target.closest('[data-call-post]');
+    const priceButton = event.target.closest('[data-call-price]');
+    const callButton = postButton || priceButton;
+    if (callButton) {
+      event.preventDefault();
+      event.stopPropagation();
+      const call = state.panelCalls.get(callButton.dataset.callPost || callButton.dataset.call);
+      if (!call) return;
+      if (postButton) showPostPopover(postButton, call);
+      else showPricePopover(priceButton, call, priceButton.dataset.callPrice);
+      return;
+    }
+    const windowButton = event.target.closest('[data-panel-window]');
+    if (windowButton && state.selectedUsername) {
+      event.preventDefault();
+      event.stopPropagation();
+      state.panelWindow = windowButton.dataset.panelWindow;
+      closePopover();
+      renderList();
+      void loadReputationDetail({ username: state.selectedUsername, window: state.panelWindow });
+      return;
+    }
+    const helpButton = event.target.closest('[data-score-help]');
+    if (helpButton) {
+      event.preventDefault();
+      event.stopPropagation();
+      const row = liveRows().find((item) => item.username.toLowerCase() === helpButton.dataset.scoreHelp.toLowerCase());
+      const windowKey = state.panelWindow || state.reputationWindow;
+      const reputation = row?._reputations?.[windowKey] || { username: helpButton.dataset.scoreHelp, window: windowKey };
+      state.selectedReputation = { ...reputation, window: windowKey };
+      renderModal();
+      void loadReputationDetail(state.selectedReputation);
+      return;
+    }
     const scrapeNowButton = event.target.closest('[data-scrape-username]');
     if (scrapeNowButton?.dataset.scrapeUsername) {
       event.preventDefault();
@@ -1009,93 +1048,324 @@
         const wasOpen = entry.open;
         state.selectedUsername = wasOpen ? null : row.username;
         state.selectedMentionKey = null;
+        state.panelWindow = state.reputationWindow;
+        state.panelPostsOpen = false;
+        closePopover();
         renderList();
-        if (!wasOpen) void loadPosts(row.username);
+        if (!wasOpen) {
+          void loadPosts(row.username);
+          void loadReputationDetail({ username: row.username, window: state.panelWindow });
+        }
       });
     }
 
-    entry.querySelector('.leaderboard-detail')?.remove();
-    if (selected) {
-      const details = document.createElement('div');
-      const status = rowStatusLabel(row);
-      details.className = 'leaderboard-detail';
-      // Public view of an account: who it is, how it ranks, its latest posts. Robot and proxy details live in the Garage.
-      details.innerHTML = `
-        <div class="entry-overview">
-          <section class="entry-block">
-            <a class="entry-profile" href="${escapeAttr(xProfileUrl(row.username))}" target="_blank" rel="noopener noreferrer" aria-label="${escapeAttr(profileLabel)}">
-              @${escapeHtml(row.username)} <span aria-hidden="true">↗</span>
-            </a>
-            <span class="entry-followers">${formatFollowers(row.followersCount)}</span>
-            <p class="row-subline">Posts last read ${escapeHtml(scrapeMinute(row))}</p>
-          </section>
-          <section class="entry-rankings" aria-label="Scores by period">
-            ${rankingCellHtml(row, reputation, status)}
-          </section>
-        </div>
-      `;
-      details.append(renderDetail(row));
-      entry.append(details);
-      details.querySelectorAll('[data-reputation-username]').forEach((button) => {
-        button.addEventListener('click', () => {
-          const windowKey = button.dataset.reputationWindow || state.reputationWindow;
-          const selectedReputation = row._reputations?.[windowKey] || reputation;
-          if (!selectedReputation) return;
-          state.selectedReputation = selectedReputation;
-          renderModal();
-          void loadReputationDetail(selectedReputation);
-        });
-      });
+    const previousDetail = entry.querySelector('.leaderboard-detail');
+    if (!selected) {
+      previousDetail?.remove();
+      return entry;
     }
-
+    const panelKey = accountPanelKey(row);
+    if (previousDetail?.dataset.panelKey === panelKey) return entry;
+    previousDetail?.remove();
+    // Public view of an account: its latest calls first, then the calls still being processed, then its raw posts.
+    // Robot and proxy details live in the Garage.
+    const details = document.createElement('div');
+    details.className = 'leaderboard-detail account-panel';
+    details.dataset.panelKey = panelKey;
+    details.innerHTML = accountPanelHtml(row, profileLabel);
+    details.querySelector('.posts-disclosure')?.addEventListener('toggle', (event) => {
+      state.panelPostsOpen = event.currentTarget.open;
+    });
+    entry.append(details);
     return entry;
   }
 
-  function rankingCellHtml(row, reputation, status) {
-    const reps = row._reputations || {};
-    if (REPUTATION_WINDOWS.some((item) => reps[item.key])) {
-      return `
-        <section class="ranking-stack" aria-label="Reputation by competition">
-          ${REPUTATION_WINDOWS.map((item) => rankingChipHtml(row, reps[item.key], item)).join('')}
-        </section>
-      `;
-    }
+  // ---------- Account panel ----------
+  const PANEL_CALLS = 10;
+
+  function panelDetailState(row) {
+    return state.reputationDetails.get(reputationDetailKey({ username: row.username, window: state.panelWindow || state.reputationWindow }));
+  }
+
+  function accountPanelKey(row) {
+    const detailState = panelDetailState(row);
+    const posts = state.selectedPosts.get(row.username.toLowerCase());
+    const reps = REPUTATION_WINDOWS.map(({ key }) => {
+      const rep = row._reputations?.[key];
+      return rep ? [rep.rank, rep.competitionScore, rep.quality?.independentSampleCount] : null;
+    });
+    return JSON.stringify([state.panelWindow, detailState?.loadedAt || 0, Boolean(detailState?.loading), detailState?.error || '',
+      posts ? posts.length : -1, state.selectedMentionKey, state.panelPostsOpen, reps, row.followersCount, scrapeMinute(row)]);
+  }
+
+  function accountPanelHtml(row, profileLabel) {
+    const windowKey = state.panelWindow || state.reputationWindow;
+    const label = reputationWindowLabel(windowKey);
+    const detailState = panelDetailState(row);
+    const detail = detailState?.detail;
+    const done = byNewestPost(Array.isArray(detail?.scored) ? detail.scored : []).slice(0, PANEL_CALLS);
+    const pending = byNewestPost(Array.isArray(detail?.waiting) ? detail.waiting : []);
+    const posts = state.selectedPosts.get(row.username.toLowerCase()) ?? [];
+    state.panelCalls = new Map([...done, ...pending.slice(0, PANEL_CALLS)].map((call) => [callId(call), call]));
     return `
-      <span class="ranking-stack single">
-        <span class="ranking-cell unrated">
-        <small>not rated</small>
-        <strong>-</strong>
-        <em>${escapeHtml(status)}</em>
-        </span>
-      </span>
+      <header class="account-head">
+        <div class="account-id">
+          <a class="entry-profile" href="${escapeAttr(xProfileUrl(row.username))}" target="_blank" rel="noopener noreferrer" aria-label="${escapeAttr(profileLabel)}">
+            @${escapeHtml(row.username)} <span aria-hidden="true">↗</span>
+          </a>
+          <span>${escapeHtml(formatFollowers(row.followersCount))} · posts last read ${escapeHtml(scrapeMinute(row))}</span>
+        </div>
+        <div class="account-windows" role="group" aria-label="Result measured after each call">
+          ${REPUTATION_WINDOWS.map((item) => panelWindowHtml(row._reputations?.[item.key], item, windowKey)).join('')}
+        </div>
+      </header>
+      <section class="calls-block">
+        <div class="calls-title">
+          <h3>Latest calls</h3>
+          <span>Exit price taken ${escapeHtml(label)} after each call · <button type="button" class="link-button" data-score-help="${escapeAttr(row.username)}">How the score works</button></span>
+        </div>
+        ${done.length ? callsTableHtml(done, 'done') : callsEmptyHtml(detailState, 'No call has a result for this period yet.')}
+      </section>
+      <section class="calls-block calls-pending">
+        <div class="calls-title">
+          <h3>Being processed</h3>
+          <span>${pending.length ? `${pending.length} call${pending.length === 1 ? '' : 's'} waiting for the ${escapeHtml(label)} result` : ''}</span>
+        </div>
+        ${pending.length ? callsTableHtml(pending.slice(0, PANEL_CALLS), 'pending') : callsEmptyHtml(detailState, 'Nothing in progress for this period.')}
+        ${pending.length > PANEL_CALLS ? `<p class="calls-more">and ${pending.length - PANEL_CALLS} older call${pending.length - PANEL_CALLS === 1 ? '' : 's'} in progress</p>` : ''}
+      </section>
+      <details class="posts-disclosure"${state.panelPostsOpen ? ' open' : ''}>
+        <summary>Latest posts</summary>
+        <div class="posts">
+          ${posts.length ? posts.map(postHtml).join('') : '<p class="calls-empty">No stored post loaded for this account yet.</p>'}
+        </div>
+      </details>
     `;
   }
 
-  function rankingChipHtml(row, reputation, windowItem) {
-    const active = state.reputationWindow === windowItem.key;
-    if (!reputation) {
-      return `
-        <span class="ranking-cell compact unrated ${active ? 'active' : ''}">
-          <small>${escapeHtml(windowItem.label)}</small>
-          <strong>-</strong>
-          <em>no graded call yet</em>
-        </span>
-      `;
-    }
+  function panelWindowHtml(reputation, item, activeKey) {
     const score = reputationScore(reputation);
     const ranked = Number.isFinite(score);
-    const calls = Number(reputation.quality?.independentSampleCount || 0);
-    const title = ranked
-      ? `${windowItem.label}: rank ${reputation.rank}, score ${formatScore(score)}, ${calls} calls`
-      : `${windowItem.label}: ${calls} of ${MINIMUM_RANKED_CALLS} calls needed to be ranked`;
+    const calls = Number(reputation?.quality?.independentSampleCount || 0);
+    const detail = ranked ? `#${reputation.rank} · ${formatScore(score)}` : calls ? `${calls} of ${MINIMUM_RANKED_CALLS} calls` : 'no call yet';
     return `
-      <button type="button" class="ranking-cell compact ${scoreClass(score)} ${active ? 'active' : ''}" data-reputation-username="${escapeAttr(row.username)}" data-reputation-window="${escapeAttr(windowItem.key)}" title="${escapeAttr(title)}">
-        <small>${escapeHtml(windowItem.label)}${ranked ? ` · #${escapeHtml(reputation.rank)}` : ''}</small>
-        <strong>${formatScore(score)}</strong>
-        <em>${ranked ? `${calls} call${calls === 1 ? '' : 's'}` : `${calls} of ${MINIMUM_RANKED_CALLS} calls`}</em>
+      <button type="button" class="account-window ${item.key === activeKey ? 'active' : ''} ${scoreClass(score)}" data-panel-window="${escapeAttr(item.key)}" aria-pressed="${item.key === activeKey}">
+        <small>${escapeHtml(item.label)}</small>
+        <b>${escapeHtml(detail)}</b>
       </button>
     `;
   }
+
+  function callsEmptyHtml(detailState, emptyText) {
+    if (!detailState || detailState.loading) return '<p class="calls-empty">Loading the calls…</p>';
+    if (detailState.error) return `<p class="calls-empty">The calls could not be loaded (${escapeHtml(detailState.error)}).</p>`;
+    return `<p class="calls-empty">${escapeHtml(emptyText)}</p>`;
+  }
+
+  function callsTableHtml(calls, kind) {
+    return `
+      <table class="calls-table ${kind}">
+        <thead><tr><th scope="col">Call</th><th scope="col">Entry</th><th scope="col">Exit</th><th scope="col">${kind === 'done' ? 'Result' : 'Status'}</th></tr></thead>
+        <tbody>${calls.map((call) => callRowHtml(call, kind)).join('')}</tbody>
+      </table>
+    `;
+  }
+
+  function callRowHtml(call, kind) {
+    const id = escapeAttr(callId(call));
+    const short = String(call.direction || '').toLowerCase() === 'bearish';
+    const entry = grading.number(signalEntryPrice(call));
+    const exit = grading.number(signalExitPrice(call));
+    const move = grading.number(call.variationPct);
+    const right = Number.isFinite(move) ? (short ? move < 0 : move > 0) : null;
+    const target = call.targetPriceAt || call.window?.targetAt;
+    const exitCell = Number.isFinite(exit)
+      ? `<button type="button" class="price-button" data-call-price="exit" data-call="${id}">${escapeHtml(formatPrice(exit))}</button>`
+      : target
+        ? `<button type="button" class="price-button later" data-call-price="exit" data-call="${id}">${escapeHtml(isFuture(target) ? `on ${formatCallDate(target)}` : 'getting price')}</button>`
+        : '<span class="price-later">–</span>';
+    const result = kind === 'done'
+      ? `<b class="${right === null ? '' : right ? 'call-right' : 'call-wrong'}">${escapeHtml(formatVariation(move).replace('.00%', '%'))}</b><small>${right === null ? '' : right ? 'right' : 'wrong'} · score ${escapeHtml(formatScore(call.score))}</small>`
+      : `<b>${escapeHtml(pendingStatusText(call, entry, target))}</b>`;
+    return `
+      <tr>
+        <td class="call-cell" data-label="Call">
+          <button type="button" class="call-button" data-call-post="${id}" aria-haspopup="dialog" title="Show the post">
+            <b>${escapeHtml(call.symbol || '–')}</b>
+            <span class="call-side ${short ? 'short' : 'long'}">${short ? 'Short' : 'Long'}</span>
+            <small>${escapeHtml(formatCallDate(signalCallTime(call)))}</small>
+          </button>
+        </td>
+        <td data-label="Entry">${Number.isFinite(entry)
+          ? `<button type="button" class="price-button" data-call-price="entry" data-call="${id}">${escapeHtml(formatPrice(entry))}</button>`
+          : '<span class="price-later">getting price</span>'}</td>
+        <td data-label="Exit">${exitCell}</td>
+        <td data-label="${kind === 'done' ? 'Result' : 'Status'}" class="call-result">${result}</td>
+      </tr>
+    `;
+  }
+
+  function pendingStatusText(call, entry, target) {
+    if (!Number.isFinite(entry)) return 'Getting the entry price';
+    if (target && isFuture(target)) return `Result in ${durationUntil(target)}`;
+    return 'Getting the exit price';
+  }
+
+  function callId(call) {
+    return String(call.windowId ?? call.id ?? `${call.postId}-${call.symbol}`);
+  }
+
+  function byNewestPost(calls) {
+    return [...calls].sort((a, b) => (Date.parse(signalCallTime(b)) || 0) - (Date.parse(signalCallTime(a)) || 0));
+  }
+
+  function isFuture(value) {
+    const time = Date.parse(value);
+    return Number.isFinite(time) && time > Date.now();
+  }
+
+  function durationUntil(value) {
+    const minutes = Math.max(1, Math.round((Date.parse(value) - Date.now()) / 60000));
+    if (minutes < 90) return `${minutes} min`;
+    const hours = Math.round(minutes / 60);
+    if (hours < 48) return `${hours} h`;
+    return `${Math.round(hours / 24)} days`;
+  }
+
+  function durationBetween(from, to) {
+    const minutes = Math.round((Date.parse(to) - Date.parse(from)) / 60000);
+    if (!Number.isFinite(minutes)) return '';
+    const sign = minutes < 0 ? 'before' : 'after';
+    const abs = Math.abs(minutes);
+    if (abs < 1) return 'at the time of the post';
+    if (abs < 90) return `${abs} min ${sign} the post`;
+    const hours = abs / 60;
+    if (hours < 48) return `${Number.isInteger(hours) ? hours : hours.toFixed(1)} h ${sign} the post`;
+    const days = hours / 24;
+    return `${Number.isInteger(days) ? days : days.toFixed(1)} days ${sign} the post`;
+  }
+
+  function formatCallDate(value) {
+    const date = new Date(value);
+    if (!value || Number.isNaN(date.getTime())) return '–';
+    const sameYear = date.getFullYear() === new Date().getFullYear();
+    return new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric', ...(sameYear ? { hour: 'numeric', minute: '2-digit' } : { year: 'numeric' }) }).format(date);
+  }
+
+  function formatDateTime(value) {
+    const date = new Date(value);
+    if (!value || Number.isNaN(date.getTime())) return '–';
+    return new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short' }).format(date);
+  }
+
+  // ---------- Popups for a call: the post, the entry time, the exit time ----------
+  let popover = null;
+
+  function closePopover() {
+    popover?.remove();
+    popover = null;
+    document.querySelectorAll('[data-popover-open]').forEach((node) => node.removeAttribute('data-popover-open'));
+  }
+
+  function openPopover(anchor, html, wide = false) {
+    const reopen = anchor.hasAttribute('data-popover-open');
+    closePopover();
+    if (reopen) return null;
+    popover = document.createElement('div');
+    popover.className = `mini-pop${wide ? ' wide' : ''}`;
+    popover.setAttribute('role', 'dialog');
+    popover.tabIndex = -1;
+    popover.innerHTML = `<button type="button" class="mini-pop-close" aria-label="Close">×</button><div class="mini-pop-body">${html}</div>`;
+    popover.querySelector('.mini-pop-close').addEventListener('click', closePopover);
+    document.body.append(popover);
+    anchor.setAttribute('data-popover-open', '');
+    placePopover(anchor);
+    popover.focus({ preventScroll: true });
+    return popover;
+  }
+
+  function placePopover(anchor) {
+    if (!popover) return;
+    if (window.matchMedia('(max-width: 560px)').matches) {
+      popover.classList.add('sheet');
+      return;
+    }
+    const box = anchor.getBoundingClientRect();
+    const width = popover.offsetWidth;
+    const height = popover.offsetHeight;
+    const viewWidth = document.documentElement.clientWidth;
+    const left = Math.max(12, Math.min(box.left, viewWidth - width - 12)) + window.scrollX;
+    const below = box.bottom + 8;
+    const top = below + height > window.innerHeight - 8 && box.top - height - 8 > 0 ? box.top - height - 8 : below;
+    popover.style.left = `${left}px`;
+    popover.style.top = `${top + window.scrollY}px`;
+  }
+
+  function showPricePopover(anchor, call, kind) {
+    const windowLabel = reputationWindowLabel(call.horizonKey || state.panelWindow || state.reputationWindow);
+    const posted = signalCallTime(call);
+    if (kind === 'entry') {
+      const at = call.startPriceAt || call.window?.startAt;
+      openPopover(anchor, `
+        <small>Entry price</small>
+        <strong>${escapeHtml(formatPrice(signalEntryPrice(call)))}</strong>
+        <p>Taken ${escapeHtml(formatDateTime(at))}</p>
+        <p class="muted">${escapeHtml(durationBetween(posted, at))}</p>
+      `);
+      return;
+    }
+    const exit = grading.number(signalExitPrice(call));
+    const at = call.endPriceAt || call.window?.endAt;
+    const target = call.targetPriceAt || call.window?.targetAt;
+    openPopover(anchor, Number.isFinite(exit) ? `
+        <small>Exit price</small>
+        <strong>${escapeHtml(formatPrice(exit))}</strong>
+        <p>Taken ${escapeHtml(formatDateTime(at))}</p>
+        <p class="muted">${escapeHtml(durationBetween(posted, at))}</p>
+      ` : `
+        <small>Exit price</small>
+        <strong>${escapeHtml(isFuture(target) ? 'Not yet' : 'Being fetched')}</strong>
+        <p>${escapeHtml(isFuture(target) ? 'Will be taken' : 'Was due')} ${escapeHtml(formatDateTime(target))}</p>
+        <p class="muted">${escapeHtml(windowLabel)} after the post</p>
+      `);
+  }
+
+  function showPostPopover(anchor, call) {
+    const short = String(call.direction || '').toLowerCase() === 'bearish';
+    const confidence = grading.number(call.confidence);
+    const box = openPopover(anchor, `
+      <small>@${escapeHtml(call.username || state.selectedUsername || '')} · ${escapeHtml(formatDateTime(signalCallTime(call)))}</small>
+      <p class="post-text">Loading the post…</p>
+      <p class="post-read"><b>Read as ${short ? 'Short' : 'Long'} ${escapeHtml(call.symbol || '')}</b>${Number.isFinite(confidence) ? ` · ${Math.round(confidence * 100)}% sure` : ''}${call.thesis ? `<br>${escapeHtml(call.thesis)}` : ''}</p>
+      ${signalPostUrl(call) ? `<a class="post-open" href="${escapeAttr(signalPostUrl(call))}" target="_blank" rel="noopener noreferrer">Open on X ↗</a>` : ''}
+    `, true);
+    if (!box) return;
+    const postId = call.postId;
+    const fill = (text) => {
+      if (popover !== box) return;
+      box.querySelector('.post-text').textContent = text;
+      placePopover(anchor);
+    };
+    if (!postId) { fill('The text of this post was not stored.'); return; }
+    if (state.postTexts.has(postId)) { fill(state.postTexts.get(postId)); return; }
+    getJson(`/api/posts/${encodeURIComponent(postId)}`)
+      .then((post) => {
+        const text = String(post?.text || '').trim() || 'The text of this post was not stored.';
+        state.postTexts.set(postId, text);
+        fill(text);
+      })
+      .catch(() => fill('The post could not be loaded right now.'));
+  }
+
+  document.addEventListener('click', (event) => {
+    if (popover && !popover.contains(event.target) && !event.target.closest('[data-popover-open]')) closePopover();
+  }, true);
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && popover) closePopover();
+  });
+  window.addEventListener('resize', () => closePopover());
+
+
 
   function accountDisplayName(row) {
     const name = String(row.displayName || '').trim();
@@ -1107,17 +1377,6 @@
     return `https://x.com/${encodeURIComponent(handle)}`;
   }
 
-  function renderDetail(row) {
-    const detail = document.createElement('section');
-    detail.className = 'detail';
-    const posts = state.selectedPosts.get(row.username.toLowerCase()) ?? [];
-    detail.innerHTML = `
-      <div class="posts">
-        ${posts.length ? posts.map(postHtml).join('') : '<div class="post"><span>-</span><strong>posts</strong><span>No stored post loaded for this account yet.</span></div>'}
-      </div>
-    `;
-    return detail;
-  }
 
   async function loadPosts(username) {
     const key = username.toLowerCase();
@@ -1152,6 +1411,9 @@
     }
     if (state.selectedReputation && reputationDetailKey(state.selectedReputation) === key) {
       renderModal();
+    }
+    if (state.selectedUsername && reputationDetailKey({ username: state.selectedUsername, window: state.panelWindow || state.reputationWindow }) === key) {
+      renderList();
     }
   }
 
