@@ -6,6 +6,7 @@
   let army = null;
   let armyTimer = null;
 
+  window.ithacReloadRobots = () => void loadArmy();
   async function loadArmy() {
     try {
       if (typeof window.ithacGetJson !== 'function') throw new Error('API not ready');
@@ -23,10 +24,12 @@
   let latest = null;
   let lastScrollY = 0;
 
-  const TABS = ['overview', 'robots', 'tuning', 'journal', 'activity', 'groq', 'tools'];
+  const TABS = ['overview', 'robots', 'analysis', 'tools'];
+  const TAB_ALIASES = { tuning: 'robots', journal: 'analysis', groq: 'analysis', activity: 'tools' };
 
   function currentTab() {
-    const tab = location.hash.split('/')[1] || 'overview';
+    const raw = location.hash.split('/')[1] || 'overview';
+    const tab = TAB_ALIASES[raw] || raw;
     return TABS.includes(tab) ? tab : 'overview';
   }
 
