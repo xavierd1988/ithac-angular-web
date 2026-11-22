@@ -201,9 +201,9 @@
     return `${API_BASE}${path}`;
   }
 
-  async function getJson(path) {
+  async function getJson(path, timeoutMs = FETCH_TIMEOUT_MS) {
     const sep = path.includes('?') ? '&' : '?';
-    return fetchJson(apiUrl(`${path}${sep}_=${Date.now()}`));
+    return fetchJson(apiUrl(`${path}${sep}_=${Date.now()}`), { timeoutMs });
   }
 
   async function postJson(path, body) {
@@ -215,23 +215,24 @@
   }
 
   async function fetchJson(url, options = {}) {
+    const { timeoutMs = FETCH_TIMEOUT_MS, ...fetchOptions } = options;
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
     try {
       const response = await fetch(url, {
         cache: 'no-store',
-        ...options,
+        ...fetchOptions,
         signal: controller.signal,
         headers: {
           'Cache-Control': 'no-cache',
           Pragma: 'no-cache',
-          ...(options.headers ?? {})
+          ...(fetchOptions.headers ?? {})
         }
       });
       if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
       return response.json();
     } catch (error) {
-      if (error?.name === 'AbortError') throw new Error(`timeout after ${Math.round(FETCH_TIMEOUT_MS / 1000)}s`);
+      if (error?.name === 'AbortError') throw new Error(`timeout after ${Math.round(timeoutMs / 1000)}s`);
       throw error;
     } finally {
       clearTimeout(timer);
@@ -306,7 +307,7 @@
     state.reputationRequests[key] = request;
     const current = () => request === state.reputationRequests[key] && period === state.reputationPeriod;
     try {
-      const report = grading.report(await getJson(`/api/crypto/reputation/report?window=${key}&period=${period}&take=2500`), key, period);
+      const report = grading.report(await getJson(`/api/crypto/reputation/report?window=${key}&period=${period}&take=2500`, 30_000), key, period);
       if (!current()) return;
       const changed = state.reputationReports[key]?.generatedAt !== report.generatedAt;
       if (changed) {
@@ -1169,7 +1170,7 @@
     try {
       const username = String(row.username || '').trim();
       const windowKey = row.window || state.reputationWindow;
-      const detail = await getJson(`/api/crypto/reputation/${encodeURIComponent(username)}/detail?window=${encodeURIComponent(windowKey)}&period=${state.reputationPeriod}&take=250`);
+      const detail = await getJson(`/api/crypto/reputation/${encodeURIComponent(username)}/detail?window=${encodeURIComponent(windowKey)}&period=${state.reputationPeriod}&take=250`, 30_000);
       state.reputationDetails.set(key, { loading: false, error: null, detail, loadedAt: Date.now() });
     } catch (error) {
       state.reputationDetails.set(key, {
