@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="./styles.css?v=20260714-call-compact">
   <link rel="stylesheet" href="./ranking.css?v=20261120-action">
   <link rel="stylesheet" href="./action-robot.css?v=20261120-action">
-  <link rel="stylesheet" href="./garage.css?v=20261121-groq">
+  <link rel="stylesheet" href="./garage.css?v=20261122-tuning">
 </head>
 <body>
   <main class="app-shell">
@@ -79,6 +79,7 @@
     <nav class="garage-tabs" aria-label="Garage sections">
       <a href="#garage/overview" data-tab="overview">Overview</a>
       <a href="#garage/robots" data-tab="robots">Robots</a>
+      <a href="#garage/tuning" data-tab="tuning">Tuning</a>
       <a href="#garage/journal" data-tab="journal">Journal</a>
       <a href="#garage/activity" data-tab="activity">Live &amp; search</a>
       <a href="#garage/groq" data-tab="groq">Groq</a>
@@ -102,6 +103,20 @@
       </div>
       <p class="garage-note">Each robot reads X with its own account. X slows down accounts that read too fast, so every robot keeps a safe pace.</p>
       <div id="robotsGrid" class="robots-grid"></div>
+    </section>
+
+    <section class="garage-panel garage-tuning" id="tuningPanel" data-tab-panel="tuning" aria-labelledby="tuningTitle">
+      <div class="garage-panel-head">
+        <h2 id="tuningTitle">Tuning — robot speed</h2>
+        <span id="tuningUpdated" class="robots-summary">Loading…</span>
+      </div>
+      <p class="garage-note">Each robot reads X at its own pace. Faster means more fresh posts, but X throttles accounts that read too much (above about 187 reads per 15 minutes, and sometimes earlier for new accounts). The gauge needle shows the reads of the last hour, the blue tick the maximum allowed by the setting, the red zone the X limit.</p>
+      <div class="tuning-key">
+        <label>Admin key <input id="tuningKey" type="password" autocomplete="off" placeholder="paste the key once"></label>
+        <button type="button" id="tuningKeySave">Save key</button>
+        <small id="tuningKeyState"></small>
+      </div>
+      <div id="tuningRobots" class="tuning-grid"><p class="garage-note">Loading…</p></div>
     </section>
 
     <section class="garage-panel garage-journal" data-tab-panel="journal" aria-labelledby="journalTitle">
@@ -284,8 +299,9 @@
   <div id="modalRoot"></div>
 
   <script src="./action.js?v=20261120-action" defer></script>
-  <script src="./app.js?v=20261121-journal" defer></script>
-  <script src="./garage.js?v=20261121-army" defer></script>
+  <script src="./app.js?v=20261122-tuning" defer></script>
+  <script src="./robots-tuning.js?v=20261122-tuning" defer></script>
+  <script src="./garage.js?v=20261122-tuning" defer></script>
   <script src="./groq-dept.js?v=20261121-groq" defer></script>
 </body>
 </html>
