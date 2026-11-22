@@ -1,0 +1,356 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta name="robots" content="noindex">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#02093E">
+  <title>Live Crypto Influencer Ranking</title>
+  <link rel="icon" type="image/png" sizes="64x64" href="./favicon-royal-blue.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=20261120-royal-blue">
+  <link rel="stylesheet" href="./styles.css?v=20260714-call-compact">
+  <link rel="stylesheet" href="./ranking.css?v=20261122-rank4">
+  <link rel="stylesheet" href="./action-robot.css?v=20261120-action">
+  <link rel="stylesheet" href="./garage.css?v=20261122-v4g">
+</head>
+<body>
+  <main class="app-shell">
+    <div class="page-intro">
+      <div class="cover-inner">
+        <h1 id="pageTitle"><span class="live-word"><span class="live-diode" aria-hidden="true"></span>Live</span> Crypto Influencer Ranking</h1>
+        <div class="cover-art" aria-hidden="true">
+          <span class="cover-mark"></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="ranking-layout ranking-layout-solo">
+      <section class="list-card" aria-labelledby="pageTitle">
+        <div class="ranking-tools ranking-tools-primary">
+          <div class="ranking-period" role="group" aria-label="Result measured after each call">
+            <button class="period-button active" type="button" data-reputation-window="day" aria-pressed="true">24 hours</button>
+            <button class="period-button" type="button" data-reputation-window="week" aria-pressed="false">7 days</button>
+            <button class="period-button" type="button" data-reputation-window="month" aria-pressed="false">1 month</button>
+          </div>
+        </div>
+        <p class="grading-quality-note" id="rankingQuality" role="status">Loading the ranking…</p>
+
+        <section id="featuredRanking" class="featured-ranking" aria-labelledby="featuredTitle" hidden>
+          <div class="featured-heading">
+            <h2 id="featuredTitle">Ranking leaders</h2>
+            <span id="featuredPeriod"></span>
+          </div>
+          <div id="featuredCards" class="featured-cards"></div>
+        </section>
+
+        <div id="loadError" class="load-error ranking-error" role="status" hidden></div>
+        <h2 class="full-ranking-title">Full ranking</h2>
+        <div id="leaderboardHead" class="leaderboard-head" aria-hidden="true">
+          <span>Rank</span><span>Name</span><span>Last call</span><span>Score</span><span title="Graded calls: every call with a result counts">Calls</span><span></span>
+        </div>
+        <div id="list" class="list">
+          <p class="empty">Loading ranking…</p>
+        </div>
+
+        <div class="incremental-ranking" id="incrementalRanking" hidden>
+          <button type="button" id="showMore" aria-controls="list">Show more</button>
+        </div>
+        <div class="ranking-footer">
+          <div class="ranking-footer-row">
+            <label class="ranking-footer-search">
+              <span class="visually-hidden">Search an account</span>
+              <input id="rankingSearch" type="search" placeholder="Search an account" autocomplete="off">
+            </label>
+            <label class="ranking-footer-order">Sort
+              <select id="rankingOrder">
+                <option value="score">Highest score</option>
+                <option value="scanner">Scanner order</option>
+              </select>
+            </label>
+            <details class="page-navigation" id="pageNavigation">
+              <summary>Pages <strong id="pageStatus"></strong></summary>
+              <nav class="pager" aria-label="Ranking pages">
+                <button id="prevPage" type="button" aria-label="Previous page">Previous</button>
+                <div class="page-numbers" id="pageNumbers"></div>
+                <button id="nextPage" type="button" aria-label="Next page">Next</button>
+                <label>
+                  Rows
+                  <select id="pageSize">
+                    <option value="25" selected>25</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                    <option value="250">250</option>
+                    <option value="500">500</option>
+                    <option value="1000">1000</option>
+                  </select>
+                </label>
+              </nav>
+            </details>
+          </div>
+          <p id="rankingStats" class="ranking-footer-stats"></p>
+        </div>
+      </section>
+    </div>
+
+    <div class="garage-entry">
+      <a class="garage-door" href="#garage" aria-label="Open the garage: robots, AI analysis, journal of calls and live tools">
+        <span class="garage-door-frame" aria-hidden="true">
+          <span class="garage-door-panel"></span><span class="garage-door-panel"></span><span class="garage-door-panel"></span><span class="garage-door-panel"></span>
+          <span class="garage-door-handle"></span>
+        </span>
+        <span class="garage-door-label"><strong>Garage</strong><em>Robots, AI analysis, journal and live tools</em></span>
+      </a>
+    </div>
+  </main>
+
+  <section id="garageView" class="garage-view" aria-labelledby="garageTitle" hidden>
+    <div class="garage-shutter" aria-hidden="true"></div>
+
+    <header class="garage-band">
+      <div class="garage-inner garage-band-inner">
+        <a class="garage-back" href="#">Back to the ranking</a>
+        <div class="garage-titleline">
+          <h1 id="garageTitle">Garage</h1>
+          <p id="garageStatus" class="garage-status" data-level="unknown" role="status" aria-live="polite">
+            <span class="garage-status-light" aria-hidden="true"></span><span id="garageStatusText">Checking the machine…</span>
+          </p>
+        </div>
+        <p class="garage-intro">The machine behind the ranking: the robots that read X, the AI that reads every post, and the journal of every call.</p>
+      </div>
+    </header>
+
+    <nav class="garage-tabs" aria-label="Garage sections">
+      <div class="garage-inner garage-tabs-inner">
+        <a href="#garage/overview" data-tab="overview">Overview</a>
+        <a href="#garage/robots" data-tab="robots">Robots</a>
+        <a href="#garage/analysis" data-tab="analysis">AI &amp; journal</a>
+        <a href="#garage/tools" data-tab="tools">Live &amp; tools</a>
+      </div>
+    </nav>
+
+    <div class="garage-inner garage-body">
+
+      <!-- Overview -->
+      <section class="g-tab" data-tab-panel="overview" aria-labelledby="overviewTitle">
+        <div class="g-sheet">
+          <div class="g-sheet-head">
+            <div>
+              <h2 id="overviewTitle">How the machine is doing</h2>
+              <p class="g-lede">Four steps, from a post on X to a score in the ranking.</p>
+            </div>
+            <span id="overviewUpdated" class="g-updated"></span>
+          </div>
+          <ol id="garageHealth" class="pipeline" aria-label="Pipeline steps">
+            <li class="pipeline-step is-loading"><span class="pipeline-name">Loading…</span></li>
+          </ol>
+        </div>
+        <div class="g-columns">
+          <div class="g-sheet">
+            <h3 class="g-sheet-title">Needs attention</h3>
+            <ul id="garageAttention" class="g-attention"><li>Loading…</li></ul>
+          </div>
+          <div class="g-sheet" id="overviewCatchup" hidden>
+            <h3 class="g-sheet-title">Catch-up of old posts</h3>
+            <div id="overviewCatchupBody"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Robots (with speed tuning) -->
+      <section class="g-tab" data-tab-panel="robots" aria-labelledby="robotsTitle" hidden>
+        <div class="g-sheet">
+          <div class="g-sheet-head">
+            <div>
+              <h2 id="robotsTitle">X robots</h2>
+              <p id="robotsSummary" class="g-lede">Loading…</p>
+            </div>
+            <button type="button" id="speedLockButton" class="g-button g-button-quiet" aria-expanded="false" aria-controls="speedUnlock">Unlock speed controls</button>
+          </div>
+          <form id="speedUnlock" class="g-unlock" hidden>
+            <label for="tuningKey">Admin key</label>
+            <input id="tuningKey" type="password" autocomplete="off" placeholder="Paste the key from CLE-ADMIN-GARAGE.txt">
+            <button type="submit" class="g-button">Unlock</button>
+            <p id="tuningKeyState" class="g-hint">The key stays in this browser only.</p>
+          </form>
+          <div class="fleet-head" aria-hidden="true">
+            <span>Robot</span><span>Status</span><span>Reads in the last hour</span><span>New posts</span><span>Speed</span>
+          </div>
+          <div id="robotsGrid" class="fleet" role="list" aria-labelledby="robotsTitle">
+            <p class="g-empty">Loading the robots…</p>
+          </div>
+          <details class="g-howto">
+            <summary>Add a robot</summary>
+            <ol>
+              <li>Create a new X account (a fresh email address, never used on X).</li>
+              <li>On the Mac, open <code>ITHAC-Ajouter-un-robot.command</code> and sign in to X in the window that opens.</li>
+              <li>The server tests the robot on reference accounts and puts it to work by itself. It appears here with the next free number.</li>
+            </ol>
+          </details>
+        </div>
+      </section>
+
+      <!-- AI analysis + journal of calls -->
+      <section class="g-tab" data-tab-panel="analysis" aria-labelledby="groqTitle" hidden>
+        <div class="g-sheet" id="groqPanel">
+          <div class="g-sheet-head">
+            <div>
+              <h2 id="groqTitle">AI analysis</h2>
+              <p class="g-lede">Groq reads every collected post and says which coins it mentions, and whether it is bullish or bearish.</p>
+            </div>
+            <span id="groqUpdated" class="g-updated"></span>
+          </div>
+          <dl id="groqCards" class="kpis"><div><dt>Loading…</dt><dd>–</dd></div></dl>
+          <p id="groqNotice" class="g-notice" hidden></p>
+          <div class="g-split">
+            <figure class="pace">
+              <figcaption><strong>Posts read per hour</strong><span id="groqPaceTotal"></span></figcaption>
+              <div id="groqBars" class="pace-bars" role="img" aria-label="Posts read per hour over the last 24 hours"></div>
+              <div id="groqAxis" class="pace-axis" aria-hidden="true"></div>
+              <p class="pace-legend"><span class="key key-crypto"></span>With a coin <span class="key key-none"></span>No coin <span class="key key-error"></span>Error</p>
+            </figure>
+            <div class="catchup" id="groqCatchup"></div>
+          </div>
+          <div id="groqBatches"></div>
+          <details class="g-disclosure" id="groqErrorsBox">
+            <summary id="groqErrorsTitle">Latest errors</summary>
+            <p class="g-hint">Posts that fail are analysed again automatically after 6 hours.</p>
+            <ul id="groqErrors" class="g-errors"></ul>
+          </details>
+        </div>
+
+        <div class="g-sheet garage-journal" id="journalPanel">
+          <div class="g-sheet-head">
+            <div>
+              <h2 id="journalTitle">Journal of calls</h2>
+              <p class="g-lede">Every call, from the post to the score: entry price, then the result after 1 day, 1 week and 1 month. Open any call to see its full trail.</p>
+            </div>
+            <span id="journalUpdated" class="g-updated"></span>
+          </div>
+          <form id="journalFilters" class="journal-filters">
+            <div class="seg" role="radiogroup" aria-label="Period">
+              <label><input type="radio" name="hours" value="48" checked><span>Last 48 h</span></label>
+              <label><input type="radio" name="hours" value="168"><span>7 days</span></label>
+              <label><input type="radio" name="hours" value=""><span>All</span></label>
+            </div>
+            <label class="g-field">Status
+              <select name="status">
+                <option value="">All calls</option>
+                <option value="scored">Scored</option>
+                <option value="pending">Waiting for a price</option>
+                <option value="error">Price errors</option>
+              </select>
+            </label>
+            <label class="g-field">Coin <input name="coin" type="search" placeholder="SOL, bitcoin" autocomplete="off"></label>
+            <label class="g-field">Influencer <input name="username" type="search" placeholder="@name" autocomplete="off"></label>
+            <button type="submit" class="g-button">Show calls</button>
+            <button type="button" id="journalExport" class="g-button g-button-quiet">Export CSV</button>
+          </form>
+          <div class="journal-table-wrap journal-wrap-main">
+            <table class="journal-table">
+              <thead>
+                <tr><th scope="col">Posted (ET)</th><th scope="col">Influencer</th><th scope="col">Call</th><th scope="col">Entry</th><th scope="col">1 day</th><th scope="col">1 week</th><th scope="col">1 month</th><th scope="col">Robot and delays</th></tr>
+              </thead>
+              <tbody id="journalRows"><tr><td colspan="8">Open this tab to load the journal…</td></tr></tbody>
+            </table>
+          </div>
+          <div class="journal-more"><button type="button" id="journalMore" class="g-button g-button-quiet" hidden>Load older calls</button></div>
+        </div>
+      </section>
+
+      <!-- Live scraper + Action simulator -->
+      <section class="g-tab" data-tab-panel="tools" aria-labelledby="activityTitle" hidden>
+        <div class="g-columns g-columns-tools">
+          <div class="g-sheet">
+            <div class="g-sheet-head">
+              <div>
+                <h2 id="activityTitle">Live scraper</h2>
+                <p class="g-lede">Which account the robots are reading right now, and where they are in the list.</p>
+              </div>
+            </div>
+            <details class="scanner-disclosure" open>
+              <summary class="visually-hidden">Live activity</summary>
+              <div id="livePositionBar" class="live-position-bar" aria-label="Live scraper position">
+                <section class="scanner-head">
+                  <span class="live-dot" aria-hidden="true"></span>
+                  <span class="live-kicker">Now reading</span>
+                  <strong id="scannerTitle">Connecting</strong>
+                  <em id="scannerMeta">Waiting for live data</em>
+                </section>
+                <section class="scanner-metrics" aria-label="Scraper counters">
+                  <span><b id="scannerProgressText">0%</b><em>progress</em></span>
+                  <span><b id="scannerDone">0</b><em>done</em></span>
+                  <span><b id="scannerRunning">0</b><em>running</em></span>
+                  <span><b id="scannerQueued">0</b><em>queued</em></span>
+                  <span><b id="scannerResources">0/0 · 0/0</b><em>robots and routes</em></span>
+                </section>
+                <div class="scanner-progress-track" aria-hidden="true">
+                  <i id="scannerProgressBar"></i>
+                </div>
+              </div>
+              <div id="scannerPath"></div>
+            </details>
+          </div>
+
+          <div class="g-sheet garage-action" aria-label="Action simulator">
+            <aside class="action-sidebar" aria-labelledby="actionTitle">
+              <details id="actionPanel" class="action-panel" data-robot-state="watching" open>
+                <summary class="action-heading">
+                  <span id="actionTitle">Action</span>
+                  <span class="action-mode">Simulation</span>
+                  <span id="actionSignalNotice" class="action-notice" aria-live="polite"></span>
+                </summary>
+                <div class="action-content">
+                  <div class="action-robot" aria-hidden="true">
+                    <div class="action-robot-body">
+                      <span class="action-robot-arm action-robot-arm-left"></span>
+                      <span class="action-robot-arm action-robot-arm-right"></span>
+                      <span class="action-robot-head"><span class="action-robot-visor"></span></span>
+                      <span class="action-robot-chip"></span>
+                    </div>
+                    <span class="action-robot-stack action-robot-stack-left"></span>
+                    <span class="action-robot-stack action-robot-stack-right"></span>
+                  </div>
+
+                  <div class="action-wallet">
+                    <span class="action-wallet-chip" aria-hidden="true"></span>
+                    <div><strong id="actionBalance">1,000</strong> <span>test chips</span></div>
+                    <button id="actionReset" class="action-secondary" type="button" hidden>Reset chips</button>
+                  </div>
+
+                  <div class="action-follow">
+                    <label for="actionInfluencer">Follow an influencer</label>
+                    <input id="actionInfluencer" type="search" placeholder="Search by name" autocomplete="off" aria-controls="actionSuggestions">
+                    <ul id="actionSuggestions" class="action-suggestions" aria-label="Influencers" hidden></ul>
+                  </div>
+                  <p id="actionStatus" class="action-status" role="status" aria-atomic="true">Follow an influencer to be alerted to their next call.</p>
+
+                  <article id="actionCall" class="action-call" aria-labelledby="actionCallTitle" hidden>
+                    <span id="actionCallSource"></span>
+                    <strong id="actionCallTitle"></strong>
+                    <span id="actionCallMeta"></span>
+                    <a id="actionPost" target="_blank" rel="noopener noreferrer" hidden>View original post</a>
+                  </article>
+                  <dl id="actionPosition" class="action-position" aria-label="Simulated position" hidden>
+                    <div><dt>Entry index</dt><dd id="actionEntry">–</dd></div>
+                    <div><dt>Simulated index</dt><dd id="actionMark">–</dd></div>
+                    <div><dt>Chip P&amp;L</dt><dd id="actionPnl">–</dd></div>
+                  </dl>
+                  <button id="actionPositionButton" class="action-primary" type="button" hidden></button>
+                  <button id="actionDemo" class="action-secondary" type="button">Test a call</button>
+                </div>
+              </details>
+            </aside>
+          </div>
+        </div>
+      </section>
+    </div>
+  </section>
+  <div id="modalRoot"></div>
+
+  <script src="./action.js?v=20261120-action" defer></script>
+  <script src="./grading-quality.js?v=20261122-rank4" defer></script>
+  <script src="./app.js?v=20261122-rank4" defer></script>
+  <script src="./garage.js?v=20261122-v4g" defer></script>
+</body>
+</html>
