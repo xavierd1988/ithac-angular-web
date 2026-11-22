@@ -46,6 +46,7 @@
   }
   function pct(value, signed) {
     const n = number(value);
+    if (!signed && n > 0 && n < 0.1) return '<0.1%';
     return Number.isFinite(n) ? `${signed && n > 0 ? '+' : ''}${n.toFixed(1)}%` : '–';
   }
   return Object.freeze({ number, score, label, period, report, pct, detail });

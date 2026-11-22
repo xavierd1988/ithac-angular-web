@@ -1597,7 +1597,7 @@
     const status = signalStatusText(signal);
     const verdict = signalOutcomeText(signal);
     const callTime = compactTime(signalCallTime(signal));
-    const endTime = compactTime(signalEndTime(signal));
+    const endTime = compactTime(signal.targetPriceAt || signal.window?.targetAt || signalEndTime(signal));
     const entryPrice = compactPrice(signalEntryPrice(signal));
     const exitPrice = compactPrice(signalExitPrice(signal));
     const url = signalPostUrl(signal);
@@ -1893,8 +1893,7 @@
   function qualityExplanation(quality, explanation) {
     const sample = quality?.independentSampleCount || 0;
     const status = grading.label(quality);
-    const formula = typeof explanation === 'string' ? explanation : explanation?.formula;
-    return `${status}. ${sample} grouped calls; repeated predictions by the same author, asset and direction count once per evaluation horizon. ${typeof formula === 'string' ? formula : 'The ranking combines a score adjusted toward 50 for small samples (92%) and activity (8%).'}`;
+    return `${status}. ${sample} grouped calls; repeated predictions by the same author, asset and direction count once per evaluation horizon. The ranking combines performance adjusted toward 50 for small samples (92%) and activity (8%). Each call starts at 50, gaining or losing 5 points per 1% directional price move, within 0–100.`;
   }
 
   function reputationScore(item) {

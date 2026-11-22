@@ -23,6 +23,7 @@ test('a stale response cannot describe a newly selected horizon or publication p
 test('unavailable metrics never look like a zero success rate', () => {
   assert.equal(grading.pct(null), '–');
   assert.equal(grading.pct(0), '0.0%');
+  assert.equal(grading.pct(0.01), '<0.1%');
   assert.equal(grading.pct(-1.52, true), '-1.5%');
 });
 
