@@ -1528,15 +1528,13 @@
     const backdrop = document.createElement('div');
     const detailState = state.reputationDetails.get(reputationDetailKey(row));
     const detail = detailState?.detail;
-    const history = Array.isArray(row.history) ? row.history : [];
-    const hasDetail = detail != null;
-    const scored = (hasDetail ? (Array.isArray(detail.scored) ? detail.scored : []) : history)
-      .filter((signal) => Number.isFinite(grading.number(signal.score)));
-    const ranking = hasDetail ? detail.ranking : row;
+    const currentDetail = grading.detail(row, detail);
+    const ranking = currentDetail.ranking;
+    const scored = currentDetail.scored.filter((signal) => Number.isFinite(grading.number(signal.score)));
     const rankingScore = reputationScore(ranking);
     const tradeAverage = Number.isFinite(rankingScore) ? grading.number(ranking?.averageScore) : NaN;
-    const quality = hasDetail ? (detail.quality || ranking?.quality) : row.quality;
-    const explanation = hasDetail ? (detail.explanation || ranking?.explanation) : row.explanation;
+    const quality = currentDetail.quality;
+    const explanation = currentDetail.explanation;
     const totalScored = reputationScoredCount(ranking) || scored.length;
     const shownScored = scored.length;
     const label = reputationWindowLabel(row.window || state.reputationWindow);

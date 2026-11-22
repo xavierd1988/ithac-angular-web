@@ -25,3 +25,14 @@ test('unavailable metrics never look like a zero success rate', () => {
   assert.equal(grading.pct(0), '0.0%');
   assert.equal(grading.pct(-1.52, true), '-1.5%');
 });
+
+test('a completed empty detail invalidates the older report and its scored history', () => {
+  const row = { competitionScore: 93, quality: { independentSampleCount: 4 }, history: [{ score: 90 }] };
+  const quality = { status: 'recalculation_pending', independentSampleCount: 0 };
+  const current = grading.detail(row, { ranking: null, scored: [], quality });
+  assert.equal(current.ranking, null);
+  assert.deepEqual(current.scored, []);
+  assert.equal(current.quality, quality);
+  assert.ok(Number.isNaN(grading.score(current.ranking)));
+  assert.equal(grading.detail(row, null).ranking, row);
+});
