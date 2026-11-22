@@ -314,6 +314,8 @@
     } catch {
       if (!current()) return;
       state.reputationErrors.add(key);
+      state.reputation[key] = [];
+      delete state.reputationReports[key];
     }
     state.reputationReady.add(key);
     if (state.reputationWindow === key) renderAll();
@@ -793,7 +795,7 @@
     els.rankingQuality.textContent = state.reputationErrors.has(state.reputationWindow)
       ? 'Verified ranking temporarily unavailable. No unverified grades are shown.'
       : !report ? 'Checking analysis and price quality…'
-      : `${ranked} ranked accounts · ${unranked} without a verified score · ${grading.pct(report.totals?.analysisCoveragePct)} of posts reviewed. Only reviewed directional opinions with publication-anchored prices count. Repeated calls are grouped; a small sample is provisional.`;
+      : `${ranked} ranked accounts · ${unranked} without a verified score · ${grading.pct(report.totals?.analysisCoveragePct)} of posts reviewed. Reviewed price predictions only. Repetitions count once; a small sample is provisional.`;
   }
 
   function renderFeatured(rows) {
