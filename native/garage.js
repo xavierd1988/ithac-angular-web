@@ -586,6 +586,7 @@
     if (overviewCard) overviewCard.hidden = !items.length;
     if (!items.length) {
       target.innerHTML = withTable ? '<p class="g-hint">No catch-up running. Old posts are read in batches when Groq is on a paid plan.</p>' : '';
+      if (withTable && $('groqBatches')) $('groqBatches').innerHTML = '';
       return;
     }
     // Batches replaced before sending (new call review) are left out of the progress.
@@ -637,8 +638,11 @@
       const review = /^batch-v2-/.test(String(file)) ? 'New review, batch' : 'Batch';
       return m ? `${review} ${Number(m[1])}` : file;
     };
-    target.innerHTML = `${head}
-      <details class="g-disclosure">
+    // The batch list sits under the chart, full width, and stays open across refreshes.
+    const listBox = $('groqBatches') || target;
+    const wasOpen = Boolean(listBox.querySelector('details.batch-list')?.open);
+    const list = `
+      <details class="g-disclosure batch-list"${wasOpen ? ' open' : ''}>
         <summary>All ${items.length} batches</summary>
         <div class="journal-table-wrap">
           <table class="batch-table">
@@ -655,6 +659,12 @@
           </table>
         </div>
       </details>`;
+    if (listBox === target) {
+      target.innerHTML = head + list;
+    } else {
+      target.innerHTML = head;
+      listBox.innerHTML = list;
+    }
   }
 
   async function loadGroq() {
