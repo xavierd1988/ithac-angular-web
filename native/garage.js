@@ -23,7 +23,7 @@
   let latest = null;
   let lastScrollY = 0;
 
-  const TABS = ['overview', 'robots', 'journal', 'activity', 'tools'];
+  const TABS = ['overview', 'robots', 'journal', 'activity', 'groq', 'tools'];
 
   function currentTab() {
     const tab = location.hash.split('/')[1] || 'overview';
