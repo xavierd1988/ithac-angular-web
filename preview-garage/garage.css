@@ -1424,8 +1424,24 @@ main.app-shell[hidden],
     border: 0;
   }
 
-  .journal-row > td.ju { grid-area: 1 / 1 / 2 / 3; font-weight: 650; }
-  .journal-row > td.jt { grid-area: 1 / 3 / 2 / 4; color: var(--g-slate); font-size: 12px; text-align: right; }
+  /* Name on the left, time on the right, both on the first line. */
+  .journal-row > td.ju {
+    grid-area: 1 / 1 / 2 / 4;
+    justify-self: start;
+    max-width: 58%;
+    overflow: hidden;
+    font-weight: 650;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .journal-row > td.jt {
+    grid-area: 1 / 1 / 2 / 4;
+    justify-self: end;
+    color: var(--g-slate);
+    font-size: 12px;
+    white-space: nowrap;
+  }
   .journal-row > td.jc { grid-column: 1 / -1; }
   .journal-row > td.jc small { display: inline; margin-left: 6px; }
   .journal-row > td.je { grid-column: 1 / -1; }
@@ -1489,7 +1505,7 @@ main.app-shell[hidden],
   .pipeline-step + .pipeline-step { border-top: 1px solid var(--g-rule); }
 
   /* Phone: name and state on their own lines, the two counts side by side. */
-  .fleet-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); row-gap: 12px; }
+  .fleet-row { grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); row-gap: 12px; }
   .fleet-id,
   .fleet-state,
   .fleet-speed,

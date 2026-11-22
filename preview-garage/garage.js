@@ -303,7 +303,7 @@
           <div><strong>${esc(robot.label)}</strong><span>${esc(robot.identity || 'X account')}</span><span>${esc(route)}</span></div>
         </div>
         <div class="fleet-state"><span class="pill" data-level="${state.key}">${esc(state.word)}</span><small>${esc(state.note)}</small></div>
-        <div class="fleet-reads">${alive ? gauge(reads, cap) : ''}<div><span class="fleet-label">Reads in the last hour</span><b>${num(reads)}</b><small>${alive ? `limit about ${num(X_LIMIT_PER_HOUR)}` : `${num(robot.passes_alive)} reads in its life`}</small></div></div>
+        <div class="fleet-reads">${alive ? gauge(reads, cap) : ''}<div><span class="fleet-label">Reads per hour</span><b>${num(reads)}</b><small>${alive ? `limit about ${num(X_LIMIT_PER_HOUR)}` : `${num(robot.passes_alive)} reads in its life`}</small></div></div>
         <div class="fleet-yield"><span class="fleet-label">New posts</span><b>${num(alive ? robot.posts_1h : robot.new_posts_alive)}</b><small>${alive ? 'in the last hour' : 'in its life'}</small></div>
         ${speed}
         <details class="fleet-more"${open ? ' open' : ''}>
@@ -673,8 +673,9 @@
         `<small>${Number.isFinite(variation) ? `${variation >= 0 ? '+' : ''}${variation.toFixed(2)}%` : ''}</small><small>${price(w.exitPrice)}</small></td>`;
     }
     const isError = status.endsWith('_error');
+    const detail = isError ? esc(w.error || '') : w.targetAt ? `Due ${et(w.targetAt)}` : '';
     return `<td class="jw ${isError ? 'jw-error' : 'jw-wait'}" ${tag}><span class="jw-pill">${esc(windowStatusText[status] || status)}</span>` +
-      `<small>${isError ? esc(w.error || '') : w.targetAt ? `Due ${et(w.targetAt)}` : 'No entry price yet'}</small></td>`;
+      `${detail ? `<small>${detail}</small>` : ''}</td>`;
   }
   function entryCell(row) {
     const first = (row.windows || []).find((w) => w.entryPrice !== null && w.entryPrice !== undefined);
