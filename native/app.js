@@ -308,8 +308,20 @@
     try {
       const report = grading.report(await getJson(`/api/crypto/reputation/report?window=${key}&period=${period}&take=2500`), key, period);
       if (!current()) return;
+      const changed = state.reputationReports[key]?.generatedAt !== report.generatedAt;
+      if (changed) {
+        const prefix = `${period}:${key}:`;
+        for (const cacheKey of state.reputationDetails.keys()) {
+          if (cacheKey.startsWith(prefix)) state.reputationDetails.delete(cacheKey);
+        }
+      }
       state.reputationReports[key] = report;
       state.reputation[key] = [...report.rankings, ...report.unranked];
+      if (changed && state.selectedReputation && (state.selectedReputation.window || state.reputationWindow) === key) {
+        const selected = state.reputation[key].find((row) => row.username?.toLowerCase() === state.selectedReputation.username?.toLowerCase());
+        state.selectedReputation = selected || { username: state.selectedReputation.username, window: key, quality: null, history: [] };
+        void loadReputationDetail(state.selectedReputation);
+      }
       state.reputationErrors.delete(key);
     } catch {
       if (!current()) return;
@@ -1150,7 +1162,7 @@
   async function loadReputationDetail(row) {
     const key = reputationDetailKey(row);
     const cached = state.reputationDetails.get(key);
-    if (cached?.loading || cached?.detail) return;
+    if (cached?.loading || (cached?.detail && Date.now() - cached.loadedAt < 45_000)) return;
 
     state.reputationDetails.set(key, { loading: true, error: null, detail: null });
     renderModal();
@@ -1158,7 +1170,7 @@
       const username = String(row.username || '').trim();
       const windowKey = row.window || state.reputationWindow;
       const detail = await getJson(`/api/crypto/reputation/${encodeURIComponent(username)}/detail?window=${encodeURIComponent(windowKey)}&period=${state.reputationPeriod}&take=250`);
-      state.reputationDetails.set(key, { loading: false, error: null, detail });
+      state.reputationDetails.set(key, { loading: false, error: null, detail, loadedAt: Date.now() });
     } catch (error) {
       state.reputationDetails.set(key, {
         loading: false,
@@ -1517,14 +1529,14 @@
     const detailState = state.reputationDetails.get(reputationDetailKey(row));
     const detail = detailState?.detail;
     const history = Array.isArray(row.history) ? row.history : [];
-    const detailScored = Array.isArray(detail?.scored) ? detail.scored : [];
-    const detailHistory = Array.isArray(detail?.ranking?.history) ? detail.ranking.history : [];
-    const scored = (detailScored.length ? detailScored : (detailHistory.length ? detailHistory : history)).filter((signal) => Number.isFinite(grading.number(signal.score)));
-    const ranking = detail?.ranking || row;
+    const hasDetail = detail != null;
+    const scored = (hasDetail ? (Array.isArray(detail.scored) ? detail.scored : []) : history)
+      .filter((signal) => Number.isFinite(grading.number(signal.score)));
+    const ranking = hasDetail ? detail.ranking : row;
     const rankingScore = reputationScore(ranking);
     const tradeAverage = Number.isFinite(rankingScore) ? grading.number(ranking?.averageScore) : NaN;
-    const quality = ranking?.quality || detail?.quality || row.quality;
-    const explanation = ranking?.explanation || detail?.explanation || row.explanation;
+    const quality = hasDetail ? (detail.quality || ranking?.quality) : row.quality;
+    const explanation = hasDetail ? (detail.explanation || ranking?.explanation) : row.explanation;
     const totalScored = reputationScoredCount(ranking) || scored.length;
     const shownScored = scored.length;
     const label = reputationWindowLabel(row.window || state.reputationWindow);
