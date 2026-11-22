@@ -218,7 +218,7 @@
     const legacy = retired.map((robot) => robotCard(robot, eventsBy.get(robot.session_name) || [], working));
     grid.innerHTML = stats + cards.join('') + addCard +
       (legacy.length ? `<h3 class="robots-legacy-title">Retired accounts (before November 2026)</h3>${legacy.join('')}` : '');
-    summary.textContent = `${living.length} alive · ${dead.length} dead · pace set per robot in the Tuning tab`;
+    summary.textContent = `${living.length} alive · ${dead.length} dead · speed set on each robot card`;
   }
 
   window.addEventListener('ithac:resources', (event) => {
