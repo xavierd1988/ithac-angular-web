@@ -15,7 +15,7 @@
     return number(row.competitionScore);
   }
   function label(quality) {
-    if (!quality) return 'Awaiting review';
+    if (!quality) return 'Not rated';
     if (quality.status === 'ready') return 'Verified sample';
     if (quality.status === 'insufficient_sample') return 'Small sample';
     if (quality.status === 'data_uncertain') return 'Limited data';
