@@ -303,8 +303,8 @@
           <div><strong>${esc(robot.label)}</strong><span>${esc(robot.identity || 'X account')}</span><span>${esc(route)}</span></div>
         </div>
         <div class="fleet-state"><span class="pill" data-level="${state.key}">${esc(state.word)}</span><small>${esc(state.note)}</small></div>
-        <div class="fleet-reads">${alive ? gauge(reads, cap) : ''}<div><b>${num(reads)}</b><small>${alive ? `limit about ${num(X_LIMIT_PER_HOUR)}` : `${num(robot.passes_alive)} reads in its life`}</small></div></div>
-        <div class="fleet-yield"><b>${num(alive ? robot.posts_1h : robot.new_posts_alive)}</b><small>${alive ? 'in the last hour' : 'in its life'}</small></div>
+        <div class="fleet-reads">${alive ? gauge(reads, cap) : ''}<div><span class="fleet-label">Reads in the last hour</span><b>${num(reads)}</b><small>${alive ? `limit about ${num(X_LIMIT_PER_HOUR)}` : `${num(robot.passes_alive)} reads in its life`}</small></div></div>
+        <div class="fleet-yield"><span class="fleet-label">New posts</span><b>${num(alive ? robot.posts_1h : robot.new_posts_alive)}</b><small>${alive ? 'in the last hour' : 'in its life'}</small></div>
         ${speed}
         <details class="fleet-more"${open ? ' open' : ''}>
           <summary>Details</summary>
@@ -634,7 +634,7 @@
   }
 
   // ---------- Journal of calls ----------
-  const journal = { rows: [], nextBeforeId: null, loading: false, loaded: false };
+  const journal = { rows: [], next: null, loading: false, loaded: false };
   const JOURNAL_PAGE = 50;
   const windowStatusText = {
     scored: 'Scored', historical_pending: 'Waiting for price', detected: 'Waiting', waiting_day: 'Running',
@@ -661,24 +661,25 @@
     if (robot) return robot.label;
     return session ? 'Retired robot' : '–';
   }
-  function windowCell(w) {
-    if (!w) return '<td class="jw jw-none">–</td>';
+  function windowCell(w, label) {
+    const tag = `data-label="${esc(label)}"`;
+    if (!w) return `<td class="jw jw-none" ${tag}>–</td>`;
     const status = String(w.status || '');
     if (status === 'scored') {
       const score = Number(w.score);
       const tone = score >= 60 ? 'good' : score <= 40 ? 'bad' : 'flat';
       const variation = Number(w.variationPct);
-      return `<td class="jw jw-${tone}"><strong>${Number.isFinite(score) ? score.toFixed(1) : '–'}</strong>` +
+      return `<td class="jw jw-${tone}" ${tag}><strong>${Number.isFinite(score) ? score.toFixed(1) : '–'}</strong>` +
         `<small>${Number.isFinite(variation) ? `${variation >= 0 ? '+' : ''}${variation.toFixed(2)}%` : ''}</small><small>${price(w.exitPrice)}</small></td>`;
     }
     const isError = status.endsWith('_error');
-    return `<td class="jw ${isError ? 'jw-error' : 'jw-wait'}"><span class="jw-pill">${esc(windowStatusText[status] || status)}</span>` +
+    return `<td class="jw ${isError ? 'jw-error' : 'jw-wait'}" ${tag}><span class="jw-pill">${esc(windowStatusText[status] || status)}</span>` +
       `<small>${isError ? esc(w.error || '') : w.targetAt ? `Due ${et(w.targetAt)}` : 'No entry price yet'}</small></td>`;
   }
   function entryCell(row) {
     const first = (row.windows || []).find((w) => w.entryPrice !== null && w.entryPrice !== undefined);
-    if (!first) return '<td class="je">–</td>';
-    return `<td class="je"><strong>${price(first.entryPrice)}</strong><small>${et(first.entryAt)}</small>` +
+    if (!first) return '<td class="je" data-label="Entry">No entry price yet</td>';
+    return `<td class="je" data-label="Entry"><strong>${price(first.entryPrice)}</strong><small>${et(first.entryAt)}</small>` +
       `<small class="${first.wellTimed ? 'je-ok' : 'je-late'}">${first.wellTimed ? 'On time' : 'Late'}, +${minutes(first.entryLagMinutes)}</small></td>`;
   }
   function journalDetail(row) {
@@ -717,11 +718,11 @@
       const side = String(row.direction || '').toLowerCase() === 'bearish' ? 'bear' : 'bull';
       return `
         <tr class="journal-row" data-index="${index}" tabindex="0" aria-expanded="false">
-          <td>${et(row.post?.postedAt)}</td>
-          <td>@${esc(row.username)}</td>
-          <td><strong>${esc(row.symbol)}</strong> <span class="side side-${side}">${side === 'bull' ? 'Long' : 'Short'}</span><small>${Math.round(Number(row.confidence || 0) * 100)}% confidence</small></td>
+          <td class="jt">${et(row.post?.postedAt)}</td>
+          <td class="ju">@${esc(row.username)}</td>
+          <td class="jc"><strong>${esc(row.symbol)}</strong> <span class="side side-${side}">${side === 'bull' ? 'Long' : 'Short'}</span><small>${Math.round(Number(row.confidence || 0) * 100)}% confidence</small></td>
           ${entryCell(row)}
-          ${windowCell(byHorizon.day)}${windowCell(byHorizon.week)}${windowCell(byHorizon.month)}
+          ${windowCell(byHorizon.day, '1 day')}${windowCell(byHorizon.week, '1 week')}${windowCell(byHorizon.month, '1 month')}
           <td class="jp"><small>${esc(robotName(row.robot?.session))}</small><small>Collected after ${minutes(row.post?.scrapeDelayMinutes)}</small><small>Read after ${minutes(row.analysis?.delayAfterScrapeMinutes)}</small></td>
         </tr>`;
     }).join('');
@@ -729,7 +730,7 @@
   function journalParams() {
     const form = $('journalFilters');
     const data = new FormData(form);
-    const params = new URLSearchParams({ take: String(JOURNAL_PAGE) });
+    const params = new URLSearchParams({ take: String(JOURNAL_PAGE), sort: 'posted' });
     for (const key of ['status', 'coin', 'username', 'hours']) {
       const value = String(data.get(key) || '').trim().replace(/^@/, '');
       if (value) params.set(key, value);
@@ -743,16 +744,18 @@
     journal.loading = true;
     try {
       const params = journalParams();
-      if (append && journal.nextBeforeId) params.set('before', String(journal.nextBeforeId));
+      if (append && journal.next?.cursor) params.set('cursor', journal.next.cursor);
+      else if (append && journal.next?.before) params.set('before', String(journal.next.before));
       if (!append) body.innerHTML = '<tr><td colspan="8" class="g-empty">Loading the calls…</td></tr>';
       const data = await api(`/api/monitor/journal?${params.toString()}`);
       journal.rows = append ? journal.rows.concat(data.rows || []) : (data.rows || []);
-      journal.nextBeforeId = data.nextBeforeId ?? null;
+      journal.next = data.nextCursor ? { cursor: data.nextCursor } : data.nextBeforeId ? { before: data.nextBeforeId } : null;
       journal.loaded = true;
-      if (more) more.hidden = !journal.nextBeforeId;
+      if (more) more.hidden = !journal.next;
       renderJournalRows();
       const updated = $('journalUpdated');
-      if (updated) updated.textContent = `${num(journal.rows.length)} call${journal.rows.length === 1 ? '' : 's'} shown, newest first`;
+      const order = data.sort === 'posted' ? 'newest post first' : 'newest first';
+      if (updated) updated.textContent = `${num(journal.rows.length)} call${journal.rows.length === 1 ? '' : 's'} shown, ${order}`;
     } catch (error) {
       if (!append) body.innerHTML = `<tr><td colspan="8" class="g-empty">The journal is unavailable right now (${esc(error?.message || 'error')}).</td></tr>`;
     } finally {

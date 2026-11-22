@@ -831,6 +831,9 @@ main.app-shell[hidden],
   font-variant-numeric: tabular-nums;
 }
 
+/* Column names repeated inside the row; shown only when the table header is hidden. */
+.fleet-label { display: none; }
+
 .gauge {
   flex: none;
   width: 64px;
@@ -1334,6 +1337,14 @@ main.app-shell[hidden],
     row-gap: 14px;
   }
 
+  .fleet-label {
+    display: block;
+    margin-bottom: 2px;
+    color: var(--g-slate);
+    font-size: 12px;
+    font-weight: 600;
+  }
+
   .fleet-speed { grid-column: 1 / -1; }
   .g-split,
   .g-columns,
@@ -1365,6 +1376,107 @@ main.app-shell[hidden],
   .ranking-footer .page-navigation { margin-left: 0; }
 }
 
+/* Phone: the journal becomes a list of call cards instead of a wide table. */
+@media (max-width: 640px) {
+  .journal-filters {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: end;
+  }
+
+  .journal-filters > .seg { grid-column: 1 / -1; justify-self: start; }
+  .journal-filters .g-field :is(input, select) { width: 100%; min-width: 0; }
+
+  .journal-wrap-main {
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+  }
+
+  .journal-table { min-width: 0; }
+
+  .journal-table > thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  .journal-table > tbody { display: grid; gap: 10px; }
+  .journal-table > tbody > tr { display: block; }
+  .journal-table > tbody > tr > td.g-empty { display: block; padding: 14px 0; border: 0; }
+
+  .journal-table .journal-row {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px 12px;
+    padding: 13px 14px;
+    border: 1px solid var(--g-rule);
+    border-radius: 12px;
+    background: #fff;
+  }
+
+  .journal-table .journal-row > td {
+    display: block;
+    padding: 0;
+    border: 0;
+  }
+
+  .journal-row > td.ju { grid-area: 1 / 1 / 2 / 3; font-weight: 650; }
+  .journal-row > td.jt { grid-area: 1 / 3 / 2 / 4; color: var(--g-slate); font-size: 12px; text-align: right; }
+  .journal-row > td.jc { grid-column: 1 / -1; }
+  .journal-row > td.jc small { display: inline; margin-left: 6px; }
+  .journal-row > td.je { grid-column: 1 / -1; }
+
+  .journal-row > td.je :is(strong, small) {
+    display: inline;
+    margin: 0 8px 0 0;
+  }
+
+  .journal-row > td.jw {
+    grid-row: 4;
+    padding-top: 9px;
+    border-top: 1px solid var(--g-rule-soft);
+  }
+
+  .journal-row > td.jp {
+    grid-column: 1 / -1;
+    padding-top: 2px;
+  }
+
+  .journal-row > td.jp small { display: inline; margin: 0 10px 0 0; }
+
+  .journal-row > td[data-label]::before {
+    content: attr(data-label);
+    display: block;
+    margin-bottom: 3px;
+    color: var(--g-slate);
+    font-size: 11.5px;
+    font-weight: 600;
+  }
+
+  .journal-row > td.je::before { display: inline; margin-right: 8px; }
+
+  .journal-row[aria-expanded="true"] {
+    border-bottom-color: transparent;
+    border-radius: 12px 12px 0 0;
+    background: #f6f8fc;
+  }
+
+  .journal-table > tbody > tr.journal-detail { margin-top: -10px; }
+
+  .journal-detail > td {
+    display: block;
+    padding: 4px 14px 14px;
+    border: 1px solid var(--g-rule);
+    border-top: 0;
+    border-radius: 0 0 12px 12px;
+    background: #f6f8fc;
+  }
+}
+
 @media (max-width: 560px) {
   .pipeline { grid-template-columns: minmax(0, 1fr); }
 
@@ -1375,7 +1487,21 @@ main.app-shell[hidden],
   }
 
   .pipeline-step + .pipeline-step { border-top: 1px solid var(--g-rule); }
-  .fleet-row { grid-template-columns: minmax(0, 1fr); }
+
+  /* Phone: name and state on their own lines, the two counts side by side. */
+  .fleet-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); row-gap: 12px; }
+  .fleet-id,
+  .fleet-state,
+  .fleet-speed,
+  .fleet-more { grid-column: 1 / -1; }
+
+  .fleet-state {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 10px;
+  }
+
   .fleet-facts { grid-template-columns: minmax(0, 1fr); }
   .robot-history li { grid-template-columns: minmax(0, 1fr); gap: 0; }
   .seg button { padding: 5px 9px; }

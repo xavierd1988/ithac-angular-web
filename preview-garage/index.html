@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="./styles.css?v=20260714-call-compact">
   <link rel="stylesheet" href="./ranking.css?v=20261120-action">
   <link rel="stylesheet" href="./action-robot.css?v=20261120-action">
-  <link rel="stylesheet" href="./garage.css?v=20261122-v4">
+  <link rel="stylesheet" href="./garage.css?v=20261122-v4c">
 </head>
 <body>
   <main class="app-shell">
@@ -220,7 +220,7 @@
           <div class="g-sheet-head">
             <div>
               <h2 id="journalTitle">Journal of calls</h2>
-              <p class="g-lede">Every call, from the post to the score: entry price, then the result after 1 day, 1 week and 1 month. Click a row for the full trail.</p>
+              <p class="g-lede">Every call, from the post to the score: entry price, then the result after 1 day, 1 week and 1 month. Open any call to see its full trail.</p>
             </div>
             <span id="journalUpdated" class="g-updated"></span>
           </div>
@@ -243,7 +243,7 @@
             <button type="submit" class="g-button">Show calls</button>
             <button type="button" id="journalExport" class="g-button g-button-quiet">Export CSV</button>
           </form>
-          <div class="journal-table-wrap">
+          <div class="journal-table-wrap journal-wrap-main">
             <table class="journal-table">
               <thead>
                 <tr><th scope="col">Posted (ET)</th><th scope="col">Influencer</th><th scope="col">Call</th><th scope="col">Entry</th><th scope="col">1 day</th><th scope="col">1 week</th><th scope="col">1 month</th><th scope="col">Robot and delays</th></tr>
@@ -347,6 +347,6 @@
 
   <script src="./action.js?v=20261120-action" defer></script>
   <script src="./app.js?v=20261122-tuning" defer></script>
-  <script src="./garage.js?v=20261122-v4" defer></script>
+  <script src="./garage.js?v=20261122-v4c" defer></script>
 </body>
 </html>
