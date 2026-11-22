@@ -21,7 +21,7 @@
   --content-width: 1180px;
   --gutter: clamp(16px, 4.2vw, 56px);
   --row-padding: clamp(12px, 2.4vw, 24px);
-  --ranking-columns: 68px minmax(0, 1fr) 112px 112px 24px;
+  --ranking-columns: 68px minmax(0, 1fr) 150px 112px 112px 24px;
   --ranking-gap: clamp(10px, 2.3vw, 30px);
   --accent: #294882;
   --cover-ink: #101934;
@@ -489,8 +489,8 @@ button, input, select { font-weight: 500; }
   text-transform: uppercase;
 }
 
-.leaderboard-head > :nth-child(3),
-.leaderboard-head > :nth-child(4) { text-align: right; }
+.leaderboard-head > :nth-child(4),
+.leaderboard-head > :nth-child(5) { text-align: right; }
 
 .list {
   height: auto;
@@ -1260,4 +1260,70 @@ button.ranking-cell:hover {
   .calls-table td { padding: 0; border: 0; }
   .calls-table td.call-cell { grid-column: 1 / -1; }
   .calls-table td[data-label]:not(.call-cell)::before { content: attr(data-label); display: block; margin-bottom: 3px; color: var(--muted); font-size: 11px; font-weight: 600; }
+}
+
+/* Last call of each account in the ranking: when it was posted; a click shows the post. */
+.leaderboard-last {
+  display: grid;
+  justify-items: start;
+  gap: 2px;
+  min-width: 0;
+  margin: -6px -8px;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.leaderboard-last b { font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.leaderboard-last small { color: var(--muted); font-size: 11.5px; font-weight: 500; white-space: nowrap; }
+.leaderboard-last small .long { color: var(--green); }
+.leaderboard-last small .short { color: var(--red); }
+.leaderboard-last .last-label { display: none; }
+.leaderboard-last:hover,
+.leaderboard-last[data-popover-open] { background: rgba(41, 72, 130, 0.09); }
+.leaderboard-last:hover b,
+.leaderboard-last[data-popover-open] b { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
+.leaderboard-last:focus-visible { outline: 2px solid var(--accent); outline-offset: 0; }
+.leaderboard-last.none { margin: 0; padding: 0; color: var(--dim); font-size: 13px; cursor: inherit; }
+
+@media (max-width: 1000px) {
+  :root { --ranking-columns: 56px minmax(0, 1fr) 140px 80px 64px 20px; }
+}
+
+/* Phones: the last call goes on its own line under the name. */
+@media (max-width: 720px) {
+  :root { --ranking-columns: 44px minmax(0, 1fr) 68px 59px 15px; }
+  .leaderboard-head > :nth-child(3) { display: none; }
+  .leaderboard-head > :nth-child(4),
+  .leaderboard-head > :nth-child(5) { text-align: right; }
+  .leaderboard-summary { row-gap: 3px; padding-block: 9px; }
+  .leaderboard-summary > .leaderboard-rank { grid-column: 1; grid-row: 1 / span 2; }
+  .leaderboard-summary > .leaderboard-account { grid-column: 2; grid-row: 1; }
+  .leaderboard-summary > .leaderboard-score { grid-column: 3; grid-row: 1; }
+  .leaderboard-summary > .leaderboard-calls { grid-column: 4; grid-row: 1; }
+  .leaderboard-summary > .leaderboard-chevron { grid-column: 5; grid-row: 1 / span 2; }
+  .leaderboard-summary > .leaderboard-last {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0 7px;
+    grid-column: 2 / 5;
+    grid-row: 2;
+    justify-self: start;
+    max-width: calc(100% - 42px);
+    margin: -3px 0 -3px 42px;
+    padding: 3px 6px;
+  }
+  .leaderboard-summary > .leaderboard-last.none { display: none; }
+  .leaderboard-last .last-label { display: inline; color: var(--muted); font-size: 11.5px; font-weight: 500; }
+  .leaderboard-last b { font-size: 12px; }
+}
+
+@media (max-width: 500px) {
+  :root { --ranking-columns: 28px minmax(0, 1fr) 48px 36px 12px; }
+  .leaderboard-summary > .leaderboard-last { max-width: calc(100% - 29px); margin-left: 29px; }
 }

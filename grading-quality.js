@@ -10,8 +10,15 @@
     const result = Number(value);
     return Number.isFinite(result) ? result : NaN;
   }
+  // Graded calls of a ranking row. Every call with a result counts, repeats on one coin included.
+  function calls(row) {
+    const graded = number(row?.quality?.evaluableSignalCount);
+    if (Number.isFinite(graded)) return graded;
+    const scored = number(row?.scoredCount);
+    return Number.isFinite(scored) ? scored : 0;
+  }
   function score(row) {
-    if (!row?.quality || !(number(row.quality.independentSampleCount) >= 1)) return NaN;
+    if (!row?.quality || !(calls(row) >= 1)) return NaN;
     return number(row.competitionScore);
   }
   function label(quality) {
@@ -49,5 +56,5 @@
     if (!signed && n > 0 && n < 0.1) return '<0.1%';
     return Number.isFinite(n) ? `${signed && n > 0 ? '+' : ''}${n.toFixed(1)}%` : '–';
   }
-  return Object.freeze({ number, score, label, period, report, pct, detail });
+  return Object.freeze({ number, calls, score, label, period, report, pct, detail });
 });

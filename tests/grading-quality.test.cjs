@@ -4,14 +4,21 @@ const grading = require('../grading-quality.js');
 
 test('missing grades stay absent; genuine zero remains zero', () => {
   for (const value of [null, undefined, '', false]) assert.ok(Number.isNaN(grading.number(value)));
-  const quality = { independentSampleCount: 6, status: 'ready' };
+  const quality = { evaluableSignalCount: 6, status: 'ready' };
   assert.ok(Number.isNaN(grading.score({ competitionScore: null, averageScore: 89, quality })));
   assert.equal(grading.score({ competitionScore: 0, quality }), 0);
 });
-test('legacy scores and a zero independent sample cannot become ranking scores', () => {
+test('legacy scores and a row without a graded call cannot become ranking scores', () => {
   assert.ok(Number.isNaN(grading.score({ competitionScore: 95, averageScore: 99 })));
   assert.ok(Number.isNaN(grading.score({ competitionScore: 95, quality: {} })));
-  assert.ok(Number.isNaN(grading.score({ competitionScore: 95, quality: { independentSampleCount: 0 } })));
+  assert.ok(Number.isNaN(grading.score({ competitionScore: 95, quality: { evaluableSignalCount: 0 } })));
+});
+test('every graded call counts, repeats included', () => {
+  assert.equal(grading.calls({ quality: { evaluableSignalCount: 5, independentSampleCount: 1 }, scoredCount: 5 }), 5);
+  assert.equal(grading.calls({ quality: { evaluableSignalCount: 2 }, scoredCount: 0 }), 2);
+  assert.equal(grading.calls({ scoredCount: 4 }), 4);
+  assert.equal(grading.calls(null), 0);
+  assert.equal(grading.score({ competitionScore: 80, quality: { evaluableSignalCount: 3 } }), 80);
 });
 test('a stale response cannot describe a newly selected horizon or publication period', () => {
   const response = { horizon: 'week', period: '30d', rankings: [], unranked: [] };
@@ -28,8 +35,8 @@ test('unavailable metrics never look like a zero success rate', () => {
 });
 
 test('a completed empty detail invalidates the older report and its scored history', () => {
-  const row = { competitionScore: 93, quality: { independentSampleCount: 4 }, history: [{ score: 90 }] };
-  const quality = { status: 'recalculation_pending', independentSampleCount: 0 };
+  const row = { competitionScore: 93, quality: { evaluableSignalCount: 4 }, history: [{ score: 90 }] };
+  const quality = { status: 'recalculation_pending', evaluableSignalCount: 0 };
   const current = grading.detail(row, { ranking: null, scored: [], quality });
   assert.equal(current.ranking, null);
   assert.deepEqual(current.scored, []);
