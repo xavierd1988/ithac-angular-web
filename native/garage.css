@@ -680,6 +680,22 @@ main.app-shell[hidden],
 .catchup-head strong { font-size: 18px; font-variant-numeric: tabular-nums; }
 .catchup-head span { color: var(--g-slate); font-size: 14px; font-variant-numeric: tabular-nums; }
 
+.catchup-note {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 12px 0 0;
+  color: var(--g-slate);
+  font-size: 13.5px;
+  line-height: 1.45;
+}
+
+.catchup-note .light { flex: none; transform: translateY(-2px); color: #9aa6b8; }
+.catchup-note[data-level="watch"] { color: var(--g-ink); }
+.catchup-note[data-level="watch"] .light { color: #d39a16; }
+.progress.progress-paused i { background: #9aa6b8; }
+.batch-table tr[data-status="superseded"] { color: var(--g-slate); }
+
 .progress {
   display: block;
   height: 10px;

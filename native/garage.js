@@ -570,8 +570,13 @@
 
   const BATCH_STATUS = {
     exported: 'Waiting to be sent', validating: 'Being checked by Groq', in_progress: 'Running', finalizing: 'Finishing',
-    completed: 'Done, being stored', imported: 'Done', failed: 'Failed, will be sent again', expired: 'Expired', expired_imported: 'Partly done', cancelled: 'Cancelled'
+    completed: 'Done, being stored', imported: 'Done', failed: 'Failed, will be sent again', expired: 'Expired', expired_imported: 'Partly done', cancelled: 'Cancelled',
+    superseded: 'Replaced, not sent'
   };
+  const BATCH_FINAL = ['imported', 'expired_imported', 'cancelled'];
+  const BATCH_AT_GROQ = ['validating', 'in_progress', 'finalizing'];
+  // The batch timer updates every batch row at least every 20 minutes while it runs.
+  const BATCH_STALE_MS = 45 * 60 * 1000;
 
   function renderCatchup(target, withTable) {
     if (!target || !groq) return;
@@ -583,26 +588,55 @@
       target.innerHTML = withTable ? '<p class="g-hint">No catch-up running. Old posts are read in batches when Groq is on a paid plan.</p>' : '';
       return;
     }
-    const requests = Number(t.requests || 0);
-    const done = Number(t.completed || 0);
+    // Batches replaced before sending (new call review) are left out of the progress.
+    const live = items.filter((b) => b.status !== 'superseded');
+    const replaced = items.filter((b) => b.status === 'superseded');
+    const sum = (list, key) => list.reduce((total, b) => total + Number(b[key] || 0), 0);
+    const requests = sum(live, 'requests');
+    const done = sum(live, 'completed');
     const share = pct(done, requests);
-    const finished = items.every((b) => ['imported', 'expired_imported', 'cancelled'].includes(b.status));
+    const open = live.filter((b) => !BATCH_FINAL.includes(b.status));
+    const finished = live.length > 0 && open.length === 0;
+    const atGroq = live.filter((b) => BATCH_AT_GROQ.includes(b.status)).length;
+    const toStore = live.filter((b) => b.status === 'completed').length;
+    const toSend = live.filter((b) => b.status === 'exported' || b.status === 'failed').length;
+    const lastUpdate = Math.max(0, ...items.map((b) => Date.parse(b.updated_at) || 0));
+    const paused = open.length > 0 && lastUpdate > 0 && Date.now() - lastUpdate > BATCH_STALE_MS;
+    const sentOpen = live.filter((b) => BATCH_AT_GROQ.includes(b.status) || b.status === 'completed');
+    const batchParts = [`${num(live.filter((b) => b.status === 'imported').length)} done`];
+    if (atGroq) batchParts.push(`${num(atGroq)} at Groq`);
+    if (toStore) batchParts.push(`${num(toStore)} to store`);
+    if (toSend) batchParts.push(`${num(toSend)} waiting`);
+    const title = !live.length ? 'Catch-up not started' : finished ? 'Catch-up finished'
+      : paused ? `Catch-up paused at ${share}%` : `Catch-up: ${share}%`;
+    const notes = [];
+    if (paused) {
+      notes.push(`<p class="catchup-note" data-level="watch"><span class="light" aria-hidden="true"></span><span>No progress since ${et(lastUpdate)} ET: sending and storing are paused.${sentOpen.length ? ` ${num(sum(sentOpen, 'requests'))} posts already sent to Groq are waiting to be stored.` : ''}</span></p>`);
+    }
+    if (replaced.length) {
+      notes.push(`<p class="catchup-note"><span class="light" aria-hidden="true"></span><span>${num(replaced.length)} batch${replaced.length === 1 ? '' : 'es'} (${num(sum(replaced, 'requests'))} posts) replaced by the new call review before being sent.</span></p>`);
+    }
     const head = `
       <div class="catchup-head">
-        <strong>${finished ? 'Catch-up finished' : `Catch-up: ${share}%`}</strong>
+        <strong>${title}</strong>
         <span>${num(done)} of ${num(requests)} old posts read</span>
       </div>
-      <div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${share}" aria-label="Catch-up progress"><i style="width:${share}%"></i></div>
+      <div class="progress${paused ? ' progress-paused' : ''}" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${share}" aria-label="Catch-up progress"><i style="width:${share}%"></i></div>
       <dl class="catchup-facts">
-        <div><dt>Batches</dt><dd>${num(items.filter((b) => b.status === 'imported').length)} done, ${num(t.running)} running, ${num(t.waitingToSend)} waiting</dd></div>
+        <div><dt>Batches</dt><dd>${batchParts.join(', ')}</dd></div>
         <div><dt>Calls found</dt><dd>${num(t.signals)}</dd></div>
         <div><dt>Cost so far</dt><dd>${usd(t.costUsd)}</dd></div>
-      </dl>`;
+      </dl>
+      ${notes.join('')}`;
     if (!withTable) {
       target.innerHTML = `${head}<a class="pipeline-link" href="#garage/analysis">See the batches</a>`;
       return;
     }
-    const name = (file) => { const m = String(file).match(/-(\d{3})\.jsonl$/); return m ? `Batch ${Number(m[1])}` : file; };
+    const name = (file) => {
+      const m = String(file).match(/-(\d{3})\.jsonl$/);
+      const review = /^batch-v2-/.test(String(file)) ? 'New review, batch' : 'Batch';
+      return m ? `${review} ${Number(m[1])}` : file;
+    };
     target.innerHTML = `${head}
       <details class="g-disclosure">
         <summary>All ${items.length} batches</summary>
