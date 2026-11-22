@@ -23,7 +23,7 @@
   let latest = null;
   let lastScrollY = 0;
 
-  const TABS = ['overview', 'robots', 'journal', 'activity', 'groq', 'tools'];
+  const TABS = ['overview', 'robots', 'tuning', 'journal', 'activity', 'groq', 'tools'];
 
   function currentTab() {
     const tab = location.hash.split('/')[1] || 'overview';
@@ -165,6 +165,7 @@
             <div><dt>Address</dt><dd>${escapeHtml(address)}</dd></div>
             ${lifeRows}
           </dl>
+          ${robot.status === 'alive' && typeof window.ithacRobotGauge === 'function' ? window.ithacRobotGauge(robot, army) : ''}
           <p class="robot-activity">${activity}</p>
           ${last ? `<p class="robot-last"><span>Latest:</span> ${escapeHtml(last.text)} <time>${eastern(last.at)}</time></p>` : ''}
           ${events.length ? `<details class="robot-details"><summary>History (${events.length} events)</summary>${timeline(events)}</details>` : ''}
@@ -214,7 +215,7 @@
     const legacy = retired.map((robot) => robotCard(robot, eventsBy.get(robot.session_name) || [], working));
     grid.innerHTML = stats + cards.join('') + addCard +
       (legacy.length ? `<h3 class="robots-legacy-title">Retired accounts (before November 2026)</h3>${legacy.join('')}` : '');
-    summary.textContent = `${living.length} alive · ${dead.length} dead · pace: 1 read per robot every 15 s or more`;
+    summary.textContent = `${living.length} alive · ${dead.length} dead · pace set per robot in the Tuning tab`;
   }
 
   window.addEventListener('ithac:resources', (event) => {

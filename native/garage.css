@@ -426,3 +426,30 @@ main.app-shell[hidden],
 .groq-status-imported { color: #2f7d4f; }
 .groq-errors { margin: 0; padding-left: 18px; font-size: 13px; color: var(--ink, #1b263b); }
 .groq-errors time { color: var(--muted, #4f5e72); font-weight: 650; margin-right: 4px; }
+
+/* ---------- Robot speed gauge + Tuning tab (Claude 22/11/2026) ---------- */
+.speed-gauge { display: flex; align-items: center; gap: 10px; margin: 8px 0; }
+.speed-gauge svg { width: 120px; height: 70px; flex: none; }
+.speed-text { display: grid; gap: 1px; }
+.speed-text strong { font-size: 20px; line-height: 1.1; }
+.speed-text span { font-size: 12px; color: var(--muted, #4f5e72); }
+.speed-text small { font-size: 11px; color: var(--muted, #4f5e72); }
+.speed-orange .speed-text strong { color: #a86b00; }
+.speed-red .speed-text strong { color: #b23b2a; }
+.tuning-key { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 14px; }
+.tuning-key input { margin-left: 6px; padding: 6px 8px; border: 1px solid var(--line, #dde2ea); border-radius: 8px; min-width: 220px; }
+.tuning-key small, .tuning-status { color: var(--muted, #4f5e72); font-size: 12px; }
+.tuning-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
+.tuning-card { padding: 12px; border: 1px solid var(--line, #dde2ea); border-radius: 12px; background: #f8fafd; }
+.tuning-head { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+.tuning-head strong { font-size: 18px; }
+.tuning-head span { color: var(--muted, #4f5e72); font-size: 12px; }
+.tuning-presets { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin: 8px 0; }
+.tuning-preset { display: grid; gap: 1px; padding: 6px 4px; border: 1px solid var(--line, #dde2ea); border-radius: 8px; background: #fff; cursor: pointer; font-weight: 650; }
+.tuning-preset small { font-weight: 500; color: var(--muted, #4f5e72); }
+.tuning-preset.active { border-color: var(--accent, #294882); background: #e9effa; }
+.tuning-slider { display: grid; gap: 4px; font-size: 13px; }
+.tuning-slider input { width: 100%; }
+.tuning-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 8px; }
+.tuning-actions button, .tuning-key button { padding: 6px 12px; border-radius: 8px; border: 1px solid var(--accent, #294882); background: var(--accent, #294882); color: #fff; font-weight: 650; cursor: pointer; }
+.tuning-actions .tuning-reset { background: #fff; color: var(--accent, #294882); }
