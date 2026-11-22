@@ -162,12 +162,12 @@
     els.modalRoot.addEventListener('keydown', handleModalKey);
 
     startClock();
-    // Load the snapshot before the rankings to avoid a timeout.
-    void loadSnapshot({ resetListScroll: false }).then(() => {
-      void loadCryptoPanels();
-      setInterval(() => void loadCryptoPanels(), CRYPTO_REFRESH_MS);
-      connectLiveEvents();
-    });
+    // The rankings come from reports the API keeps ready, so the account list and the rankings load right away,
+    // next to the slower live snapshot (scanner, robots) instead of after it.
+    void loadAllInfluencers(false);
+    void loadCryptoPanels();
+    setInterval(() => void loadCryptoPanels(), CRYPTO_REFRESH_MS);
+    void loadSnapshot({ resetListScroll: false }).then(() => connectLiveEvents());
   }
 
   function resolveApiBase() {
@@ -1018,9 +1018,8 @@
     if (selected) {
       const details = document.createElement('div');
       const status = rowStatusLabel(row);
-      const progress = rowProgress(row);
-      const steps = scrapeSteps(row);
       details.className = 'leaderboard-detail';
+      // Public view of an account: who it is, how it ranks, its latest posts. Robot and proxy details live in the Garage.
       details.innerHTML = `
         <div class="entry-overview">
           <section class="entry-block">
@@ -1028,15 +1027,7 @@
               @${escapeHtml(row.username)} <span aria-hidden="true">↗</span>
             </a>
             <span class="entry-followers">${formatFollowers(row.followersCount)}</span>
-            <div class="progress-cell">
-              <div class="row-line">
-                <strong>${status}${row.enabled ? '' : ' · disabled'}${isTraceRow(row) ? ' · recent activity' : ''}</strong>
-                <time>${scrapeMinute(row)}</time>
-              </div>
-              <p class="row-subline">${rowMeta(row)}</p>
-              <div class="progress-track" aria-label="Scrape progress: ${progress}%"><span class="${normalizeJobStatus(row.status) === 'failed' ? 'failed' : ''}" style="width:${progress}%"></span></div>
-              <div class="steps">${steps.map(stageHtml).join('')}</div>
-            </div>
+            <p class="row-subline">Posts last read ${escapeHtml(scrapeMinute(row))}</p>
           </section>
           <section class="entry-rankings" aria-label="Scores by period">
             ${rankingCellHtml(row, reputation, status)}
@@ -1119,20 +1110,8 @@
   function renderDetail(row) {
     const detail = document.createElement('section');
     detail.className = 'detail';
-    const job = latestJobFor(row.username);
     const posts = state.selectedPosts.get(row.username.toLowerCase()) ?? [];
     detail.innerHTML = `
-      <div class="detail-grid">
-        ${detailCard('Scraped minute', scrapeMinute(row))}
-        ${detailCard('Started', formatMinute(job?.startedAt || row.lastScrapeStartedAt))}
-        ${detailCard('Duration', scrapeDuration(job, row))}
-        ${detailCard('Result', `${job?.status || row.status} · ${job?.outcome || row.lastOutcome || '-'}`)}
-        ${detailCard('Run', `#${job?.runId || row.lastScrapeRunId || '-'} · ${resourceText(job || row)}`)}
-      </div>
-      <aside class="scope-card">
-        <strong>What the scraper reads</strong>
-        <span>Open page = opens/resolves the X profile with the assigned session. Read posts = reads the first timeline window returned by X, currently capped at ${row.lastPostsSeen ?? job?.postsSeen ?? 5}/50 candidate posts. Extract data = keeps usable posts and crypto mentions. Store = writes new posts/mentions to MySQL.</span>
-      </aside>
       <div class="posts">
         ${posts.length ? posts.map(postHtml).join('') : '<div class="post"><span>-</span><strong>posts</strong><span>No stored post loaded for this account yet.</span></div>'}
       </div>
