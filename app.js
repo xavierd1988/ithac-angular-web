@@ -7,11 +7,13 @@
   const SNAPSHOT_MIN_INTERVAL_MS = 3_000;
   const CRYPTO_REFRESH_MS = 300_000;
   const POLL_FALLBACK_MS = 5_000;
+  // Each tab ranks accounts on their own calls, measured 24 hours, 7 days or 1 month after each call (whole history).
   const REPUTATION_WINDOWS = [
-    { key: 'day', label: 'AFTER 24H' },
-    { key: 'week', label: 'AFTER 7D' },
-    { key: 'month', label: 'AFTER 30D' }
+    { key: 'day', label: '24 hours' },
+    { key: 'week', label: '7 days' },
+    { key: 'month', label: '1 month' }
   ];
+  const MINIMUM_RANKED_CALLS = 3;
   const state = {
     pageIndex: 0,
     pagesShown: 1,
@@ -80,7 +82,6 @@
     loadError: byId('loadError'),
     rankingStats: byId('rankingStats'),
     rankingQuality: byId('rankingQuality'),
-    rankingPeriodFilter: byId('rankingPeriodFilter'),
     rankingSearch: byId('rankingSearch'),
     rankingOrder: byId('rankingOrder'),
     featuredRanking: byId('featuredRanking'),
@@ -142,19 +143,6 @@
       state.pagesShown = 1;
       renderAll();
     });
-    els.rankingPeriodFilter.addEventListener('change', () => {
-      state.reputationPeriod = grading.period(els.rankingPeriodFilter.value);
-      state.reputation = { day: [], week: [], month: [] };
-      state.reputationReports = {};
-      state.reputationReady.clear();
-      state.reputationErrors.clear();
-      state.reputationDetails.clear();
-      state.selectedReputation = null;
-      state.pageIndex = 0;
-      state.pagesShown = 1;
-      renderAll();
-      void Promise.all(REPUTATION_WINDOWS.map(({ key }) => loadReputationWindow(key)));
-    });
     els.periodButtons.forEach((button) => {
       button.addEventListener('click', () => {
         if (state.reputationWindow === button.dataset.reputationWindow) return;
@@ -174,12 +162,12 @@
     els.modalRoot.addEventListener('keydown', handleModalKey);
 
     startClock();
-    // Load the snapshot before the rankings to avoid a timeout.
-    void loadSnapshot({ resetListScroll: false }).then(() => {
-      void loadCryptoPanels();
-      setInterval(() => void loadCryptoPanels(), CRYPTO_REFRESH_MS);
-      connectLiveEvents();
-    });
+    // The rankings come from reports the API keeps ready, so the account list and the rankings load right away,
+    // next to the slower live snapshot (scanner, robots) instead of after it.
+    void loadAllInfluencers(false);
+    void loadCryptoPanels();
+    setInterval(() => void loadCryptoPanels(), CRYPTO_REFRESH_MS);
+    void loadSnapshot({ resetListScroll: false }).then(() => connectLiveEvents());
   }
 
   function resolveApiBase() {
@@ -307,7 +295,7 @@
     state.reputationRequests[key] = request;
     const current = () => request === state.reputationRequests[key] && period === state.reputationPeriod;
     try {
-      const report = grading.report(await getJson(`/api/crypto/reputation/report?window=${key}&period=${period}&take=2500`, 30_000), key, period);
+      const report = grading.report(await getJson(`/api/crypto/reputation/report?window=${key}&period=${period}&take=2500&view=public`, 30_000), key, period);
       if (!current()) return;
       const changed = state.reputationReports[key]?.generatedAt !== report.generatedAt;
       if (changed) {
@@ -373,7 +361,9 @@
       const items = await getJson(`/api/influencers?${query.toString()}`);
       if (requestId !== state.snapshotSeq) return true;
       const rows = Array.isArray(items) ? items : (items.items ?? []);
-      state.loadError = `Dashboard snapshot unavailable; showing direct influencer list (${originalError instanceof Error ? originalError.message : 'fallback'})`;
+      // The direct list works: keep the page calm and only note the slow snapshot in the console.
+      console.info('Dashboard snapshot unavailable, using the direct influencer list', originalError);
+      state.loadError = null;
       state.page = {
         pageIndex: state.pageIndex,
         pageSize: state.pageSize,
@@ -796,19 +786,18 @@
     });
     els.leaderboardHead.firstElementChild.textContent = state.sortMode === 'scanner' ? 'Order' : 'Rank';
     const periods = REPUTATION_WINDOWS.map(({ key, label }) => {
-      if (state.reputationErrors.has(key)) return `${label.toLowerCase()}: unavailable`;
-      if (!state.reputationReady.has(key)) return `${label.toLowerCase()}: loading`;
-      const report = state.reputationReports[key];
-      return `${label.toLowerCase()}: ${report?.rankings.length || 0} ranked, ${report?.unranked.length || 0} awaiting evaluation`;
+      if (state.reputationErrors.has(key)) return `${label}: unavailable`;
+      if (!state.reputationReady.has(key)) return `${label}: loading`;
+      return `${label}: ${formatCount(state.reputationReports[key]?.rankings.length || 0)} ranked`;
     });
-    els.rankingStats.textContent = `${periods.join(' · ')} · ${state.allInfluencers.length || state.page.total} accounts total`;
+    els.rankingStats.textContent = `${periods.join(' · ')} · ${formatCount(state.allInfluencers.length || state.page.total)} accounts followed`;
+    const after = reputationWindowLabel(state.reputationWindow);
     const report = state.reputationReports[state.reputationWindow];
-    const ranked = report?.rankings.length || 0;
-    const unranked = report?.unranked.length || 0;
     els.rankingQuality.textContent = state.reputationErrors.has(state.reputationWindow)
-      ? 'Verified ranking temporarily unavailable. No unverified grades are shown.'
-      : !report ? 'Checking analysis and price quality…'
-      : `${ranked} ranked accounts · ${unranked} without a verified score · ${grading.pct(report.totals?.analysisCoveragePct)} of posts reviewed. Reviewed price predictions only. Repetitions count once; a small sample is provisional.`;
+      ? 'The ranking is temporarily unavailable. Try again in a minute.'
+      : `Each call is checked ${after} after it was posted: did the price go the way the influencer said? ` +
+        `Accounts are ranked on the average result of their own calls, from ${MINIMUM_RANKED_CALLS} calls up.` +
+        (report ? ` ${formatCount(report.rankings.length)} accounts ranked.` : '');
   }
 
   function renderFeatured(rows) {
@@ -817,11 +806,11 @@
       !state.query && state.status === 'all' && !state.priorityOnly &&
       state.allInfluencersReady && state.allInfluencers.length > 0 &&
       state.reputationReady.has(windowKey) && !state.reputationErrors.has(windowKey);
-    const leaders = ready ? rows.filter((row) => row._reputation?.quality?.status === 'ready' && Number.isFinite(reputationScore(row._reputation))).slice(0, 3) : [];
+    const leaders = ready ? rows.filter((row) => Number.isFinite(reputationScore(row._reputation))).slice(0, 3) : [];
     els.featuredRanking.hidden = leaders.length === 0;
     if (els.featuredRanking.hidden) return;
 
-    const period = reputationWindowLabel(windowKey).toLowerCase();
+    const period = `Measured ${reputationWindowLabel(windowKey)} after each call`;
     if (els.featuredPeriod.textContent !== period) els.featuredPeriod.textContent = period;
     const markup = leaders.map((row) => {
       const rank = row._reputation.rank;
@@ -991,7 +980,7 @@
     const name = accountDisplayName(row);
     const profileLabel = `Open @${row.username} on X`;
     const calls = reputation?.quality?.independentSampleCount ?? '–';
-    const qualityLabel = grading.label(reputation?.quality);
+    const qualityLabel = performanceLine(reputation, score);
     const summaryKey = JSON.stringify([rank, name, row.profileImageUrl, score, calls, qualityLabel]);
     const entry = previous || document.createElement('details');
     entry.className = 'leaderboard-entry';
@@ -1006,7 +995,7 @@
             ${avatarHtml(row)}
             <span class="leaderboard-name">
               <strong>${escapeHtml(name)}</strong>
-              <small class="grading-badge">${escapeHtml(qualityLabel)}</small>
+              ${qualityLabel ? `<small class="grading-badge ${qualityLabel.tone}">${escapeHtml(qualityLabel.text)}</small>` : ''}
             </span>
           </span>
           <span class="leaderboard-score ${scoreClass(score)}"><span class="visually-hidden">Score </span>${formatScore(score)}</span>
@@ -1029,9 +1018,8 @@
     if (selected) {
       const details = document.createElement('div');
       const status = rowStatusLabel(row);
-      const progress = rowProgress(row);
-      const steps = scrapeSteps(row);
       details.className = 'leaderboard-detail';
+      // Public view of an account: who it is, how it ranks, its latest posts. Robot and proxy details live in the Garage.
       details.innerHTML = `
         <div class="entry-overview">
           <section class="entry-block">
@@ -1039,15 +1027,7 @@
               @${escapeHtml(row.username)} <span aria-hidden="true">↗</span>
             </a>
             <span class="entry-followers">${formatFollowers(row.followersCount)}</span>
-            <div class="progress-cell">
-              <div class="row-line">
-                <strong>${status}${row.enabled ? '' : ' · disabled'}${isTraceRow(row) ? ' · recent activity' : ''}</strong>
-                <time>${scrapeMinute(row)}</time>
-              </div>
-              <p class="row-subline">${rowMeta(row)}</p>
-              <div class="progress-track" aria-label="Scrape progress: ${progress}%"><span class="${normalizeJobStatus(row.status) === 'failed' ? 'failed' : ''}" style="width:${progress}%"></span></div>
-              <div class="steps">${steps.map(stageHtml).join('')}</div>
-            </div>
+            <p class="row-subline">Posts last read ${escapeHtml(scrapeMinute(row))}</p>
           </section>
           <section class="entry-rankings" aria-label="Scores by period">
             ${rankingCellHtml(row, reputation, status)}
@@ -1098,18 +1078,21 @@
         <span class="ranking-cell compact unrated ${active ? 'active' : ''}">
           <small>${escapeHtml(windowItem.label)}</small>
           <strong>-</strong>
-          <em>not scored</em>
+          <em>no graded call yet</em>
         </span>
       `;
     }
     const score = reputationScore(reputation);
-    const avg = grading.number(reputation.averageScore);
-    const title = `${windowItem.label}: rank #${reputation.rank ?? '-'}, score ${formatScore(score)}, average ${formatScore(avg)}, ${Number(reputation.scoredCount ?? 0)} scored`;
+    const ranked = Number.isFinite(score);
+    const calls = Number(reputation.quality?.independentSampleCount || 0);
+    const title = ranked
+      ? `${windowItem.label}: rank ${reputation.rank}, score ${formatScore(score)}, ${calls} calls`
+      : `${windowItem.label}: ${calls} of ${MINIMUM_RANKED_CALLS} calls needed to be ranked`;
     return `
       <button type="button" class="ranking-cell compact ${scoreClass(score)} ${active ? 'active' : ''}" data-reputation-username="${escapeAttr(row.username)}" data-reputation-window="${escapeAttr(windowItem.key)}" title="${escapeAttr(title)}">
-        <small>#${escapeHtml(reputation.rank ?? '-')} · ${escapeHtml(windowItem.label)}</small>
+        <small>${escapeHtml(windowItem.label)}${ranked ? ` · #${escapeHtml(reputation.rank)}` : ''}</small>
         <strong>${formatScore(score)}</strong>
-        <em>${escapeHtml(grading.label(reputation.quality))} · ${Number(reputation.quality?.independentSampleCount || 0)} grouped</em>
+        <em>${ranked ? `${calls} call${calls === 1 ? '' : 's'}` : `${calls} of ${MINIMUM_RANKED_CALLS} calls`}</em>
       </button>
     `;
   }
@@ -1127,20 +1110,8 @@
   function renderDetail(row) {
     const detail = document.createElement('section');
     detail.className = 'detail';
-    const job = latestJobFor(row.username);
     const posts = state.selectedPosts.get(row.username.toLowerCase()) ?? [];
     detail.innerHTML = `
-      <div class="detail-grid">
-        ${detailCard('Scraped minute', scrapeMinute(row))}
-        ${detailCard('Started', formatMinute(job?.startedAt || row.lastScrapeStartedAt))}
-        ${detailCard('Duration', scrapeDuration(job, row))}
-        ${detailCard('Result', `${job?.status || row.status} · ${job?.outcome || row.lastOutcome || '-'}`)}
-        ${detailCard('Run', `#${job?.runId || row.lastScrapeRunId || '-'} · ${resourceText(job || row)}`)}
-      </div>
-      <aside class="scope-card">
-        <strong>What the scraper reads</strong>
-        <span>Open page = opens/resolves the X profile with the assigned session. Read posts = reads the first timeline window returned by X, currently capped at ${row.lastPostsSeen ?? job?.postsSeen ?? 5}/50 candidate posts. Extract data = keeps usable posts and crypto mentions. Store = writes new posts/mentions to MySQL.</span>
-      </aside>
       <div class="posts">
         ${posts.length ? posts.map(postHtml).join('') : '<div class="post"><span>-</span><strong>posts</strong><span>No stored post loaded for this account yet.</span></div>'}
       </div>
@@ -1170,7 +1141,7 @@
     try {
       const username = String(row.username || '').trim();
       const windowKey = row.window || state.reputationWindow;
-      const detail = await getJson(`/api/crypto/reputation/${encodeURIComponent(username)}/detail?window=${encodeURIComponent(windowKey)}&period=${state.reputationPeriod}&take=250`, 30_000);
+      const detail = await getJson(`/api/crypto/reputation/${encodeURIComponent(username)}/detail?window=${encodeURIComponent(windowKey)}&period=all&take=250`, 30_000);
       state.reputationDetails.set(key, { loading: false, error: null, detail, loadedAt: Date.now() });
     } catch (error) {
       state.reputationDetails.set(key, {
@@ -1530,50 +1501,45 @@
     const detailState = state.reputationDetails.get(reputationDetailKey(row));
     const detail = detailState?.detail;
     const currentDetail = grading.detail(row, detail);
-    const ranking = currentDetail.ranking;
     const scored = currentDetail.scored.filter((signal) => Number.isFinite(grading.number(signal.score)));
-    const rankingScore = reputationScore(ranking);
-    const tradeAverage = Number.isFinite(rankingScore) ? grading.number(ranking?.averageScore) : NaN;
-    const quality = currentDetail.quality;
-    const explanation = currentDetail.explanation;
-    const totalScored = reputationScoredCount(ranking) || scored.length;
-    const shownScored = scored.length;
+    // Rank and score come from the ranking shown on the page (same minimum number of calls).
+    const score = reputationScore(row);
+    const ranked = Number.isFinite(score);
+    const quality = currentDetail.quality || row.quality;
+    const calls = Number(quality?.independentSampleCount || 0);
     const label = reputationWindowLabel(row.window || state.reputationWindow);
+    const status = ranked ? `Rank ${row.rank}` : calls ? `Not ranked yet: ${calls} of ${MINIMUM_RANKED_CALLS} calls` : 'No graded call yet';
     backdrop.className = 'modal-backdrop';
     backdrop.innerHTML = `
       <section class="modal-card reputation-detail-card" role="dialog" aria-modal="true" aria-labelledby="dialogTitle">
         <header>
           <div>
-            <span class="eyebrow">${escapeHtml(grading.label(quality))}</span>
+            <span class="eyebrow">${escapeHtml(status)}</span>
             <h2 id="dialogTitle">@${escapeHtml(row.username || '-')} · ${escapeHtml(label)}</h2>
           </div>
           <button type="button" class="menu-close">Close</button>
         </header>
-        ${detailState?.loading ? '<p class="empty-inline">Loading full pipeline...</p>' : ''}
-        ${detailState?.error ? `<p class="paper-error">${escapeHtml(detailState.error)}</p>` : ''}
-        <section class="reputation-score-summary" aria-label="Reputation score summary">
-          <span><b>${escapeHtml(formatScore(rankingScore))}</b><em>ranking score</em></span>
-          <span><b>${escapeHtml(formatScore(tradeAverage))}</b><em>trade average</em></span>
-          <span><b>${escapeHtml(String(quality?.independentSampleCount ?? '–'))}</b><em>grouped calls</em></span>
-          <span><b>${escapeHtml(grading.pct(quality?.directionAccuracyPct))}</b><em>correct direction</em></span>
-          <span><b>${escapeHtml(grading.pct(quality?.meanDirectionalVariationPct, true))}</b><em>mean directional move</em></span>
-          <span><b>${escapeHtml(grading.pct(quality?.priceCoveragePct))}</b><em>price coverage</em></span>
-          <span><b>${escapeHtml(grading.pct(quality?.analysisCoveragePct))}</b><em>analysis reviewed</em></span>
-          <span><b>${escapeHtml(String(quality?.evaluatedPostCount ?? '–'))}</b><em>evaluated posts</em></span>
+        ${detailState?.loading ? '<p class="empty-inline">Loading the calls…</p>' : ''}
+        ${detailState?.error ? `<p class="paper-error">The calls could not be loaded (${escapeHtml(detailState.error)}).</p>` : ''}
+        <section class="reputation-score-summary" aria-label="Performance ${escapeHtml(label)} after each call">
+          <span><b>${escapeHtml(formatScore(score))}</b><em>score</em></span>
+          <span><b>${escapeHtml(String(calls || '–'))}</b><em>graded calls</em></span>
+          <span><b>${escapeHtml(grading.pct(quality?.directionAccuracyPct))}</b><em>right direction</em></span>
+          <span><b>${escapeHtml(grading.pct(quality?.meanDirectionalVariationPct, true))}</b><em>average move</em></span>
         </section>
         <p class="reputation-score-note">
-          ${escapeHtml(qualityExplanation(quality, explanation))}
-          Quotes must be observed at or before publication and the selected end time, within one hour. Missing or unreliable prices receive no grade.
-          Results describe past calls before trading costs. Click a row to open the X post.
+          Each call is checked ${escapeHtml(label)} after it was posted. It scores 50, plus 5 points for every 1% the price
+          moved in the called direction (minus 5 when it moved the other way), between 0 and 100. The account score is the
+          average of its calls, pulled toward 50 while there are only a few. The same call repeated on the same coin within
+          ${escapeHtml(label)} counts once. Results are before trading costs.
         </p>
-        <p class="reputation-score-note">${escapeHtml(qualityCounts(quality))}</p>
         <section class="scored-only-panel">
           <header>
-            <strong>Latest scored calls shown</strong>
-            <em>${shownScored} / ${totalScored || shownScored}</em>
+            <strong>Latest graded calls</strong>
+            <em>${scored.length}${calls ? ` of ${calls}` : ''}</em>
           </header>
           <div class="scored-only-list">
-            ${scored.length ? scored.map(scoredOnlySignalHtml).join('') : '<p class="empty-inline">No scored call in this ranking.</p>'}
+            ${scored.length ? scored.map(scoredOnlySignalHtml).join('') : `<p class="empty-inline">${detailState?.loading ? 'Loading…' : 'No graded call for this period yet.'}</p>`}
           </div>
         </section>
       </section>
@@ -1607,7 +1573,7 @@
       <${tag} class="scored-only-row scored-call-link ${scoreClass(score)}"${attrs}>
         <span class="scored-call-crypto"><b>${escapeHtml(symbol)}</b><small>${escapeHtml(direction)} · ${escapeHtml(variation)}</small></span>
         <span class="scored-call-score"><b>${escapeHtml(scoreText)}</b><small>score</small></span>
-        <span class="scored-call-window"><small>${escapeHtml(callTime)} → ${escapeHtml(endTime)}</small><small>${escapeHtml(entryPrice)} → ${escapeHtml(exitPrice)}</small><small>Quotes: ${escapeHtml(compactTime(signal.startPriceAt))} → ${escapeHtml(compactTime(signal.endPriceAt))}</small></span>
+        <span class="scored-call-window"><small>${escapeHtml(callTime)} → ${escapeHtml(endTime)}</small><small>${escapeHtml(entryPrice)} → ${escapeHtml(exitPrice)}</small></span>
         <span class="scored-call-status"><b>${escapeHtml(verdict)}</b><small>${escapeHtml(status)}</small></span>
         <small class="scored-call-reason">${escapeHtml(reason)}</small>
       </${tag}>
@@ -1885,15 +1851,24 @@
     return text.length > 180 ? `${text.slice(0, 177)}...` : text;
   }
 
-  function qualityCounts(quality) {
-    if (!quality) return 'Analysis coverage unavailable.';
-    return `${quality.reviewedPostCount || 0} / ${quality.totalPostCount || 0} posts reviewed; ${quality.actionableSignalCount || 0} directional opinions; ${quality.evaluableSignalCount || 0} evaluable signals; ${quality.repeatedSignalCount || 0} repetitions grouped. ${quality.legacyUnreviewedCount || 0} legacy signals awaiting review; ${quality.pendingSignalCount || 0} awaiting evaluation; ${quality.excludedSignalCount || 0} excluded from grading.`;
+  function performanceLine(reputation, score) {
+    if (!reputation) return null;
+    const quality = reputation.quality || {};
+    const calls = Number(quality.independentSampleCount || 0);
+    if (!Number.isFinite(score)) {
+      return calls ? { text: `${calls} of ${MINIMUM_RANKED_CALLS} calls needed`, tone: 'muted' } : null;
+    }
+    const move = grading.number(quality.meanDirectionalVariationPct);
+    const right = grading.number(quality.directionAccuracyPct);
+    const parts = [];
+    if (Number.isFinite(right)) parts.push(`${Math.round(right)}% right`);
+    if (Number.isFinite(move)) parts.push(`${grading.pct(move, true)} avg move`);
+    return parts.length ? { text: parts.join(' · '), tone: move > 0 ? 'up' : move < 0 ? 'down' : 'muted' } : null;
   }
 
-  function qualityExplanation(quality, explanation) {
-    const sample = quality?.independentSampleCount || 0;
-    const status = grading.label(quality);
-    return `${status}. ${sample} grouped calls; repeated predictions by the same author, asset and direction count once per evaluation horizon. The ranking combines performance adjusted toward 50 for small samples (92%) and activity (8%). Each call starts at 50, gaining or losing 5 points per 1% directional price move, within 0–100.`;
+  function formatCount(value) {
+    const number = Number(value);
+    return Number.isFinite(number) ? number.toLocaleString('en-US') : '0';
   }
 
   function reputationScore(item) {
