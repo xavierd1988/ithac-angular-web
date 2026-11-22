@@ -34,9 +34,19 @@
     }
     return value;
   }
+  function detail(row, response) {
+    const loaded = response != null;
+    const ranking = loaded ? response.ranking : row;
+    return {
+      ranking,
+      quality: loaded ? (response.quality || ranking?.quality) : row?.quality,
+      explanation: loaded ? (response.explanation || ranking?.explanation) : row?.explanation,
+      scored: loaded ? (Array.isArray(response.scored) ? response.scored : []) : (Array.isArray(row?.history) ? row.history : [])
+    };
+  }
   function pct(value, signed) {
     const n = number(value);
     return Number.isFinite(n) ? `${signed && n > 0 ? '+' : ''}${n.toFixed(1)}%` : '–';
   }
-  return Object.freeze({ number, score, label, period, report, pct });
+  return Object.freeze({ number, score, label, period, report, pct, detail });
 });
