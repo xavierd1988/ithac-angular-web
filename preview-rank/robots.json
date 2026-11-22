@@ -1,0 +1,240 @@
+{
+  "updatedAt": "2026-11-21T05:21:00Z",
+  "serverAddress": "178.105.42.115 (scraper server, no proxy)",
+  "settingsPresets": {
+    "fast": {
+      "label": "Fast (initial)",
+      "postsPerPass": 50,
+      "requestsPerPass": "about 3",
+      "minSecondsBetweenPasses": 0,
+      "approxRequestsPerMinute": "15-24"
+    },
+    "slow": {
+      "label": "Slow (safe)",
+      "postsPerPass": 15,
+      "requestsPerPass": 1,
+      "minSecondsBetweenPasses": 15,
+      "approxRequestsPerMinute": "3-4"
+    }
+  },
+  "robots": [
+    {
+      "id": "X1",
+      "session": "session_04",
+      "handle": "@DinelliXav8079",
+      "email": "not recorded",
+      "address": "server",
+      "settings": [
+        {
+          "from": "2026-11-21T02:11:00Z",
+          "preset": "fast"
+        }
+      ],
+      "stats": {
+        "healthyPasses": 30,
+        "newPostsBeforeBan": 1018,
+        "minutesBeforeBan": 7
+      },
+      "events": [
+        {
+          "at": "2026-11-21T02:08:00Z",
+          "type": "connect",
+          "text": "Connected through the Garage login file"
+        },
+        {
+          "at": "2026-11-21T02:11:00Z",
+          "type": "start",
+          "text": "Put in service, alone, fast settings. Today's posts visible (tested on 3 influencers)"
+        },
+        {
+          "at": "2026-11-21T02:18:00Z",
+          "type": "ban",
+          "text": "Throttled by X after ~30 passes in 7 minutes: only old popular posts (2020-2025) from then on"
+        },
+        {
+          "at": "2026-11-21T02:36:00Z",
+          "type": "info",
+          "text": "Shared by 2 workers for a few minutes (up to ~24 requests/min) while already throttled"
+        },
+        {
+          "at": "2026-11-21T02:55:00Z",
+          "type": "disable",
+          "text": "Throttling detected by test, robot turned off"
+        },
+        {
+          "at": "2026-11-21T03:41:00Z",
+          "type": "retest",
+          "text": "Retested after ~1h20 of rest: still throttled"
+        },
+        {
+          "at": "2026-11-21T05:21:00Z",
+          "type": "retest",
+          "text": "Retested after ~3 h of rest: still throttled (newest posts shown: Jan 2024 and May 2025)"
+        }
+      ]
+    },
+    {
+      "id": "X2",
+      "session": "session_05",
+      "handle": "@XDinelly30196",
+      "email": "not recorded",
+      "address": "server",
+      "settings": [
+        {
+          "from": "2026-11-21T02:27:00Z",
+          "preset": "fast"
+        },
+        {
+          "from": "2026-11-21T02:58:00Z",
+          "preset": "slow"
+        }
+      ],
+      "stats": {
+        "healthyPasses": 210,
+        "newPostsBeforeBan": 3684,
+        "minutesBeforeBan": 66
+      },
+      "events": [
+        {
+          "at": "2026-11-21T02:25:00Z",
+          "type": "connect",
+          "text": "Connected through the Garage login file"
+        },
+        {
+          "at": "2026-11-21T02:27:00Z",
+          "type": "start",
+          "text": "Put in service with fast settings. Today's posts visible (tested on 3 influencers)"
+        },
+        {
+          "at": "2026-11-21T02:36:00Z",
+          "type": "pause",
+          "text": "X rate limit (HTTP 429, limit 187 requests / 15 min): paused 15 minutes"
+        },
+        {
+          "at": "2026-11-21T02:58:00Z",
+          "type": "settings",
+          "text": "Switched to slow settings: 15 posts and 1 request per pass, at least 15 s between passes"
+        },
+        {
+          "at": "2026-11-21T03:33:00Z",
+          "type": "ban",
+          "text": "Throttled by X after ~210 passes despite the slow pace: only old popular posts"
+        },
+        {
+          "at": "2026-11-21T03:38:00Z",
+          "type": "disable",
+          "text": "Robot turned off"
+        },
+        {
+          "at": "2026-11-21T03:41:00Z",
+          "type": "retest",
+          "text": "Retested after ~10 min of rest: still throttled"
+        }
+      ]
+    },
+    {
+      "id": "X3",
+      "session": "session_06",
+      "handle": "",
+      "email": "xavierd155@yahoo.com",
+      "address": "server",
+      "settings": [
+        {
+          "from": "2026-11-21T03:36:00Z",
+          "preset": "slow"
+        }
+      ],
+      "stats": null,
+      "events": [
+        {
+          "at": "2026-11-21T03:35:00Z",
+          "type": "connect",
+          "text": "Connected through the Garage login file"
+        },
+        {
+          "at": "2026-11-21T03:36:00Z",
+          "type": "start",
+          "text": "Put in service with slow settings from the start (first clean test of the slow pace). Today's posts visible"
+        }
+      ]
+    },
+    {
+      "id": "X4",
+      "session": "session_07",
+      "handle": "",
+      "email": "xavierd36@yahoo.com",
+      "address": "server",
+      "settings": [],
+      "stats": null,
+      "events": [
+        {
+          "at": "2026-11-21T03:30:00Z",
+          "type": "info",
+          "text": "Login file ready (ITHAC-Compte-X-4.command), waiting for connection"
+        }
+      ]
+    }
+  ],
+  "legacy": [
+    {
+      "id": "Old A",
+      "session": "session_01",
+      "label": "June account (tutamail)",
+      "period": "2026-06-18 to 2026-11-20",
+      "passes": 91005,
+      "newPosts": 169184,
+      "events": [
+        {
+          "at": "2026-08-01T01:55:00Z",
+          "type": "ban",
+          "text": "Last new post stored; afterwards errors through its proxy (proxy-us-01 timeouts)"
+        },
+        {
+          "at": "2026-11-21T02:30:00Z",
+          "type": "disable",
+          "text": "Turned off (proxy-us-01 down)"
+        }
+      ]
+    },
+    {
+      "id": "Old B",
+      "session": "session_02",
+      "label": "Original team account (May session)",
+      "period": "2026-06-18 to 2026-11-21",
+      "passes": 105242,
+      "newPosts": 246106,
+      "events": [
+        {
+          "at": "2026-07-31T00:00:00Z",
+          "type": "ban",
+          "text": "Around end of July: X starts showing it old popular posts instead of the latest ones (silent, unnoticed until Nov 20)"
+        },
+        {
+          "at": "2026-11-21T02:12:00Z",
+          "type": "disable",
+          "text": "Throttling confirmed by side-by-side test, turned off"
+        },
+        {
+          "at": "2026-11-21T02:57:00Z",
+          "type": "retest",
+          "text": "Retested after 45 min of rest: still throttled"
+        }
+      ]
+    },
+    {
+      "id": "Old C",
+      "session": "session_03",
+      "label": "June account (gmail)",
+      "period": "2026-06-18 to 2026-06-22",
+      "passes": 146,
+      "newPosts": 292,
+      "events": [
+        {
+          "at": "2026-06-22T05:03:00Z",
+          "type": "disable",
+          "text": "Turned off: its proxy (proxy-us-03) unreachable"
+        }
+      ]
+    }
+  ]
+}
