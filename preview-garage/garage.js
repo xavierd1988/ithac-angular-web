@@ -154,7 +154,7 @@
         value: waiting ? `${num(waiting)} posts waiting` : 'Up to date',
         note: `${num(readLive)} fresh posts read in the last hour` },
       { name: 'Detect calls', tab: 'analysis', link: 'See the journal', level: level(calls24 > 50, calls24 > 0),
-        value: `${num(calls24)} new calls in 24 h`,
+        value: `${num(calls24)} calls in 24 h`,
         note: `${num(callsHour)} in the last hour` },
       { name: 'Price and score', tab: 'analysis', link: 'See the journal', level: level(errorShare < 0.05, errorShare < 0.2),
         value: `${num(scored24)} scores in 24 h`,
@@ -319,7 +319,7 @@
             </dl>
             ${alive ? `
             <div class="fleet-custom">
-              <label>Custom speed: 1 read every <output>${interval}</output> s
+              <label><span>Custom speed: 1 read every <output>${interval}</output> s</span>
                 <input type="range" min="5" max="120" step="1" value="${interval}" ${unlocked ? '' : 'disabled'}>
               </label>
               <div class="fleet-custom-actions">
@@ -508,8 +508,8 @@
       cards.innerHTML = `
         <div data-level="${state}"><dt>Groq</dt><dd><span class="light" aria-hidden="true"></span>${state === 'good' ? 'Working' : state === 'watch' ? 'Slowed by its quota' : 'Not answering'}</dd>
           <dd class="kpi-note">${esc(p.model || '')}${p.last_success_at ? `, last answer ${ago(p.last_success_at)}` : ''}</dd></div>
-        <div data-level="${freePlan ? 'watch' : 'good'}"><dt>Quota left this minute</dt><dd>${p.remaining_requests != null ? `${num(p.remaining_requests)} requests` : '–'}</dd>
-          <dd class="kpi-note">${p.remaining_tokens != null ? `${num(p.remaining_tokens)} of ${num(p.limit_tokens)} tokens, ${freePlan ? 'free plan' : 'paid plan'}` : 'Shown after the next request'}</dd></div>
+        <div data-level="${freePlan ? 'watch' : 'good'}"><dt>Quota left</dt><dd>${p.remaining_requests != null ? `${num(p.remaining_requests)} requests today` : '–'}</dd>
+          <dd class="kpi-note">${p.remaining_tokens != null ? `${num(p.remaining_tokens)} of ${num(p.limit_tokens)} tokens this minute, ${freePlan ? 'free plan' : 'paid plan'}` : 'Shown after the next request'}</dd></div>
         <div data-level="${waiting < 200 ? 'good' : waiting < 2000 ? 'watch' : 'bad'}"><dt>Recent posts waiting</dt><dd>${num(waiting)}</dd>
           <dd class="kpi-note">Published in the last 48 h, not read yet</dd></div>
         <div data-level="${total24 && errors24 / total24 > 0.05 ? 'watch' : 'good'}"><dt>Errors in 24 h</dt><dd>${num(errors24)}</dd>
@@ -673,7 +673,7 @@
     }
     const isError = status.endsWith('_error');
     return `<td class="jw ${isError ? 'jw-error' : 'jw-wait'}"><span class="jw-pill">${esc(windowStatusText[status] || status)}</span>` +
-      `<small>${isError ? esc(w.error || '') : `due ${et(w.targetAt)}`}</small></td>`;
+      `<small>${isError ? esc(w.error || '') : w.targetAt ? `Due ${et(w.targetAt)}` : 'No entry price yet'}</small></td>`;
   }
   function entryCell(row) {
     const first = (row.windows || []).find((w) => w.entryPrice !== null && w.entryPrice !== undefined);

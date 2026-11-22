@@ -51,7 +51,10 @@ main.app-shell[hidden],
 
 .ranking-footer-search input {
   width: min(240px, 62vw);
-  padding: 6px 10px;
+  height: 32px;
+  min-height: 0;
+  padding: 0 10px;
+  box-shadow: none;
 }
 
 .ranking-footer-order {
@@ -60,7 +63,12 @@ main.app-shell[hidden],
   gap: 8px;
 }
 
-.ranking-footer-order select { padding: 5px 8px; }
+.ranking-footer-order select {
+  height: 32px;
+  min-height: 0;
+  padding: 0 8px;
+  box-shadow: none;
+}
 
 .ranking-footer .page-navigation {
   margin: 0 0 0 auto;
@@ -608,7 +616,7 @@ main.app-shell[hidden],
 [data-level="bad"] > .pipeline-state { color: var(--g-bad); }
 
 .pipeline-value {
-  font-size: clamp(19px, 2.1vw, 24px);
+  font-size: clamp(18px, 1.9vw, 23px);
   font-weight: 650;
   line-height: 1.2;
   letter-spacing: -.01em;
@@ -882,6 +890,7 @@ main.app-shell[hidden],
 .fleet-custom label {
   display: grid;
   gap: 10px;
+  line-height: 1.4;
   font-size: 14px;
   font-weight: 600;
 }
@@ -1296,6 +1305,12 @@ main.app-shell[hidden],
 }
 
 .garage-view .scanner-disclosure .live-position-bar { margin: 0 0 14px; }
+
+.garage-view #livePositionBar,
+.garage-view #scannerPath > * {
+  padding-left: 0;
+  padding-right: 0;
+}
 
 .garage-view :is(.live-kicker, .scanner-metrics em),
 .garage-view #scannerPath * {
