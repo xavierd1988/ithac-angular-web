@@ -149,14 +149,7 @@
       renderAll();
     });
     els.periodButtons.forEach((button) => {
-      button.addEventListener('click', () => {
-        if (state.reputationWindow === button.dataset.reputationWindow) return;
-        state.reputationWindow = button.dataset.reputationWindow;
-        state.pageIndex = 0;
-        state.pagesShown = 1;
-        state.selectedReputation = null;
-        renderAll();
-      });
+      button.addEventListener('click', () => setReputationWindow(button.dataset.reputationWindow));
     });
     els.featuredCards.addEventListener('click', (event) => {
       const card = event.target.closest('.featured-card');
@@ -475,10 +468,7 @@
     if (windowButton && state.selectedUsername) {
       event.preventDefault();
       event.stopPropagation();
-      state.panelWindow = windowButton.dataset.panelWindow;
-      closePopover();
-      renderList();
-      void loadReputationDetail({ username: state.selectedUsername, window: state.panelWindow });
+      setReputationWindow(windowButton.dataset.panelWindow, { anchor: windowButton });
       return;
     }
     const helpButton = event.target.closest('[data-score-help]');
@@ -813,6 +803,42 @@
     return (a._sourceIndex ?? 0) - (b._sourceIndex ?? 0);
   }
 
+  // One result window for the whole site: the ranking tabs at the top, the open account's window buttons and its audit
+  // always show the same horizon (24 hours, 7 days or 1 month). Changing it in one place changes all three.
+  // An open account stays open; when the change comes from inside it, it stays where it was on the screen.
+  function setReputationWindow(key, { anchor = null } = {}) {
+    if (!REPUTATION_WINDOWS.some((item) => item.key === key)) return;
+    if (state.reputationWindow === key && (state.panelWindow || key) === key) return;
+    const selected = state.selectedUsername;
+    const entryOf = () => selected
+      ? [...els.list.querySelectorAll('.leaderboard-entry')].find((e) => e.dataset.username.toLowerCase() === selected.toLowerCase())
+      : null;
+    const before = anchor ? entryOf()?.getBoundingClientRect().top : null;
+    state.reputationWindow = key;
+    state.panelWindow = key;
+    state.selectedReputation = null;
+    state.pagesShown = 1;
+    closePopover();
+    if (selected) {
+      const rows = liveRows();
+      const index = rows.findIndex((row) => row.username.toLowerCase() === selected.toLowerCase());
+      const pageSize = state.pageSize || state.page.pageSize || 250;
+      state.pageIndex = index >= 0 ? Math.floor(index / Math.max(pageSize, 1)) : 0;
+      if (index < 0) state.selectedUsername = null;
+    } else {
+      state.pageIndex = 0;
+    }
+    renderAll();
+    if (state.selectedUsername) {
+      void loadReputationDetail({ username: state.selectedUsername, window: key });
+      const entry = entryOf();
+      if (entry && anchor) {
+        if (Number.isFinite(before)) window.scrollBy(0, entry.getBoundingClientRect().top - before);
+        else entry.scrollIntoView({ block: 'start' });
+      }
+    }
+  }
+
   function reputationWindowLabel(key) {
     return REPUTATION_WINDOWS.find((item) => item.key === key)?.label ?? '1 DAY';
   }
@@ -1085,7 +1111,7 @@
     details.className = 'leaderboard-detail account-panel';
     details.dataset.panelKey = panelKey;
     details.innerHTML = accountPanelHtml(row, profileLabel);
-    window.IthacAudit?.bind(details, () => renderList());
+    window.IthacAudit?.bind(details, () => renderList(), (key, button) => setReputationWindow(key, { anchor: button }));
     details.querySelector('.posts-disclosure')?.addEventListener('toggle', (event) => {
       state.panelPostsOpen = event.currentTarget.open;
     });
@@ -1155,7 +1181,7 @@
           ${REPUTATION_WINDOWS.map((item) => panelWindowHtml(row._reputations?.[item.key], item, windowKey)).join('')}
         </div>
       </header>
-      ${window.IthacAudit?.panelHtml(row.username) || ''}
+      ${window.IthacAudit?.panelHtml(row.username, windowKey) || ''}
       <section class="calls-block">
         <div class="calls-title">
           <h3>Latest calls</h3>
