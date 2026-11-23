@@ -6,7 +6,7 @@
   'use strict';
 
   const ACCOUNTS = new Set(['wulfcryptox']);
-  const VERSION = '20261123-audit2';
+  const VERSION = '20261123-audit3';
   const CATEGORIES = [
     { key: 'scored', label: 'Scored call', help: 'A call by this account on an identified token, with a price: scored with the same rule as every call on the site.' },
     { key: 'unscorable', label: 'Call without a price', help: 'A call on a known token whose exact token or price could not be pinned down, so it cannot be scored.' },
@@ -16,8 +16,11 @@
     { key: 'platform', label: 'Platform or promo', help: 'An app, exchange or casino, not a token.' },
     { key: 'none', label: 'No crypto', help: 'Nothing about crypto in the post or its images.' }
   ];
-  const HORIZONS = [['1d', '1 day'], ['1w', '1 week'], ['1m', '1 month']];
-  const state = { data: new Map(), loading: new Map(), errors: new Map(), filter: new Map(), about: new Map() };
+  // The site's three result windows, and the matching horizon in the audit data.
+  const WINDOWS = [{ key: 'day', h: '1d', label: '24 hours' }, { key: 'week', h: '1w', label: '7 days' }, { key: 'month', h: '1m', label: '1 month' }];
+  const HORIZONS = WINDOWS.map((w) => [w.h, w.label]);
+  const windowOf = (key) => WINDOWS.find((w) => w.key === key) || WINDOWS[0];
+  const state = { data: new Map(), loading: new Map(), errors: new Map(), filter: new Map(), about: new Map(), window: 'day' };
   let dialog = null;
 
   const key = (username) => String(username || '').trim().replace(/^@+/, '').toLowerCase();
@@ -48,7 +51,13 @@
     return [data ? data.generatedAt : '', state.errors.get(k) || '', state.filter.get(k) || 'all'].join('|');
   }
 
-  function bind(container, rerender) {
+  function bind(container, rerender, setWindow) {
+    container.querySelectorAll('[data-audit-window]').forEach((button) => {
+      button.addEventListener('click', (event) => {
+        event.preventDefault();
+        if (typeof setWindow === 'function') setWindow(button.dataset.auditWindow, button);
+      });
+    });
     container.querySelectorAll('[data-audit-filter]').forEach((button) => {
       button.addEventListener('click', (event) => {
         event.preventDefault();
@@ -69,9 +78,10 @@
     });
   }
 
-  function panelHtml(username) {
+  function panelHtml(username, windowKey) {
     const k = key(username);
     if (!ACCOUNTS.has(k)) return '';
+    state.window = windowOf(windowKey).key;
     const data = state.data.get(k);
     if (!data) {
       const text = state.errors.has(k) ? `The audit could not be loaded (${esc(state.errors.get(k))}).` : 'Loading the audit…';
@@ -85,6 +95,10 @@
       <section class="audit" aria-labelledby="audit-title-${esc(k)}">
         <div class="audit-head">
           <h3 id="audit-title-${esc(k)}">Every crypto mention <small>test</small></h3>
+          <div class="audit-windows" role="group" aria-label="Result taken after">
+            ${WINDOWS.map((w) => `<button type="button" class="${w.key === state.window ? 'active' : ''}" data-audit-window="${w.key}"
+              aria-pressed="${w.key === state.window}">${esc(w.label)}</button>`).join('')}
+          </div>
           ${aboutHtml(k, data)}
         </div>
         <div class="audit-legend" role="group" aria-label="Show one type of post">
@@ -114,10 +128,31 @@
           <span class="audit-led" data-cat="${esc(cat.key)}" aria-hidden="true"></span>
           <time datetime="${esc(item.postedAt)}">${esc(dateTime(item.postedAt))}</time>
           <span class="audit-coin${item.category === 'none' ? ' quiet' : ''}">${esc(coin)}</span>
+          ${rowResultHtml(item)}
           <span class="audit-chevron" aria-hidden="true">›</span>
         </button>
       </li>
     `;
+  }
+
+  function rowResultHtml(item) {
+    const call = (item.calls || []).find((c) => c.results) || (item.calls || [])[0];
+    if (!call) return '<span class="audit-row-result"></span>';
+    const w = windowOf(state.window);
+    const r = call.results?.[w.h];
+    const entry = Number.isFinite(call.entry) ? price(call.entry) : '–';
+    if (!call.results) return `<span class="audit-row-result"><span class="quiet">${esc(call.unscorable || 'No price')}</span></span>`;
+    if (!r || r.status === 'pending' || r.status === 'no price') {
+      return `<span class="audit-row-result"><span class="audit-prices">${esc(entry)} → <span class="quiet">${r?.status === 'no price' ? 'no price' : 'pending'}</span></span><span class="audit-score quiet">–</span></span>`;
+    }
+    const pct = Number(r.pct);
+    const exit = Number.isFinite(r.exit) ? price(r.exit) : '–';
+    return `
+      <span class="audit-row-result ${scoreTone(r.score)}">
+        <span class="audit-prices">${esc(entry)} → ${esc(exit)}</span>
+        <span class="audit-pct">${pct > 0 ? '+' : ''}${pct.toFixed(1)}%</span>
+        <span class="audit-score">${Number(r.score).toFixed(0)}</span>
+      </span>`;
   }
 
   function coinLabel(item) {
@@ -208,7 +243,7 @@
   function callHtml(call) {
     const side = call.side === 'short' ? 'short' : 'long';
     const results = call.results
-      ? HORIZONS.map(([h, label]) => resultHtml(call.results[h], label)).join('')
+      ? HORIZONS.map(([h, label]) => resultHtml(call.results[h], label).replace('class="audit-result', `class="audit-result${h === windowOf(state.window).h ? ' current' : ''}`)).join('')
       : `<span class="audit-result none"><span>${esc(call.unscorable || 'No price')}</span></span>`;
     return `
       <div class="audit-call">
@@ -243,7 +278,8 @@
     if (!result || result.status === 'pending') return `<span class="audit-result pending"><small>${esc(label)}</small><span>pending</span></span>`;
     if (result.status === 'no price') return `<span class="audit-result none"><small>${esc(label)}</small><span>no price</span></span>`;
     const pct = Number(result.pct);
-    return `<span class="audit-result ${scoreTone(result.score)}"><small>${esc(label)}</small><span>${pct > 0 ? '+' : ''}${pct.toFixed(1)}% · <b>${Number(result.score).toFixed(0)}</b></span></span>`;
+    const exit = Number.isFinite(result.exit) ? `${price(result.exit)} · ` : '';
+    return `<span class="audit-result ${scoreTone(result.score)}"><small>${esc(label)}</small><span>${esc(exit)}${pct > 0 ? '+' : ''}${pct.toFixed(1)}% · <b>${Number(result.score).toFixed(0)}</b></span></span>`;
   }
 
   function mentionHtml(m) {
