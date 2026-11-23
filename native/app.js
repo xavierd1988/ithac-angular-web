@@ -1066,6 +1066,7 @@
         if (!wasOpen) {
           void loadPosts(row.username);
           void loadReputationDetail({ username: row.username, window: state.panelWindow });
+          if (window.IthacAudit?.has(row.username)) void window.IthacAudit.load(row.username).then(() => renderList());
         }
       });
     }
@@ -1084,6 +1085,7 @@
     details.className = 'leaderboard-detail account-panel';
     details.dataset.panelKey = panelKey;
     details.innerHTML = accountPanelHtml(row, profileLabel);
+    window.IthacAudit?.bind(details, () => renderList());
     details.querySelector('.posts-disclosure')?.addEventListener('toggle', (event) => {
       state.panelPostsOpen = event.currentTarget.open;
     });
@@ -1128,7 +1130,8 @@
       return rep ? [rep.rank, rep.competitionScore, grading.calls(rep)] : null;
     });
     return JSON.stringify([state.panelWindow, detailState?.loadedAt || 0, Boolean(detailState?.loading), detailState?.error || '',
-      posts ? posts.length : -1, state.selectedMentionKey, state.panelPostsOpen, reps, row.followersCount, scrapeMinute(row)]);
+      posts ? posts.length : -1, state.selectedMentionKey, state.panelPostsOpen, reps, row.followersCount, scrapeMinute(row),
+      window.IthacAudit?.stateKey(row.username) || '']);
   }
 
   function accountPanelHtml(row, profileLabel) {
@@ -1152,6 +1155,7 @@
           ${REPUTATION_WINDOWS.map((item) => panelWindowHtml(row._reputations?.[item.key], item, windowKey)).join('')}
         </div>
       </header>
+      ${window.IthacAudit?.panelHtml(row.username) || ''}
       <section class="calls-block">
         <div class="calls-title">
           <h3>Latest calls</h3>
