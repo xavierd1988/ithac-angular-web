@@ -5,8 +5,8 @@
 (() => {
   'use strict';
 
-  const ACCOUNTS = new Set(['wulfcryptox']);
-  const VERSION = '20261123-audit4';
+  const ACCOUNTS = new Set(['wulfcryptox', '0xshardy']);
+  const VERSION = '20261123-audit5';
   const CATEGORIES = [
     { key: 'scored', label: 'Scored call', help: 'A call by this account on an identified token, with a price: scored with the same rule as every call on the site.' },
     { key: 'unscorable', label: 'Call without a price', help: 'A call on a known token whose exact token or price could not be pinned down, so it cannot be scored.' },
@@ -175,7 +175,7 @@
       <details class="audit-about" data-audit-about="${esc(k)}"${state.about.get(k) ? ' open' : ''}>
         <summary>About this test</summary>
         <div class="audit-about-body">
-          <p>New reading method, tried on this profile only. These calls are not in the ranking yet.</p>
+          <p>New reading method, tried on a few profiles only. These calls are not in the ranking yet.</p>
           <dl class="audit-stats">
             <div><dt>Posts read</dt><dd>${num(s.posts)}</dd></div>
             <div><dt>Calls</dt><dd>${num(s.calls)}</dd></div>
@@ -309,7 +309,11 @@
     if (!Number.isFinite(n)) return '–';
     if (n >= 100) return `$${n.toFixed(2)}`;
     if (n >= 1) return `$${n.toFixed(4)}`;
-    return `$${n.toPrecision(4)}`;
+    if (n <= 0 || n >= 0.0001) return `$${n.toPrecision(4)}`;
+    // a tiny memecoin price: the zeros after "0.0" are counted in a subscript, as on DEX screens ($0.0₅2782 = $0.000002782)
+    const [mantissa, exponent] = n.toExponential(3).split('e');
+    const zeros = String(-Number(exponent) - 1).replace(/\d/g, (d) => '₀₁₂₃₄₅₆₇₈₉'[d]);
+    return `$0.0${zeros}${mantissa.replace('.', '').replace(/0+$/, '') || '0'}`;
   }
 
   function shortAddress(address) {

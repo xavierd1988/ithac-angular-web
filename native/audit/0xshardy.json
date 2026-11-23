@@ -1,0 +1,5392 @@
+{
+ "account": "0xshardy",
+ "generatedAt": "2026-11-23T20:27:28+00:00",
+ "from": "2026-10-10T17:55:02+00:00",
+ "to": "2026-11-21T20:22:32+00:00",
+ "summary": {
+  "posts": 151,
+  "calls": 19,
+  "scored": 13,
+  "average1d": 46.4,
+  "checkedAgree": 107
+ },
+ "method": [
+  "Every post on the profile from Oct 9 was collected again: posts, quotes and retweets, with their full text, the quoted post and every image.",
+  "A vision model describes each image, so a token shown only on a chart or a token page is not missed.",
+  "Two separate AI readings (gpt-oss-120b) list every crypto reference and every possible call. Any token the author names himself, by ticker, address or chart, is checked too.",
+  "An arbiter decides each possible call three times, five when the decisions split, and keeps it when most of them agree. The author must name a specific token and say where it goes next: praise of a past move, a platform or a retweet is not a call.",
+  "Each call is tied to one token address: the one written in the post, shown on the image, or used by this account for that ticker, and only if that token was trading in the 24 hours before the post.",
+  "Prices come from GeckoTerminal. Score = 50 + 5 points per % gained in the called direction, between 0 and 100, after 1 day, 1 week and 1 month, as for every call on the site.",
+  "Each post was also read one by one by Claude as a second check."
+ ],
+ "items": [
+  {
+   "id": "2124237046638395706",
+   "url": "https://x.com/0xshardy/status/2124237046638395706",
+   "postedAt": "2026-11-21T20:22:32+00:00",
+   "type": "quote",
+   "pinned": false,
+   "from": "@elonmusk",
+   "text": "Elon Musk’ın sürekli olarak paylaşımlarında desteklediği solana:2j5SaS7xy776qCBpyPQbZjyQSAtKiFgrwjfErthnW2ZM 11M$ Mcap’e ulaştı",
+   "quoted": {
+    "author": "@elonmusk",
+    "text": "Super intelligence will hack your limbic system"
+   },
+   "images": [
+    "A screenshot of a mobile crypto trading app displaying the price chart and details for a token named CLAUDIA. The interface shows a price of $0.0114,…"
+   ],
+   "category": "mention",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "CLAUDIA",
+     "kind": "mention",
+     "label": "news or fact",
+     "quote": "solana:2j5SaS7xy776qCBpyPQbZjyQSAtKiFgrwjfErthnW2ZM 11M$ Mcap’e ulaştı"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2124151633647178194",
+   "url": "https://x.com/0xshardy/status/2124151633647178194",
+   "postedAt": "2026-11-21T14:43:08+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "Gta 6 için kurduğum sistem bu",
+   "quoted": null,
+   "images": [
+    "A living room setup featuring a TV displaying a game interface and a floor lamp projecting colorful, swirling light patterns onto the walls and ceili…"
+   ],
+   "category": "none",
+   "calls": [],
+   "mentions": [],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2124105431262048610",
+   "url": "https://x.com/0xshardy/status/2124105431262048610",
+   "postedAt": "2026-11-21T11:39:33+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "Yeni emoji olur bundan Anlık çektim niye böyle bilmiyorum",
+   "quoted": null,
+   "images": [
+    "A black cat is sitting on a windowsill with its tongue sticking out. The cat is positioned in front of a white window frame on a building exterior."
+   ],
+   "category": "none",
+   "calls": [],
+   "mentions": [],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2123800418991976744",
+   "url": "https://x.com/0xshardy/status/2123800418991976744",
+   "postedAt": "2026-11-20T15:27:32+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "1k$ &gt; 243.000$ yapıp çekti gitti Gta oyunu çıktığında sahteden bir $DCTY Token lansman reklamı yaptılar İçeriye ünlü traderlar ve fenomenleri bile çekip tepeden malı sattılar Güzel hırsızlık 2 günde",
+   "quoted": null,
+   "images": [
+    "A screenshot of a crypto trading app showing a user's profitable closed position in the DCTY token. The interface displays a price chart, a profit of…"
+   ],
+   "category": "mention",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "DCTY",
+     "kind": "mention",
+     "label": "news or fact",
+     "quote": "$DCTY Token"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2123746517345341722",
+   "url": "https://x.com/0xshardy/status/2123746517345341722",
+   "postedAt": "2026-11-20T11:53:21+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "Geçen ay $Pons ‘un kendi hesabından paylaşarak desteklediği $Dark projesi %90 üzerinde değer kaybetti",
+   "quoted": null,
+   "images": [
+    "A screenshot of a cryptocurrency trading interface for the token DARK (Darkwoods). It displays a candlestick chart showing a significant price drop,…"
+   ],
+   "category": "mention",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "PONS",
+     "kind": "mention",
+     "label": "context",
+     "quote": "$Pons ‘un kendi hesabından paylaşarak desteklediği"
+    },
+    {
+     "asset": "DARK",
+     "kind": "mention",
+     "label": "news or fact",
+     "quote": "$Dark projesi %90 üzerinde değer kaybetti; image shows DARK, Darkwoods, $0.000114, $0.000337 (74.68%), $114.2K, Market…"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2123732897697771896",
+   "url": "https://x.com/0xshardy/status/2123732897697771896",
+   "postedAt": "2026-11-20T10:59:14+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "Senin katlanır direksiyonun var mı?",
+   "quoted": null,
+   "images": [
+    "A photo showing the interior of a luxury car with a large dashboard screen and cream-colored leather seats. A person is standing outside the open doo…"
+   ],
+   "category": "none",
+   "calls": [],
+   "mentions": [],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2123507707705528471",
+   "url": "https://x.com/0xshardy/status/2123507707705528471",
+   "postedAt": "2026-11-19T20:04:25+00:00",
+   "type": "quote",
+   "pinned": false,
+   "from": "@sinanyorulmazz",
+   "text": "Gta6 türkçe oynamak isteyenler için en basit şekilde süper uygulama yapmış dostumuz Kurulum çok basit onun içinde örnek videolar zaten youtube da anlatılmış Teşekkürler",
+   "quoted": {
+    "author": "@sinanyorulmazz",
+    "text": "📱 CouchSubs artık iPhone'da! PS5 oyunlarına Türkçe altyazı. iPhone uygulaması TV uygulamasını da kendisi kuruyor: Samsung, LG ve Android TV. Nasıl kurulur? 1️⃣ App Store'dan Apple'ın ücretsiz TestFlight uygulamasını indirin. 2️⃣ Bu bağlantıyı iPhone'da açın:, \"Kabul Et\", ardında…"
+   },
+   "images": [
+    "A promotional graphic for an app called CouchSubs, which allows users to add Turkish subtitles to PS5 games on an iPhone. The image includes a QR cod…"
+   ],
+   "category": "none",
+   "calls": [],
+   "mentions": [],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2123475910179569706",
+   "url": "https://x.com/0xshardy/status/2123475910179569706",
+   "postedAt": "2026-11-19T17:58:03+00:00",
+   "type": "retweet",
+   "pinned": false,
+   "from": "@vladtenev",
+   "text": "Tokenization can.",
+   "quoted": null,
+   "images": [],
+   "category": "none",
+   "calls": [],
+   "mentions": [],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2123466010330329127",
+   "url": "https://x.com/0xshardy/status/2123466010330329127",
+   "postedAt": "2026-11-19T17:18:43+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "- $DCTY çıktıktan sonra solana:4kjruqGHDsSqkMdFfCjV7Vb62HPFhtXyWc2t6JpQzDnz çöktü $MIHAO ise %73 yükseliş yaşadı %7000 kâr eden kişi hala tutuyor… Alımlarını fomodan yapıyor.",
+   "quoted": null,
+   "images": [
+    "A screenshot of a cryptocurrency tracking interface displaying price and market cap data for two tokens, DCTY and GTA6. The image includes zoomed-in…",
+    "A screenshot of a cryptocurrency price chart showing a significant upward spike. The interface displays the current price, 24-hour volume, and a user…"
+   ],
+   "category": "mention",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "DCTY",
+     "kind": "mention",
+     "label": "context",
+     "quote": "$DCTY çıktıktan sonra"
+    },
+    {
+     "asset": "GTA6",
+     "kind": "mention",
+     "label": "named, but no call (no view on what comes next)",
+     "quote": "solana:4kjruqGHDsSqkMdFfCjV7Vb62HPFhtXyWc2t6JpQzDnz çöktü"
+    },
+    {
+     "asset": "MIHAO",
+     "kind": "mention",
+     "label": "context",
+     "quote": "$MIHAO ise %73 yükseliş yaşadı"
+    },
+    {
+     "asset": "ni hao cat",
+     "kind": "mention",
+     "label": "context",
+     "quote": "\"ni hao cat\" appears in the second image visible text"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2123427227840962745",
+   "url": "https://x.com/0xshardy/status/2123427227840962745",
+   "postedAt": "2026-11-19T14:44:37+00:00",
+   "type": "retweet",
+   "pinned": false,
+   "from": "@juanbergman",
+   "text": "This in GTA 6 is 😱🤯😨",
+   "quoted": null,
+   "images": [
+    "A photo of a laptop screen displaying a social media post from the account have.a.vice.day. The post features a video of a person on a red car with a…"
+   ],
+   "category": "none",
+   "calls": [],
+   "mentions": [],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2123380637604118822",
+   "url": "https://x.com/0xshardy/status/2123380637604118822",
+   "postedAt": "2026-11-19T11:39:29+00:00",
+   "type": "quote",
+   "pinned": false,
+   "from": "@lookonchain",
+   "text": "abu dhabi court handed binance a freeze order over 26,000 wallets yesterday, and the list gets updated as funds move. this morning he splits 137K ETH into fresh 12K chunks and keeps dripping USDT into chainflip. the list is always one hop behind",
+   "quoted": {
+    "author": "@lookonchain",
+    "text": "The Binance hacker has moved another 137,602 $ETH ($248.23M) for laundering."
+   },
+   "images": [
+    "A screenshot of a blockchain explorer showing a list of transactions from an address labeled 'Binance_Hacker' to 'Chainflip'. The transactions involv…"
+   ],
+   "category": "platform",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "Chainflip",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "keeps dripping USDT into chainflip"
+    },
+    {
+     "asset": "Binance",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "abu dhabi court handed binance a freeze order"
+    }
+   ],
+   "check": {
+    "agrees": false,
+    "note": "the second reading sees a crypto mentioned without a call."
+   }
+  },
+  {
+   "id": "2123036767528088018",
+   "url": "https://x.com/0xshardy/status/2123036767528088018",
+   "postedAt": "2026-11-18T12:53:04+00:00",
+   "type": "quote",
+   "pinned": false,
+   "from": "@AkadeBemsen",
+   "text": "Aracın türkiye fiyatı 19.298.400₺",
+   "quoted": {
+    "author": "@AkadeBemsen",
+    "text": "My car is FINALLY about to be PAID OFF!! ￼"
+   },
+   "images": [
+    "A screenshot of a BMW X6 xDrive40d specification sheet in Turkish. The table lists the M Sport design package, mild hybrid engine details, and a maxi…",
+    "A screenshot of a 'My BMW Account' dashboard displaying a white 2022 X6 xDrive40i. The interface shows financial details including payoff progress an…"
+   ],
+   "category": "none",
+   "calls": [],
+   "mentions": [],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2123003840668500116",
+   "url": "https://x.com/0xshardy/status/2123003840668500116",
+   "postedAt": "2026-11-18T10:42:13+00:00",
+   "type": "quote",
+   "pinned": false,
+   "from": "@HyperliquidNews",
+   "text": "355K active traders on hyperliquid, a new record. HYPE still sits 30% under its september high. the math explains it better than vibes hyperliquid booked $19.6M in revenue over the last 7 days, and that revenue is what funds the buybacks. roughly $2.5M of HYPE bought per day in the last 24h $HYPE did $45M of spot volume and $430M on perps so the buyback is about 5% of spot volume and around half a percent of perp volume. steady bid, but no floor and it only buys spot. perps can stack shorts without anyone selling a single spot token the part i like. at $68, every buyback dollar gets 43% more…",
+   "quoted": {
+    "author": "@HyperliquidNews",
+    "text": "NEW ATH: 355,001 ACTIVE PERP TRADERS ON HYPERLIQUID."
+   },
+   "images": [
+    "A line chart titled 'Active Perp Traders' displays a rising trend from 150K to over 350K between February and November. The current value is shown as…"
+   ],
+   "category": "mention",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "HYPE",
+     "kind": "mention",
+     "label": "news or fact",
+     "quote": "$HYPE did $45M of spot volume and $430M on perps"
+    },
+    {
+     "asset": "Hyperliquid",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "355K active traders on hyperliquid, a new record"
+    }
+   ],
+   "check": {
+    "agrees": false,
+    "note": "the second reading sees a call on HYPE that the method missed."
+   }
+  },
+  {
+   "id": "2122725655594868985",
+   "url": "https://x.com/0xshardy/status/2122725655594868985",
+   "postedAt": "2026-11-17T16:16:49+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "thank you crypto because of you i was able to buy my wife a brand new car",
+   "quoted": null,
+   "images": [
+    "A collage of photos showing a black Hyundai Bayon car on display in a showroom. Other vehicles, including a NIO 3, are visible in the background."
+   ],
+   "category": "none",
+   "calls": [],
+   "mentions": [],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2122719771389284353",
+   "url": "https://x.com/0xshardy/status/2122719771389284353",
+   "postedAt": "2026-11-17T15:53:26+00:00",
+   "type": "quote",
+   "pinned": false,
+   "from": "@omnis_zero",
+   "text": "I like it",
+   "quoted": {
+    "author": "@omnis_zero",
+    "text": "everywhere. except your wallet. yet."
+   },
+   "images": [
+    "A black and white digital illustration of a glossy, liquid-like character with a single horn and glowing cross-shaped eyes. The figure is depicted em…"
+   ],
+   "category": "none",
+   "calls": [],
+   "mentions": [],
+   "check": {
+    "agrees": false,
+    "note": "the second reading sees a platform or promo."
+   }
+  },
+  {
+   "id": "2122716031281963310",
+   "url": "https://x.com/0xshardy/status/2122716031281963310",
+   "postedAt": "2026-11-17T15:38:34+00:00",
+   "type": "quote",
+   "pinned": false,
+   "from": "@MustStopMurad",
+   "text": "the impatient child inside me read this whole thing, agreed with every line, then asked if we can start holding for two years next week. murad is right. the market rarely takes your money. your thumb does. - buying the top because the chart \"looks ready\" - selling the bottom because the group chat went quiet - the coin you forgot you had is somehow the one that's up patience is the only edge nobody can copy trade.",
+   "quoted": {
+    "author": "@MustStopMurad",
+    "text": "Here’s the truth: Your only competition in Crypto is… You. Your impatience, your greed, your immature desire to make it as fast as possible… These are the only things you are competing against. Deep down you know exactly what you need to do to make it. Deep down you know that th…"
+   },
+   "images": [],
+   "category": "none",
+   "calls": [],
+   "mentions": [],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2122677485930229804",
+   "url": "https://x.com/0xshardy/status/2122677485930229804",
+   "postedAt": "2026-11-17T13:05:24+00:00",
+   "type": "quote",
+   "pinned": false,
+   "from": "@TheEconomist",
+   "text": "The Economist just hid 2027 inside a clock. Most people will scroll past it. Don't. read the cover like a clock. 12. six leaders in suits on the summit 3. a snapped pipeline 6. refugee tents and a crystal ball 9. a forest on fire the only real clock on it sits on the Kremlin. one hand, straight up. six suits on the summit. with six there is no middle. the red swoop of hair stands third from the left. cover line : \"Not going quietly.\" one level below, two men in red shake hands next to a radio tower. the deal happens a floor down. top right : a TRUMP tower, a superyacht, a red sun. right under…",
+   "quoted": {
+    "author": "@TheEconomist",
+    "text": "Modern life can feel like being in a sci-fi story—all that is missing is the aliens. They probably won’t appear in 2027. Here are ten other things to watch out for Illustration: Cleon Peterson"
+   },
+   "images": [
+    "The image displays the cover of The Economist magazine titled 'THE WORLD AHEAD 2027'. It features a large, stylized illustration of a human head comp…"
+   ],
+   "category": "none",
+   "calls": [],
+   "mentions": [],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2122586844571267563",
+   "url": "https://x.com/0xshardy/status/2122586844571267563",
+   "postedAt": "2026-11-17T07:05:14+00:00",
+   "type": "quote",
+   "pinned": false,
+   "from": "@Lighter_xyz",
+   "text": "Nobody broke Lighter's contracts. The trader's own signatures gave the key away. Every signature uses a one-time random number called a nonce. Sign two different transactions with the same key and the same nonce, and those two public signatures give anyone two equations with only two unknowns, the nonce and the private key. No phishing, no server access. Just math on public data. This is not a Lighter thing. Bitcoin and Ethereum keys break the same way. The affected accounts signed with homemade code instead of Lighter's official SDK, and that code reused nonces. The part I find more interest…",
+   "quoted": {
+    "author": "@Lighter_xyz",
+    "text": "Deposits and withdrawals are back to normal following the deactivation of Guardian Mode by the Lighter Security Council. More details on what happened:"
+   },
+   "images": [],
+   "category": "mention",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "Lighter",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "Nobody broke Lighter's contracts. ... Lighter now requires a wallet signature for pool transfers and no longer makes AP…"
+    },
+    {
+     "asset": "BITCOIN",
+     "kind": "mention",
+     "label": "news or fact",
+     "quote": "Bitcoin and Ethereum keys break the same way."
+    }
+   ],
+   "check": {
+    "agrees": false,
+    "note": "the second reading sees a platform or promo."
+   }
+  },
+  {
+   "id": "2122370210485428668",
+   "url": "https://x.com/0xshardy/status/2122370210485428668",
+   "postedAt": "2026-11-16T16:44:24+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "WILL WE BE ABLE TO TRADE MEMECOINS INSIDE #GTA 6? because if rockstar adds a vice city dex, i am never leaving the pink car",
+   "quoted": null,
+   "images": [
+    "An anime-style illustration of a person in a pink sports car holding a smartphone displaying a rising chart. The image features the 'Grand Theft Auto…"
+   ],
+   "category": "none",
+   "calls": [],
+   "mentions": [],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2122303187625349259",
+   "url": "https://x.com/0xshardy/status/2122303187625349259",
+   "postedAt": "2026-11-16T12:18:05+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "getting ready to make $1M #GTAVI",
+   "quoted": null,
+   "images": [
+    "A photo of a television screen displaying the download progress for the video game Grand Theft Auto VI. The screen shows the game's cover art featuri…",
+    "A screenshot of a social media post from the verified Rockstar Games account announcing a GTA VI Community Challenge. The post details two major cash…"
+   ],
+   "category": "none",
+   "calls": [],
+   "mentions": [],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2122242600690221125",
+   "url": "https://x.com/0xshardy/status/2122242600690221125",
+   "postedAt": "2026-11-16T08:17:20+00:00",
+   "type": "quote",
+   "pinned": false,
+   "from": "@luxor",
+   "text": "The Luxor hack never touched a private key. It changed one setting. Commander is Luxor's fleet software. It can edit the pool, worker and payout fields on a customer's miners. Luxor says affected machines were pointed to a different pool. CoreX says that pool was OCEAN, paying an attacker address. What is confirmed vs reported - Luxor confirms just over a dozen Commander accounts, patched within 2 hours, full compensation, Luxor Pool and LuxOS not affected - 64,000 machines and 13 EH/s come from CoreX and on-chain watchers, not Luxor. 13 EH/s would be about 1.4% of network hashrate - \"AI-enab…",
+   "quoted": {
+    "author": "@luxor",
+    "text": "Last night our internal monitoring alerted us to an unauthorized redirect of hashrate through Commander. Our on-call engineering team jumped on it right away. Impact: just over a dozen client accounts. Affected machines were pointed to a different pool for a limited window. No d…"
+   },
+   "images": [
+    "A screenshot of a cryptocurrency wallet interface displaying a Bitcoin address and its balance details. A bar chart below illustrates the balance his…"
+   ],
+   "category": "mention",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "OCEAN",
+     "kind": "mention",
+     "label": "context",
+     "quote": "the attacker address has received 2 OCEAN coinbase payouts"
+    },
+    {
+     "asset": "BTC",
+     "kind": "mention",
+     "label": "context",
+     "quote": "0.162 BTC total"
+    },
+    {
+     "asset": "Luxor",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "The Luxor hack never touched a private key"
+    },
+    {
+     "asset": "CoreX",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "CoreX says that pool was OCEAN"
+    },
+    {
+     "asset": "LuxOS",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "LuxOS not affected"
+    },
+    {
+     "asset": "Luxor Pool",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "Luxor Pool and LuxOS not affected"
+    },
+    {
+     "asset": "Commander",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "Commander is Luxor's fleet software. It can edit the pool, worker and payout fields"
+    }
+   ],
+   "check": {
+    "agrees": false,
+    "note": "the second reading sees a platform or promo."
+   }
+  },
+  {
+   "id": "2122189229878923504",
+   "url": "https://x.com/0xshardy/status/2122189229878923504",
+   "postedAt": "2026-11-16T04:45:15+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "500.000$ Profit 🏯⛰️ my taxi driver asked me what i do for work and i panicked. i said \"finance.\" he asked which bank. i said \"it's more of a decentralized bank.\" he looked at me in the mirror for a very long time. so i opened fomo and showed him a trader called bronbroncore. $7,500 into a memecoin called $MIHAO. up 6,398%. almost $500K in one day. he pulled over. he asked me to scroll back up. then again. then he asked if bronbroncore was a real person or a bank. i said \"a real person.\" he asked if bronbroncore needed a driver. he spent the rest of the ride asking me how to spell \"fomo.\" he m…",
+   "quoted": null,
+   "images": [
+    "A screenshot of a Fomo app interface displaying a user's portfolio with a total value of $160.8K. The portfolio shows a single position in the 'ni ha…"
+   ],
+   "category": "mention",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "MIHAO",
+     "kind": "mention",
+     "label": "news or fact",
+     "quote": "$7,500 into a memecoin called $MIHAO. up 6,398%"
+    },
+    {
+     "asset": "Fomo",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "so i opened fomo and showed him a trader called bronbroncore"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2121987603608031339",
+   "url": "https://x.com/0xshardy/status/2121987603608031339",
+   "postedAt": "2026-11-15T15:24:03+00:00",
+   "type": "quote",
+   "pinned": false,
+   "from": "@harleyfoote_",
+   "text": "Read his whole thread, not just the headline. Day 1 version. WhatsApp desktop auto-downloaded a file, he never clicked it, the attacker got remote use of his PC. He said a possible WhatsApp zero-click was being checked. Day 2 version, in his own reply. The file auto-downloaded, a local AI read it, a prompt hidden inside told the AI to install a package, the attacker got access. Those are two very different bugs. Downloading a file is not running it. The first needs a WhatsApp exploit. The second needs nothing broken in WhatsApp at all, just an agent with install rights reading files strangers…",
+   "quoted": {
+    "author": "@harleyfoote_",
+    "text": "Last night I was hacked. The hack was delivered via WhatsApp payload. Downloaded automatically and gave access and or computer use to the attacker. They waited 5 days, following my tweets on X of short positions and closed everything and withdrew directly in one transaction from…"
+   },
+   "images": [],
+   "category": "platform",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "Hyperliquid",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "Hyperliquid > Metamask > Tornado Cash"
+    },
+    {
+     "asset": "Metamask",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "Hyperliquid > Metamask > Tornado Cash"
+    },
+    {
+     "asset": "Tornado Cash",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "Hyperliquid > Metamask > Tornado Cash"
+    },
+    {
+     "asset": "Coinbase",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "off Coinbase/Kraken"
+    },
+    {
+     "asset": "Kraken",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "off Coinbase/Kraken"
+    }
+   ],
+   "check": {
+    "agrees": false,
+    "note": "the second reading sees no crypto."
+   }
+  },
+  {
+   "id": "2121973771301003609",
+   "url": "https://x.com/0xshardy/status/2121973771301003609",
+   "postedAt": "2026-11-15T14:29:06+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "bought a PS5 and GTA 6 today. now just counting down to november 19. charts can wait.",
+   "quoted": null,
+   "images": [
+    "A photo of a white Sony PlayStation 5 console standing vertically on a stand with a controller resting in front of it. The setup is placed on a marbl…"
+   ],
+   "category": "none",
+   "calls": [],
+   "mentions": [],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2121846508060627358",
+   "url": "https://x.com/0xshardy/status/2121846508060627358",
+   "postedAt": "2026-11-15T06:03:24+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "90% down. this guy is sitting on roughly 90% losses across his memecoins. - $MEME -92% - $AI -61% - $MUSEBOOK -90% - $GRASS -88% the market isn't what it used to be. this could have been you. holding memecoins long term mostly just loses you money.",
+   "quoted": null,
+   "images": [
+    "A screenshot of a crypto trading profile for the user LikePoorMacaw, showing a portfolio value of $55,522.43. The view displays an equity chart and a…"
+   ],
+   "category": "mention",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "MEME",
+     "kind": "mention",
+     "label": "news or fact",
+     "quote": "$MEME -92%"
+    },
+    {
+     "asset": "AI",
+     "kind": "mention",
+     "label": "news or fact",
+     "quote": "$AI -61%"
+    },
+    {
+     "asset": "MUSEBOOK",
+     "kind": "mention",
+     "label": "news or fact",
+     "quote": "$MUSEBOOK -90%"
+    },
+    {
+     "asset": "GRASS",
+     "kind": "mention",
+     "label": "news or fact",
+     "quote": "$GRASS -88%"
+    },
+    {
+     "asset": "AMC",
+     "kind": "mention",
+     "label": "context",
+     "quote": "Image shows token A Meme Coin (ticker AMC) in portfolio"
+    },
+    {
+     "asset": "Artificial Inu",
+     "kind": "mention",
+     "label": "context",
+     "quote": "Image shows token Artificial Inu in portfolio"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2121668958789030076",
+   "url": "https://x.com/0xshardy/status/2121668958789030076",
+   "postedAt": "2026-11-14T18:17:53+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "let me introduce you to a trader worth following, @0x_Leo_ recently he took $10,000 of his winnings and split it between 10 people. he knows the more he gives, the more comes back. his track record - made $1.15M shorting $ZEC - made $370k going long $SOL - currently sitting in a $1.7M short on $AMD he trades all of it in public on fomo, and i'm one of his most loyal followers. who knows, maybe one day he makes us smile too. if you want to check out fomo, my link is below. happy to follow each other there, my nick is 0xshardy -",
+   "quoted": null,
+   "images": [
+    "A screenshot of a crypto trading profile for a user named leo, displaying a total portfolio value of over $1.5 million. The view includes a 7-day per…"
+   ],
+   "category": "mention",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "ZEC",
+     "kind": "mention",
+     "label": "context",
+     "quote": "made $1.15M shorting $ZEC"
+    },
+    {
+     "asset": "FOMO",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "he trades all of it in public on fomo; https://fomo.family/r/0xshardy"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2121434001911296008",
+   "url": "https://x.com/0xshardy/status/2121434001911296008",
+   "postedAt": "2026-11-14T02:44:15+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "asked GPT 100 times to pick from 31 ice cream flavors. 96 times it named one of the 2 most popular. let the X algorithm choose for you and you end up the same way. plenty of people are worth following. you're just not seeing them.",
+   "quoted": null,
+   "images": [
+    "An anime-style illustration of a character with black hair and a black cap with a blue brim. The character is looking over a grey ledge or window fra…"
+   ],
+   "category": "none",
+   "calls": [],
+   "mentions": [],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2121335002713493944",
+   "url": "https://x.com/0xshardy/status/2121335002713493944",
+   "postedAt": "2026-11-13T20:10:51+00:00",
+   "type": "retweet",
+   "pinned": false,
+   "from": "@MustStopMurad",
+   "text": "To change your life during this coming Bull Run... You don't need to trade, rotate or stare at charts. All you need to do is choose the right asset once and Hold. This is how life-changing wealth is made during every cycle. The key is to find the most Vibrant and Alive Community that has been going for years with no signs of stopping. The Crazy ones who persist regardless of price, who go out into the real world, who organize meetups, who go above and beyond for years on end. Find this community. Join it. Hold it for years.",
+   "quoted": null,
+   "images": [],
+   "category": "none",
+   "calls": [],
+   "mentions": [],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2121328315395133532",
+   "url": "https://x.com/0xshardy/status/2121328315395133532",
+   "postedAt": "2026-11-13T19:44:17+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "the wallet trending worldwide tonight is not a crypto wallet. OpenAI launched ChatGPT Wallet today for US Pro users. you add an Amex, Mastercard, or Visa, the agent shops, and every purchase still needs Face ID or a fingerprint. no chain, no crypto, no self-custody.",
+   "quoted": null,
+   "images": [
+    "A promotional graphic with a blurred green background featuring the text 'Introducing ChatGPT Wallet'. The image appears to be a cropped or repeated…"
+   ],
+   "category": "platform",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "ChatGPT Wallet",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "OpenAI launched ChatGPT Wallet today"
+    }
+   ],
+   "check": {
+    "agrees": false,
+    "note": "the second reading sees no crypto."
+   }
+  },
+  {
+   "id": "2120924542545666081",
+   "url": "https://x.com/0xshardy/status/2120924542545666081",
+   "postedAt": "2026-11-12T16:59:50+00:00",
+   "type": "retweet",
+   "pinned": false,
+   "from": "@MustStopMurad",
+   "text": "If you are patient, Crypto will give you everything. If you are impatient, Crypto will take everything away from you.",
+   "quoted": null,
+   "images": [],
+   "category": "none",
+   "calls": [],
+   "mentions": [],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2120918017873727874",
+   "url": "https://x.com/0xshardy/status/2120918017873727874",
+   "postedAt": "2026-11-12T16:33:54+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "BlackRock's IBIT has now seen outflows for nine straight sessions, just over $2.0 billion. - 11 November, US spot Bitcoin ETFs lost $299.8 million, $269.7 million of it from IBIT - The full set of funds is on a five-session run, $1.44 billion out - Cumulative since launch is still $55.2 billion in The $BTC bid the market treated as structural was concentrated in one fund. That fund has been leaking for nine sessions.",
+   "quoted": null,
+   "images": [
+    "A financial data table displaying daily transaction volumes and fees for various crypto tokens from late October to early November 2026. The table in…"
+   ],
+   "category": "mention",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "IBIT",
+     "kind": "mention",
+     "label": "news or fact",
+     "quote": "BlackRock's IBIT has now seen outflows for nine straight sessions"
+    },
+    {
+     "asset": "FBTC",
+     "kind": "mention",
+     "label": "news or fact",
+     "quote": "image tokens list includes FBTC"
+    },
+    {
+     "asset": "BITB",
+     "kind": "mention",
+     "label": "news or fact",
+     "quote": "image tokens list includes BITB"
+    },
+    {
+     "asset": "ARKB",
+     "kind": "mention",
+     "label": "news or fact",
+     "quote": "image tokens list includes ARKB"
+    },
+    {
+     "asset": "BTCO",
+     "kind": "mention",
+     "label": "news or fact",
+     "quote": "image tokens list includes BTCO"
+    },
+    {
+     "asset": "EZBC",
+     "kind": "mention",
+     "label": "news or fact",
+     "quote": "image tokens list includes EZBC"
+    },
+    {
+     "asset": "BRRR",
+     "kind": "mention",
+     "label": "news or fact",
+     "quote": "image tokens list includes BRRR"
+    },
+    {
+     "asset": "HODL",
+     "kind": "mention",
+     "label": "news or fact",
+     "quote": "image tokens list includes HODL"
+    },
+    {
+     "asset": "BTCW",
+     "kind": "mention",
+     "label": "news or fact",
+     "quote": "image tokens list includes BTCW"
+    },
+    {
+     "asset": "MSBT",
+     "kind": "mention",
+     "label": "news or fact",
+     "quote": "image tokens list includes MSBT"
+    },
+    {
+     "asset": "GBTC",
+     "kind": "mention",
+     "label": "news or fact",
+     "quote": "image tokens list includes GBTC"
+    },
+    {
+     "asset": "BTC",
+     "kind": "mention",
+     "label": "news or fact",
+     "quote": "The $BTC bid the market treated as structural was concentrated in one fund"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2120839146990113244",
+   "url": "https://x.com/0xshardy/status/2120839146990113244",
+   "postedAt": "2026-11-12T11:20:30+00:00",
+   "type": "quote",
+   "pinned": false,
+   "from": "@JoelKatz",
+   "text": "The guy CT says dumped $XRP kept more of his XRP than anything else he held. - XRP 26M down to 3M, about 11.5% left - BTC 1,500 down to 1, about 0.07% left - ETH 40,000 down to 6, about 0.015% left And the rule has been public since January 2018. A de-risking plan agreed with his wife, selling into new highs. This isn't a signal about XRP. It's a reminder of how rare it is to actually follow your own sell plan.",
+   "quoted": {
+    "author": "@JoelKatz",
+    "text": "@ARiHBARi @Ripple It's not a secret. I think I'm down from a high of around 26 million XRP to around 3 million XRP. Down from around 1,500 BTC to 1 BTC. Down from around 40,000 ETH to 6 ETH."
+   },
+   "images": [],
+   "category": "mention",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "XRP",
+     "kind": "mention",
+     "label": "news or fact",
+     "quote": "The guy CT says dumped $XRP kept more of his XRP than anything else he held."
+    },
+    {
+     "asset": "BTC",
+     "kind": "mention",
+     "label": "news or fact",
+     "quote": "- BTC 1,500 down to 1, about 0.07% left"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2120710532386918821",
+   "url": "https://x.com/0xshardy/status/2120710532386918821",
+   "postedAt": "2026-11-12T02:49:26+00:00",
+   "type": "quote",
+   "pinned": false,
+   "from": "@imfat",
+   "text": "I work 72 hours a week outside, and I try to give crypto 28 hours a week on top of that.",
+   "quoted": {
+    "author": "@imfat",
+    "text": "Working 40 hours a week just to afford a life where you have no time to actually live is insane."
+   },
+   "images": [],
+   "category": "none",
+   "calls": [],
+   "mentions": [],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2120570904564621577",
+   "url": "https://x.com/0xshardy/status/2120570904564621577",
+   "postedAt": "2026-11-11T17:34:36+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "$597,000 profit in one day. bronbroncore made 7,980% on $mihao in a public trade on fomo. he traded on fomo because you can trade on any chain with USDC, and it shows what's trending in real time. link below if you want to check it out -",
+   "quoted": null,
+   "images": [
+    "A screenshot of a Fomo app interface showing a user profile named bronbroncore and a portfolio chart. The chart displays a value of $194.9K against a…"
+   ],
+   "category": "mention",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "MIHAO",
+     "kind": "mention",
+     "label": "news or fact",
+     "quote": "$mihao"
+    },
+    {
+     "asset": "Fomo",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "fomo"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2119871258494165439",
+   "url": "https://x.com/0xshardy/status/2119871258494165439",
+   "postedAt": "2026-11-09T19:14:27+00:00",
+   "type": "quote",
+   "pinned": false,
+   "from": "@WuBlockchain",
+   "text": "not every profitable memecoin wallet is a good trader. elliptic traced roughly $430k in stolen $NEAR through six disposable tokens minted between nov 5 and 7. the receiving wallet can look like it made money trading memes. according to the report, a similar technique moved about $24m after the bybit hack. a green pnl screenshot tells you what a wallet made. not where the money came from.",
+   "quoted": {
+    "author": "@WuBlockchain",
+    "text": "Elliptic: North Korean Hackers Create Meme Tokens on NEAR to Launder Binance Hack Funds Blockchain analytics firm Elliptic reported that North Korean hackers are creating meme tokens and using DEX liquidity pools to launder funds stolen in the $6.4 billion Binance hack. Between…"
+   },
+   "images": [
+    "An infographic from Elliptic illustrates a money laundering scheme where stolen NEAR is converted into a different token via a trading pool to obscur…"
+   ],
+   "category": "mention",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "NEAR",
+     "kind": "mention",
+     "label": "news or fact",
+     "quote": "$NEAR"
+    },
+    {
+     "asset": "Bybit",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "bybit hack"
+    },
+    {
+     "asset": "Binance",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "Binance hack"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2119829989831090519",
+   "url": "https://x.com/0xshardy/status/2119829989831090519",
+   "postedAt": "2026-11-09T16:30:28+00:00",
+   "type": "quote",
+   "pinned": false,
+   "from": "@shahrianazim6",
+   "text": "Aura season on @KaitoAI",
+   "quoted": {
+    "author": "@shahrianazim6",
+    "text": "AURA Session Coming Soon? 👀👀👀"
+   },
+   "images": [
+    "A screenshot of a user profile on the KAITO platform. It displays the user 'shardy' with a Total Aura of 161 and a Rank of 2,892.",
+    "A screenshot of a user profile on a crypto platform showing the name Nazim and a metric called Total Aura. The profile displays 174 Smart Followers a…"
+   ],
+   "category": "mention",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "AURA",
+     "kind": "mention",
+     "label": "context",
+     "quote": "Aura season on @KaitoAI"
+    },
+    {
+     "asset": "KaitoAI",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "@KaitoAI"
+    }
+   ],
+   "check": {
+    "agrees": false,
+    "note": "the second reading sees a platform or promo."
+   }
+  },
+  {
+   "id": "2119818103710265474",
+   "url": "https://x.com/0xshardy/status/2119818103710265474",
+   "postedAt": "2026-11-09T15:43:14+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "elysium day 1 in numbers, not vibes. the real sell the news is $KNTQ. down about 26% on the day, and about 5% since the live post. meanwhile $HYPE went from about $73.80 at that post to near $76.50, while $ETH is down about 5% on the day. the L2 did not drag HYPE down. the trenches did what launchpad day ones do. - $HELIOS about -93% in an hour - $STOCKIUM about -77% on 24h - a $BLOB/KNTQ pair about -71% on 24h and the bridge did not empty. it holds about 285K HYPE, roughly $21.9M, up from 280K an hour after go-live. so the problem is not a dying chain. week one is still the version without H…",
+   "quoted": null,
+   "images": [
+    "A stylized digital illustration showing a hexagonal icon connected to a battery-like container, with a small line graph and red dots falling into a v…"
+   ],
+   "category": "mention",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "KNTQ",
+     "kind": "mention",
+     "label": "news or fact",
+     "quote": "the real sell the news is $KNTQ. down about 26% on the day, and about 5% since the live post."
+    },
+    {
+     "asset": "HYPE",
+     "kind": "mention",
+     "label": "news or fact",
+     "quote": "meanwhile $HYPE went from about $73.80 at that post to near $76.50, while $ETH is down about 5% on the day. the L2 did…"
+    },
+    {
+     "asset": "HELIOS",
+     "kind": "mention",
+     "label": "news or fact",
+     "quote": "- $HELIOS about -93% in an hour"
+    },
+    {
+     "asset": "STOCKIUM",
+     "kind": "mention",
+     "label": "news or fact",
+     "quote": "- $STOCKIUM about -77% on 24h"
+    },
+    {
+     "asset": "BLOB",
+     "kind": "mention",
+     "label": "news or fact",
+     "quote": "- a $BLOB/KNTQ pair about -71% on 24h"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2119736802038723002",
+   "url": "https://x.com/0xshardy/status/2119736802038723002",
+   "postedAt": "2026-11-09T10:20:11+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "small tip that saves a lot of \"my balance is gone\" panic. a dapp showing old balances or a broken page after you bridge or switch chains is often just cached. hard refresh it. - mac → cmd + shift + r - windows → ctrl + shift + r or ctrl + f5 it reloads the page without the cache, so you see what the site is actually serving now.",
+   "quoted": null,
+   "images": [],
+   "category": "none",
+   "calls": [],
+   "mentions": [],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2119707941859098754",
+   "url": "https://x.com/0xshardy/status/2119707941859098754",
+   "postedAt": "2026-11-09T08:25:30+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "⚠️ WARNING why i trade elysium tokens on fomo. if you bridge in through the official route, getting your $HYPE back out isn't instant. withdrawals to HyperEVM wait out a challenge period first. on fomo i trade with usdc and withdraw whenever i want, instantly. same tokens, no waiting on the exit.",
+   "quoted": null,
+   "images": [
+    "A screenshot of a crypto wallet interface showing a pending transfer of 0.3013 HYPE to HyperEVM. The transaction is waiting for the next checkpoint a…"
+   ],
+   "category": "mention",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "HYPE",
+     "kind": "mention",
+     "label": "context",
+     "quote": "if you bridge in through the official route, getting your $HYPE back out isn't instant"
+    },
+    {
+     "asset": "ELYSIUM",
+     "kind": "mention",
+     "label": "context",
+     "quote": "why i trade elysium tokens on fomo"
+    },
+    {
+     "asset": "FOMO",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "on fomo i trade with usdc and withdraw whenever i want, instantly"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2119691231382941974",
+   "url": "https://x.com/0xshardy/status/2119691231382941974",
+   "postedAt": "2026-11-09T07:19:06+00:00",
+   "type": "quote",
+   "pinned": false,
+   "from": "@fomo",
+   "text": "most chains launch and then go looking for users. elysium has a consumer trading app paying 2x trader rewards on its tokens from day one, and both kinetiq and elysium are quoting it. distribution lined up before the chain is even announced live. that's the part people will look back on.",
+   "quoted": {
+    "author": "@fomo",
+    "text": "Trade @Enter_Elysium tokens on fomo and earn 2x trader rewards. Live tomorrow."
+   },
+   "images": [
+    "A digital graphic displaying a monetary value of $25,409.41 in white text on a black background. The image includes a large dollar sign symbol and a…",
+    "A promotional graphic from Fomo announcing 2x trader rewards on Elysium tokens. The image features a blue gradient background with white text and log…"
+   ],
+   "category": "mention",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "Elysium",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "elysium has a consumer trading app paying 2x trader rewards on its tokens from day one"
+    },
+    {
+     "asset": "KINETIQ",
+     "kind": "mention",
+     "label": "context",
+     "quote": "both kinetiq and elysium are quoting it"
+    }
+   ],
+   "check": {
+    "agrees": false,
+    "note": "the second reading sees a platform or promo."
+   }
+  },
+  {
+   "id": "2119504173196861616",
+   "url": "https://x.com/0xshardy/status/2119504173196861616",
+   "postedAt": "2026-11-08T18:55:48+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "elysium launching doesn't mean its full HyperCore integration launches with it. kinetiq's docs split the rollout at launch - 100ms blocks with $HYPE as gas - canonical and mirror bridges - a path for tokens to graduate to a HyperCore spot orderbook about four weeks after mainnet - contracts reading HyperCore books and prices directly - the keeper fast lane for sending HyperCore orders a token reaching a HyperCore orderbook and an app trading that orderbook from elysium are two different milestones. that's the distinction to watch in the launch announcements.",
+   "quoted": null,
+   "images": [
+    "A technical diagram illustrating the migration process from Elysium to HyperCore, showing token graduation and contract interactions. The chart outli…"
+   ],
+   "category": "mention",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "HYPE",
+     "kind": "mention",
+     "label": "news or fact",
+     "quote": "$HYPE as gas"
+    },
+    {
+     "asset": "HyperCore",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "HyperCore integration... HyperCore spot orderbook"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2119437042589339658",
+   "url": "https://x.com/0xshardy/status/2119437042589339658",
+   "postedAt": "2026-11-08T14:29:02+00:00",
+   "type": "quote",
+   "pinned": false,
+   "from": "@elonmusk",
+   "text": "7.9k$ > 174.000$ 👀 elon didn't even type $CLAUDIA. it was in the caption of the contest post he quoted. - $0.00206 at the start of that hour - $0.00714 before the hour ended. 3.5x - $0.0111 this afternoon. 5.4x from that opening price \"who put your beliefs into your head? it probably wasn't you.\"",
+   "quoted": {
+    "author": "@elonmusk",
+    "text": "Super Persuasion"
+   },
+   "images": [
+    "A screenshot of a mobile crypto trading app displaying the price chart and details for a token named CLAUDIA. The interface shows a 7-day price incre…",
+    "A collage of three close-up photographs showing a person's eye with orange hair strands. The dark pupil of the eye reflects a silhouette of a landsca…"
+   ],
+   "category": "mention",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "CLAUDIA",
+     "kind": "mention",
+     "label": "news or fact",
+     "quote": "$CLAUDIA mentioned in author_text with price updates and 7.9k$ > 174.000$ 👀"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2119164448426307867",
+   "url": "https://x.com/0xshardy/status/2119164448426307867",
+   "postedAt": "2026-11-07T20:25:51+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "I woke up shivering. I keep coughing and have a runny nose. I'm still cold even under two duvets. What's happening to me?",
+   "quoted": null,
+   "images": [
+    "A dark, blurry photo of a small, glowing object with a rainbow gradient. The background is a deep purple and black void."
+   ],
+   "category": "none",
+   "calls": [],
+   "mentions": [],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2119127236787728596",
+   "url": "https://x.com/0xshardy/status/2119127236787728596",
+   "postedAt": "2026-11-07T17:57:59+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "This guy was once up $9.5M. He might regret not closing his $AI position.",
+   "quoted": null,
+   "images": [
+    "A screenshot of a Fomo app interface displaying a user's trading portfolio and profit and loss. The card shows a significant gain of over $9.5 millio…"
+   ],
+   "category": "mention",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "AI",
+     "kind": "mention",
+     "label": "named, but no call (no view on what comes next)",
+     "quote": "He might regret not closing his $AI position."
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2119115803547054243",
+   "url": "https://x.com/0xshardy/status/2119115803547054243",
+   "postedAt": "2026-11-07T17:12:33+00:00",
+   "type": "quote",
+   "pinned": false,
+   "from": "@Axel_bitblaze69",
+   "text": "keeping the seed offline is the right idea. airplane mode won't stop malware recording it and leaking it when you reconnect. generate it on a hardware wallet, keep a physical backup, and never type that seed into a phone or software wallet.",
+   "quoted": {
+    "author": "@Axel_bitblaze69",
+    "text": "A small tip when creating a new wallet.. turn on airplane mode while generating your seed phrase. this keeps your device offline during that step. write the phrase down and keep it somewhere safe offline. you can then import it into the wallet app you want to use. also check you…"
+   },
+   "images": [],
+   "category": "platform",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "MetaMask",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "MetaMask, go to settings > security & privacy and turn off MetaMetrics"
+    }
+   ],
+   "check": {
+    "agrees": false,
+    "note": "the second reading sees no crypto."
+   }
+  },
+  {
+   "id": "2119111644202831891",
+   "url": "https://x.com/0xshardy/status/2119111644202831891",
+   "postedAt": "2026-11-07T16:56:01+00:00",
+   "type": "retweet",
+   "pinned": false,
+   "from": "@zackvoell",
+   "text": "Ten years ago everyone on crypto twitter was bullish and the bankers said it was all a scam. Now everyone on crypto twitter says it’s all a scam and the bankers are bullish",
+   "quoted": null,
+   "images": [],
+   "category": "none",
+   "calls": [],
+   "mentions": [],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2119101751513186396",
+   "url": "https://x.com/0xshardy/status/2119101751513186396",
+   "postedAt": "2026-11-07T16:16:43+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "I made this with Higgsfield. what should we name it",
+   "quoted": null,
+   "images": [
+    "A person wearing a green alien mask, a green wig, and headphones is holding a soccer ball. The background features a large, ornate stone building wit…"
+   ],
+   "category": "none",
+   "calls": [],
+   "mentions": [],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2119051614535258285",
+   "url": "https://x.com/0xshardy/status/2119051614535258285",
+   "postedAt": "2026-11-07T12:57:29+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "kinetiq (kinetiq:native) saw its dollar tvl fall 13.2%. its combined $HYPE + WHYPE holdings fell just 0.4%. those are very different stories. defillama's oct 31 vs nov 7 snapshots show the difference. - token holdings went from 11.47m to 11.42m - dollar tvl went from $1.029b to $894m most of that $135m decline reflects a lower $HYPE price, not a comparable drop in the amount held. that doesn't mean nobody withdrew. these are net balances, not a record of every deposit and withdrawal. but a falling dollar tvl alone isn't evidence of a mass exit. heading into elysium's launch, i'm watching toke…",
+   "quoted": null,
+   "images": [
+    "A data visualization chart showing the decline in Dollar TVL and HYPE holdings for the Kinetic protocol between October 31 and November 7, 2026. The…"
+   ],
+   "category": "mention",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "KNTQ",
+     "kind": "mention",
+     "label": "news or fact",
+     "quote": "kinetiq (kinetiq:native) saw its dollar tvl fall 13.2%"
+    },
+    {
+     "asset": "HYPE",
+     "kind": "mention",
+     "label": "news or fact",
+     "quote": "$HYPE + WHYPE holdings fell just 0.4%"
+    },
+    {
+     "asset": "WHYPE",
+     "kind": "mention",
+     "label": "news or fact",
+     "quote": "$HYPE + WHYPE holdings fell just 0.4%"
+    },
+    {
+     "asset": "Elysium",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "heading into elysium's launch, i'm watching token balances alongside the dollar figure"
+    },
+    {
+     "asset": "DefiLlama",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "defillama's oct 31 vs nov 7 snapshots show the difference"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2119037985236611450",
+   "url": "https://x.com/0xshardy/status/2119037985236611450",
+   "postedAt": "2026-11-07T12:03:20+00:00",
+   "type": "quote",
+   "pinned": false,
+   "from": "@SalsaTekila",
+   "text": "i think this mixes up two different things: privacy and quantum resistance. a powerful enough quantum computer could derive a private key from an exposed public key and forge signatures. spend coins without the owner's permission. that's the threat, not bitcoin suddenly forgetting its transaction history. but “bitcoin can upgrade” and “bitcoin has safely migrated” aren't the same thing. wallets, exchanges and holders need to adopt the changes. then there's the uncomfortable question of old coins whose keys are exposed and whose owners can't move them. incentives help, but they don't settle th…",
+   "quoted": {
+    "author": "@SalsaTekila",
+    "text": "Unpopular opinion: Quantum threat is bearish for ZEC. Its imminence will force BTC hodlers to take proactive measures toward quantum-resistant solutions within 24 months. People underestimate hodlers' desire and willingness to make this happen due to their vested interests. It w…"
+   },
+   "images": [],
+   "category": "unscorable",
+   "calls": [
+    {
+     "asset": "ZEC",
+     "side": "short",
+     "words": "i wouldn't buy the “quantum kills btc, therefore buy $ZEC” argument either.",
+     "decision": "Found by both AI readings, kept by 3 of 3 arbiter decisions",
+     "unscorable": "Token not identified",
+     "results": null
+    }
+   ],
+   "mentions": [
+    {
+     "asset": "BTC",
+     "kind": "mention",
+     "label": "context",
+     "quote": "bitcoin ..."
+    },
+    {
+     "asset": "ZODL",
+     "kind": "relayed",
+     "label": "someone else's call",
+     "quote": "For now you may ZODL."
+    }
+   ],
+   "check": {
+    "agrees": false,
+    "note": "the second reading sees no call on ZEC: he rejects one argument for buying it, without a view on its price."
+   }
+  },
+  {
+   "id": "2118954100381364266",
+   "url": "https://x.com/0xshardy/status/2118954100381364266",
+   "postedAt": "2026-11-07T06:30:00+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "GUYS I USE DARK MODE YOU POST WHITE BACKGROUND SCREENSHOTS AT NIGHT THEN WONDER WHY YOU GET NO VIEWS I CAN'T EVEN LOOK AT YOUR POST",
+   "quoted": null,
+   "images": [
+    "An illustration of a man lying in bed at night, looking stressed while staring at a glowing smartphone. The image is repeated in a grid layout with d…"
+   ],
+   "category": "none",
+   "calls": [],
+   "mentions": [],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2118948736881611237",
+   "url": "https://x.com/0xshardy/status/2118948736881611237",
+   "postedAt": "2026-11-07T06:08:41+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "ansem's eaten enough. let the rest of us eat i'm here staring at a $rocco chart because rockstar posted a dog if you're joining fomo, come through here -",
+   "quoted": null,
+   "images": [
+    "A screenshot of a cryptocurrency token page for 'Rocco' showing a price of $0.000793 and a market cap of $773.5K. A candlestick chart illustrates a s…"
+   ],
+   "category": "scored",
+   "calls": [
+    {
+     "asset": "ROCCO",
+     "side": "long",
+     "words": "if you're joining fomo, come through here",
+     "decision": "Kept by 3 of 3 arbiter decisions",
+     "token": {
+      "chain": "Solana",
+      "address": "HZbiEpF2oM658EpjNRRqxharz5L9Ddm8akpSH2R5pump",
+      "url": "https://www.geckoterminal.com/solana/tokens/HZbiEpF2oM658EpjNRRqxharz5L9Ddm8akpSH2R5pump"
+     },
+     "identity": "Token: the most traded $ROCCO on Solana at the time of the post",
+     "correction": null,
+     "entry": 0.0008705055721358263,
+     "results": {
+      "1d": {
+       "pct": -27.53,
+       "score": 0.0,
+       "exit": 0.0006308560888528782
+      },
+      "1w": {
+       "pct": -36.12,
+       "score": 0.0,
+       "exit": 0.0005560606685529446
+      },
+      "1m": {
+       "status": "pending"
+      }
+     }
+    }
+   ],
+   "mentions": [
+    {
+     "asset": "FOMO",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "if you're joining fomo, come through here"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2118881727233798270",
+   "url": "https://x.com/0xshardy/status/2118881727233798270",
+   "postedAt": "2026-11-07T01:42:25+00:00",
+   "type": "quote",
+   "pinned": false,
+   "from": "@0xWassie",
+   "text": "i agree. but waiting only works if you know what you're waiting for. write down what would make you buy, and what would prove you wrong, before the market gets exciting. otherwise patience can turn into chasing the same move later at a worse price.",
+   "quoted": {
+    "author": "@0xWassie",
+    "text": "used to think my bag had to grow every single week. that mindset nearly wiped me real chances to size up only come a few times a year the rest is just surviving, staying curious and being ready when it hits"
+   },
+   "images": [],
+   "category": "none",
+   "calls": [],
+   "mentions": [],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2118772967530516826",
+   "url": "https://x.com/0xshardy/status/2118772967530516826",
+   "postedAt": "2026-11-06T18:30:15+00:00",
+   "type": "quote",
+   "pinned": false,
+   "from": "@blknoiz06",
+   "text": "ansem please stop posting Elysium i'm trying to convince people to give it a chance",
+   "quoted": {
+    "author": "@blknoiz06",
+    "text": "think ppl are sleeping on elysium"
+   },
+   "images": [],
+   "category": "unscorable",
+   "calls": [
+    {
+     "asset": "ELYSIUM",
+     "side": "long",
+     "words": "i'm trying to convince people to give it a chance",
+     "decision": "Found by one AI reading, kept by 3 of 3 arbiter decisions",
+     "unscorable": "Token not identified",
+     "results": null
+    }
+   ],
+   "mentions": [],
+   "check": {
+    "agrees": false,
+    "note": "the second reading sees no call: Elysium is a chain with no token of its own."
+   }
+  },
+  {
+   "id": "2118740351930245338",
+   "url": "https://x.com/0xshardy/status/2118740351930245338",
+   "postedAt": "2026-11-06T16:20:38+00:00",
+   "type": "quote",
+   "pinned": false,
+   "from": "@twig64",
+   "text": "I BEGGED YOU MONTHS AGO. I’m begging you, learn how Hyperliquid works Perps, HIP-3, HIP-4, prediction markets, stocks and everything else onchain hyperliquid:native This is where crypto is going whether you pay attention or not i was saying this in early 2026. now you're hearing it again. - -",
+   "quoted": {
+    "author": "@twig64",
+    "text": "I’m begging you, learn how Hyperliquid works Perps, HIP-3, HIP-4, prediction markets, stocks and everything else onchain This is where crypto is going whether you pay attention or not"
+   },
+   "images": [],
+   "category": "platform",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "Hyperliquid",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "learn how Hyperliquid works"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2118719991629430915",
+   "url": "https://x.com/0xshardy/status/2118719991629430915",
+   "postedAt": "2026-11-06T14:59:44+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "THIS EXPLAINER DESERVES ENGLISH SUBTITLES. so we added them. it walks through the alleged Binance attack. the claims haven't been independently verified. thanks to the original creator, whybe.nasil on Instagram.",
+   "quoted": null,
+   "images": [
+    "A screenshot of a social media post claiming that 6.3 billion dollars were stolen from Binance in a single night. The image displays a large dollar a…"
+   ],
+   "category": "platform",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "Binance",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "it walks through the alleged Binance attack."
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2118711515578564879",
+   "url": "https://x.com/0xshardy/status/2118711515578564879",
+   "postedAt": "2026-11-06T14:26:03+00:00",
+   "type": "quote",
+   "pinned": false,
+   "from": "@elonmusk",
+   "text": "👽",
+   "quoted": {
+    "author": "@elonmusk",
+    "text": "@BillyM2k"
+   },
+   "images": [
+    "A blurry, low-quality photo of a person's face illuminated by red light. The image appears to be a still frame from a video or a poorly taken picture."
+   ],
+   "category": "none",
+   "calls": [],
+   "mentions": [],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2118642646960775582",
+   "url": "https://x.com/0xshardy/status/2118642646960775582",
+   "postedAt": "2026-11-06T09:52:24+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "solana labs just entered mobile trading with leap. tokenized stocks, etfs, metals and crypto in one app @leapxyz the interesting part, they plan to use a portion of future fees to buy and burn SOL. early access is live on iphone. android is next. %30 Bonus - invite code: TGVQ7",
+   "quoted": null,
+   "images": [
+    "A screenshot of a mobile app interface for 'Leap' showing a user's status on a waitlist. It features a 'Founders Club' card with an invite code and o…"
+   ],
+   "category": "platform",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "Leap",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "tokenized stocks, etfs, metals and crypto in one app @leapxyz"
+    },
+    {
+     "asset": "Solana Labs",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "solana labs just entered mobile trading with leap"
+    }
+   ],
+   "check": {
+    "agrees": false,
+    "note": "the second reading sees a crypto mentioned without a call."
+   }
+  },
+  {
+   "id": "2118397482489033113",
+   "url": "https://x.com/0xshardy/status/2118397482489033113",
+   "postedAt": "2026-11-05T17:38:12+00:00",
+   "type": "quote",
+   "pinned": false,
+   "from": "@elysium_machine",
+   "text": "Hold one $MACHINE and a machine appears in your wallet. Consecrate it and it lights up for good, farming $HYPE from every trade. Nº 1179 is next on my list. @elysium_machine -",
+   "quoted": {
+    "author": "@elysium_machine",
+    "text": "Elysium Machines — launch date is set. Friday, Nov 6 · 15:00 UTC 4,444 machines, one token: $MACHINE (ERC-404). — Hold 1 $MACHINE → a machine appears in your wallet — Drop below 1 → it dissolves back into the pool — Consecrate it → the token burns, the machine lights up and farm…"
+   },
+   "images": [
+    "A digital access card for an NFT collection called Elysium Machines, displaying item number 1179. The card features an isometric illustration of a re…",
+    "A dark, atmospheric digital illustration of a room filled with stacked, obsolete computer monitors and terminals. One central computer screen is illu…"
+   ],
+   "category": "mention",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "MACHINE",
+     "kind": "mention",
+     "label": "mentioned, no view on what comes next",
+     "quote": "Hold one $MACHINE and a machine appears in your wallet."
+    },
+    {
+     "asset": "HYPE",
+     "kind": "mention",
+     "label": "mentioned, no view on what comes next",
+     "quote": "farming $HYPE from every trade"
+    },
+    {
+     "asset": "Elysium Machines",
+     "kind": "mention",
+     "label": "context",
+     "quote": "A digital access card for an NFT collection called Elysium Machines, displaying item number 1179"
+    }
+   ],
+   "check": {
+    "agrees": false,
+    "note": "the second reading sees a call on MACHINE that the method missed."
+   }
+  },
+  {
+   "id": "2118370784767045974",
+   "url": "https://x.com/0xshardy/status/2118370784767045974",
+   "postedAt": "2026-11-05T15:52:07+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "WAIT i think i accidentally found the first dog in gta 6 it's on the official launch gallery -",
+   "quoted": null,
+   "images": [
+    "A screenshot of a mobile web browser displaying the Rockstar Games website. The page features promotional artwork for a game, including a 'Pre-Order…"
+   ],
+   "category": "none",
+   "calls": [],
+   "mentions": [],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2118352556074168740",
+   "url": "https://x.com/0xshardy/status/2118352556074168740",
+   "postedAt": "2026-11-05T14:39:41+00:00",
+   "type": "quote",
+   "pinned": false,
+   "from": "@jerallaire",
+   "text": "i checked @arc on defillama after this walk usdc on the chain is $1.19B up about 128% in the last 30 days tvl sits at $638M morpho alone is $308M. aave v4 another $189M he said 100+ apps on day one. capital is already sitting here waiting for more of them circle still funds teams that put that capital to work developer grants are open. milestone usdc. paid after you ship",
+   "quoted": {
+    "author": "@jerallaire",
+    "text": "We’ve wrapped Q3 earnings. Take a walk with me and hear the highlights."
+   },
+   "images": [
+    "A screenshot of a DeFiLlama dashboard displaying the total Arc Stablecoins market cap and a list of specific stablecoins. The interface includes a ma…",
+    "A DeFiLama dashboard screenshot displaying Total Value Locked (TVL) metrics for the Arc protocol. The chart shows a significant increase in TVL over…"
+   ],
+   "category": "mention",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "ARC",
+     "kind": "mention",
+     "label": "news or fact",
+     "quote": "i checked @arc on defillama after this walk"
+    },
+    {
+     "asset": "EURC",
+     "kind": "mention",
+     "label": "news or fact",
+     "quote": "image tokens list includes EURC"
+    },
+    {
+     "asset": "GBPA",
+     "kind": "mention",
+     "label": "news or fact",
+     "quote": "image tokens list includes Agnant GBP (GBPA)"
+    },
+    {
+     "asset": "AUDD",
+     "kind": "mention",
+     "label": "news or fact",
+     "quote": "image tokens list includes AUDD"
+    },
+    {
+     "asset": "MORPHO",
+     "kind": "mention",
+     "label": "news or fact",
+     "quote": "morpho alone is $308M"
+    },
+    {
+     "asset": "AAVE",
+     "kind": "mention",
+     "label": "news or fact",
+     "quote": "aave v4 another $189M"
+    },
+    {
+     "asset": "UNI",
+     "kind": "mention",
+     "label": "news or fact",
+     "quote": "image tokens list includes Uniswap"
+    },
+    {
+     "asset": "Circle",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "circle still funds teams that put that capital to work"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2118334693619777829",
+   "url": "https://x.com/0xshardy/status/2118334693619777829",
+   "postedAt": "2026-11-05T13:28:42+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "WARNING. 4 days to elysium and a fake \"mainnet registration is open\" article already has 49.6k views. there is no registration. kinetiq's own docs for $KNTQ's l2 still say mainnet chain id: coming soon. chain id and explorer get published at launch, not before. if a page asks you to \"connect the wallet you use on hyperliquid\" to register for a chain that is not live yet, close it. what exists now is early / third-party access. a random rpc + a bridge + a pad is not the same as the official door. retail shows up in 4 days. scammers know that too.",
+   "quoted": null,
+   "images": [
+    "A screenshot of a social media post from the Elysium Ecosystem account announcing the opening of registration for the Elysium Mainnet. The post inclu…"
+   ],
+   "category": "mention",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "KNTQ",
+     "kind": "mention",
+     "label": "news or fact",
+     "quote": "kinetiq's own docs for $KNTQ's l2 still say mainnet chain id: coming soon."
+    },
+    {
+     "asset": "Hyperliquid",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "if a page asks you to \"connect the wallet you use on hyperliquid\" to register for a chain that is not live yet, close i…"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2118313246134251869",
+   "url": "https://x.com/0xshardy/status/2118313246134251869",
+   "postedAt": "2026-11-05T12:03:28+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "i watched people burn 6 months on farms and still sit on the same wallet. say you've got a few hundred bucks and every week is another claim page. you can keep doing that until calendars own your whole day. or you can spend those same 6 months stacking skills that still pay when the farms go quiet. 1. pick one skill crypto teams actually buy. research writeups, design, community ops, or tooling. 2. post proof for 30 days. not vibes. screenshots, breakdowns, tiny tools. 3. use that proof to get paid work. roles, clients, bounties. 4. keep one farming lane, but hard-cap the hours so it can't ea…",
+   "quoted": null,
+   "images": [],
+   "category": "none",
+   "calls": [],
+   "mentions": [],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2118194100822274493",
+   "url": "https://x.com/0xshardy/status/2118194100822274493",
+   "postedAt": "2026-11-05T04:10:02+00:00",
+   "type": "quote",
+   "pinned": false,
+   "from": "@AscendLaunch",
+   "text": "i opened ascend this morning so you don't have to wait for nov 9. password restriction : gone. 4 days early. - stress test the launchpad now - partners can integrate before mainnet - day one won't be anyone's first click the people practicing now will be faster when real liquidity shows up.",
+   "quoted": {
+    "author": "@AscendLaunch",
+    "text": "We’ve removed the password restriction on Ascend so more users can help stress test the platform and our partners can prepare their integrations ahead of November 9th. Our team is actively monitoring the platform, gathering feedback, and making improvements to ensure the best po…"
+   },
+   "images": [
+    "A screenshot of the Ascend crypto token explorer interface displaying a grid of various tokens with their price charts, market caps, and volume stati…",
+    "A dark, atmospheric photo of dry grass blades illuminated by a purple light from above. The scene is moody with floating particles visible in the air."
+   ],
+   "category": "mention",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "ELACC",
+     "kind": "mention",
+     "label": "context",
+     "quote": "eLacc, Blob, AI, Elytra, Ascend Cat, Perpcoin, Ascend, tod da wizard"
+    },
+    {
+     "asset": "BLOB",
+     "kind": "mention",
+     "label": "context",
+     "quote": "eLacc, Blob, AI, Elytra, Ascend Cat, Perpcoin, Ascend, tod da wizard"
+    },
+    {
+     "asset": "AI",
+     "kind": "mention",
+     "label": "context",
+     "quote": "eLacc, Blob, AI, Elytra, Ascend Cat, Perpcoin, Ascend, tod da wizard"
+    },
+    {
+     "asset": "ELY",
+     "kind": "mention",
+     "label": "context",
+     "quote": "eLacc, Blob, AI, Elytra, Ascend Cat, Perpcoin, Ascend, tod da wizard"
+    },
+    {
+     "asset": "ACAT",
+     "kind": "mention",
+     "label": "context",
+     "quote": "eLacc, Blob, AI, Elytra, Ascend Cat, Perpcoin, Ascend, tod da wizard"
+    },
+    {
+     "asset": "PERP",
+     "kind": "mention",
+     "label": "context",
+     "quote": "eLacc, Blob, AI, Elytra, Ascend Cat, Perpcoin, Ascend, tod da wizard"
+    },
+    {
+     "asset": "ASCEND",
+     "kind": "mention",
+     "label": "context",
+     "quote": "eLacc, Blob, AI, Elytra, Ascend Cat, Perpcoin, Ascend, tod da wizard"
+    },
+    {
+     "asset": "TOD",
+     "kind": "mention",
+     "label": "context",
+     "quote": "eLacc, Blob, AI, Elytra, Ascend Cat, Perpcoin, Ascend, tod da wizard"
+    }
+   ],
+   "check": {
+    "agrees": false,
+    "note": "the second reading sees a platform or promo."
+   }
+  },
+  {
+   "id": "2118011855767556117",
+   "url": "https://x.com/0xshardy/status/2118011855767556117",
+   "postedAt": "2026-11-04T16:05:51+00:00",
+   "type": "quote",
+   "pinned": false,
+   "from": "@binance",
+   "text": "the $6.34b binance hack got its foothold from a fake job interview. a fake recruiter, two rounds of calls, then a \"coding assignment\" that was malware. weeks later they rode binance's own ai tool into the wallet team's laptops. i read the breakdown. no contract bug anywhere. just patience.",
+   "quoted": {
+    "author": "@binance",
+    "text": ""
+   },
+   "images": [],
+   "category": "platform",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "Binance",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "the $6.34b binance hack got its foothold from a fake job interview."
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2117891473597235699",
+   "url": "https://x.com/0xshardy/status/2117891473597235699",
+   "postedAt": "2026-11-04T08:07:30+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "the team launching elysium in five days already holds $ 937m . that's more than monad's entire chain, and 40x linea. i pulled kinetiq:native against every chain i could think of on defillama. none of that money is on elysium yet. how much of it moves on day one is the only number i care about this week.",
+   "quoted": null,
+   "images": [
+    "A bar chart comparing the Total Value Locked (TVL) of the Kinetiq protocol against several live blockchain networks. The chart highlights that Kineti…"
+   ],
+   "category": "mention",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "ELYSIUM",
+     "kind": "mention",
+     "label": "context",
+     "quote": "the team launching elysium in five days"
+    },
+    {
+     "asset": "MONAD",
+     "kind": "mention",
+     "label": "context",
+     "quote": "that's more than monad's entire chain"
+    },
+    {
+     "asset": "LINEA",
+     "kind": "mention",
+     "label": "context",
+     "quote": "and 40x linea"
+    },
+    {
+     "asset": "KINETIQ",
+     "kind": "mention",
+     "label": "context",
+     "quote": "i pulled kinetiq:native against every chain i could think of on defillama"
+    }
+   ],
+   "check": {
+    "agrees": false,
+    "note": "the second reading sees a platform or promo."
+   }
+  },
+  {
+   "id": "2117836057408377032",
+   "url": "https://x.com/0xshardy/status/2117836057408377032",
+   "postedAt": "2026-11-04T04:27:18+00:00",
+   "type": "quote",
+   "pinned": false,
+   "from": "@toady_hawk",
+   "text": "The new Clanker CEO just aped $REBOOT on his own platform. Clanker is getting rebooted under Mask Network, and he is leading it from the front, buying launches himself. First $REBOOT, now is bot season next? For anyone who wants to dig in : -",
+   "quoted": {
+    "author": "@toady_hawk",
+    "text": "Clanker: Reboot. 2 years ago (almost to the day), Clanker was born over on the original Farcaster app. The idea was simple: Make it possible for anyone to launch a token just by posting on the timeline and tagging @clanker_world. The timing was right, and it caught on like wildf…"
+   },
+   "images": [
+    "A screenshot of an X (Twitter) profile page for a user named Toady Hawk, showing a Kaito portfolio widget with a negative profit/loss value. The inte…",
+    "A collage of images showing a retro-style robot with a green pixelated head and tank treads. The robot features a pixel art design on its chest and i…"
+   ],
+   "category": "mention",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "REBOOT",
+     "kind": "mention",
+     "label": "mentioned, no view on what comes next",
+     "quote": "$REBOOT"
+    },
+    {
+     "asset": "Clanker",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "Clanker CEO"
+    },
+    {
+     "asset": "Base",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "@base"
+    },
+    {
+     "asset": "Farcaster",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "original Farcaster app"
+    },
+    {
+     "asset": "Mask Network",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "@masknetwork"
+    },
+    {
+     "asset": "Firefly",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "stewards of Firefly"
+    },
+    {
+     "asset": "Lens Protocol",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "Lens Protocol"
+    },
+    {
+     "asset": "BNKR",
+     "kind": "mention",
+     "label": "mentioned, no view on what comes next",
+     "quote": "BNKR"
+    },
+    {
+     "asset": "DRB",
+     "kind": "mention",
+     "label": "mentioned, no view on what comes next",
+     "quote": "DRB"
+    },
+    {
+     "asset": "FAIR",
+     "kind": "mention",
+     "label": "mentioned, no view on what comes next",
+     "quote": "FAIR"
+    },
+    {
+     "asset": "Kaito",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "Kaito portfolio widget"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2117620029919203672",
+   "url": "https://x.com/0xshardy/status/2117620029919203672",
+   "postedAt": "2026-11-03T14:08:53+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "three months ago i posted proof videos of calls that made people thousands. today a tweet gets 4 likes. i'm not mad. there's a new opportunity every hour now and nobody remembers last week's. i'm still here, still finding them early. the next ones are already lined up.",
+   "quoted": null,
+   "images": [],
+   "category": "none",
+   "calls": [],
+   "mentions": [],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2117609558008856786",
+   "url": "https://x.com/0xshardy/status/2117609558008856786",
+   "postedAt": "2026-11-03T13:27:16+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "spent my morning reading a chinese thread on how to whitelist a chain run by a hamster, and now i'm farming it too. squeekchain is a proof-of-work chain powered by a real hamster, getting ready to launch. the whitelist is for genesis squeek nfts, and your leaderboard rank decides who gets in. early whitelists on the right projects have paid people thousands. this one runs on aura, and here's how to stack it. step 1. verify your wallet step 2. link x. without it you're not on the leaderboard step 3. recruit friends. an invite only counts once they verify a wallet and link x, and friends with x…",
+   "quoted": null,
+   "images": [
+    "A promotional graphic for the SQUEEK whitelist guide featuring a pixelated cat logo and a blue grid. It lists four steps to qualify for the whitelist…"
+   ],
+   "category": "scored",
+   "calls": [
+    {
+     "asset": "AURA",
+     "side": "long",
+     "words": "here's how to stack it",
+     "decision": "Kept by 4 of 5 arbiter decisions",
+     "token": {
+      "chain": "Solana",
+      "address": "DtR4D9FtVoTX2569gaL837ZgrB6wNjj6tkmnX9Rdk9B2",
+      "url": "https://www.geckoterminal.com/solana/tokens/DtR4D9FtVoTX2569gaL837ZgrB6wNjj6tkmnX9Rdk9B2"
+     },
+     "identity": "Token: the most traded $AURA on Solana at the time of the post",
+     "correction": null,
+     "entry": 0.00636711796082261,
+     "results": {
+      "1d": {
+       "pct": 2.53,
+       "score": 62.63,
+       "exit": 0.00652793175740718
+      },
+      "1w": {
+       "pct": -5.91,
+       "score": 20.47,
+       "exit": 0.005991068903000264
+      },
+      "1m": {
+       "status": "pending"
+      }
+     }
+    }
+   ],
+   "mentions": [
+    {
+     "asset": "squeekchain",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "squeekchain is a proof-of-work chain powered by a real hamster"
+    },
+    {
+     "asset": "SQUEEK",
+     "kind": "mention",
+     "label": "context",
+     "quote": "genesis squeek nfts"
+    }
+   ],
+   "check": {
+    "agrees": false,
+    "note": "the second reading sees no call: aura is the whitelist's points, not a token."
+   }
+  },
+  {
+   "id": "2117327596534841826",
+   "url": "https://x.com/0xshardy/status/2117327596534841826",
+   "postedAt": "2026-11-02T18:46:51+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "points programs are the only job where you find out your salary after you quit",
+   "quoted": null,
+   "images": [],
+   "category": "none",
+   "calls": [],
+   "mentions": [],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2117280181802922416",
+   "url": "https://x.com/0xshardy/status/2117280181802922416",
+   "postedAt": "2026-11-02T15:38:27+00:00",
+   "type": "quote",
+   "pinned": false,
+   "from": "@solsniper330",
+   "text": "\"one approval leaked his private key\" is going viral. the victim himself says otherwise. - nov 1, 16.07 he connects to the BDOG mint site with a binance agentic wallet - earlier he had imported his okx wallet's private key into the binance app - 37 minutes later the okx wallet gets emptied - the receiver now sits on $15,096 in USDT and GXB - it's a plain wallet with only 3 sent txs - the agent wallet itself only had tens of dollars in it in his own words it was \"most likely a private key leak\" and had \"nothing to do with agentic wallet itself\" an approval can't leak your key. it only lets a s…",
+   "quoted": {
+    "author": "@solsniper330",
+    "text": "目前来看，大概率是私钥泄露导致的问题 感谢 @AncoBinance 大哥的帮忙和耐心处理🙏 这件事跟 Agentic Wallet 本身没有关系，也希望大家不要因为这件事给人家造成不必要的困扰 再次感谢大家的关心和帮助"
+   },
+   "images": [
+    "A fact-check graphic detailing a $15,096 crypto wallet drain incident. It lists the specific amounts of USDT and GXB stolen and notes the likely caus…"
+   ],
+   "category": "mention",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "GXB",
+     "kind": "mention",
+     "label": "news or fact",
+     "quote": "the receiver now sits on $15,096 in USDT and GXB"
+    },
+    {
+     "asset": "BDOG",
+     "kind": "mention",
+     "label": "context",
+     "quote": "connects to the BDOG mint site"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2117239915561861191",
+   "url": "https://x.com/0xshardy/status/2117239915561861191",
+   "postedAt": "2026-11-02T12:58:26+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": ". $FOREVER 40.000$ PROFIT 🥂 don't do it twice. squeekchain is a proof of work chain where the miner is a real hamster named squeektoshi. no gpu farm. he runs on a wheel, the wheel's work becomes blocks. - sepolia testnet already live, tested every night - apps already run on him: a looter shooter where the portal only opens while he runs, and a music stream where every 30m of wheel is a note - whitelist is earned : badges, aura, then genesis spot - forever got caught early on fomo. set up fomo now so you're not late when squeek trades. -",
+   "quoted": null,
+   "images": [
+    "A screenshot of a Fomo app interface displaying a user's portfolio performance and a token position. The image includes a promotional banner for a fe…",
+    "A digital 3D illustration of a golden hamster running inside a wheel made of glowing dots and blue blocks. The scene is set against a dark background…"
+   ],
+   "category": "scored",
+   "calls": [
+    {
+     "asset": "FOREVER",
+     "side": "long",
+     "words": "set up fomo now so you're not late when squeek trades.",
+     "decision": "Kept by 3 of 3 arbiter decisions",
+     "token": {
+      "chain": "Robinhood",
+      "address": "0xacc8de336f5d2366fa7334383d8fab73499f582a",
+      "url": "https://www.geckoterminal.com/robinhood/tokens/0xacc8de336f5d2366fa7334383d8fab73499f582a"
+     },
+     "identity": "Token: the most traded $FOREVER on Robinhood at the time of the post",
+     "correction": null,
+     "entry": 0.0045697140655008295,
+     "results": {
+      "1d": {
+       "pct": 36.33,
+       "score": 100.0,
+       "exit": 0.0062297329423567594
+      },
+      "1w": {
+       "pct": -53.02,
+       "score": 0.0,
+       "exit": 0.0021467009036158897
+      },
+      "1m": {
+       "status": "pending"
+      }
+     }
+    }
+   ],
+   "mentions": [
+    {
+     "asset": "squeekchain",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "squeekchain is a proof of work chain where the miner is a real hamster named squeektoshi"
+    },
+    {
+     "asset": "Fomo",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "forever got caught early on fomo. set up fomo now so you're not late when squeek trades"
+    }
+   ],
+   "check": {
+    "agrees": false,
+    "note": "the second reading sees no call on FOREVER: a past win; what comes next is about SQUEEK, which was not trading."
+   }
+  },
+  {
+   "id": "2117208000112832764",
+   "url": "https://x.com/0xshardy/status/2117208000112832764",
+   "postedAt": "2026-11-02T10:51:37+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "most prediction markets just take your bets. sight is building its own chain for them. nba markets are live, SightEVM is heading to testnet, and they used 85% of new creator fees to buy back $SGT, on fomo where anyone can watch. small team on robinhood chain, shipping weekly. keeping an eye on @sight_hood",
+   "quoted": null,
+   "images": [
+    "A digital artwork depicting a silhouetted figure standing in a large stadium facing a glowing, holographic eye made of green light and chart lines. A…"
+   ],
+   "category": "mention",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "SGT",
+     "kind": "mention",
+     "label": "news or fact",
+     "quote": "they used 85% of new creator fees to buy back $SGT"
+    },
+    {
+     "asset": "SightEVM",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "SightEVM is heading to testnet"
+    },
+    {
+     "asset": "Robinhood chain",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "small team on robinhood chain"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2117203388916195614",
+   "url": "https://x.com/0xshardy/status/2117203388916195614",
+   "postedAt": "2026-11-02T10:33:18+00:00",
+   "type": "retweet",
+   "pinned": false,
+   "from": "@sight_hood",
+   "text": "Creator Season 1 is live. Create content about Sight and robinhood:0x238e40b75ae78a1388a14e517d855893e92e58db, earn points and compete for USDC and other rewards. Your content. Your points. Your rewards. Start here:",
+   "quoted": null,
+   "images": [
+    "A digital graphic featuring the words 'CREATOR PROGRAM' in a glowing green pixelated font. The text is set against a black background with a green wa…"
+   ],
+   "category": "platform",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "Sight",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "Create content about Sight"
+    },
+    {
+     "asset": "Robinhood",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "robinhood:0x238e40b75ae78a1388a14e517d855893e92e58db"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2117202109313487328",
+   "url": "https://x.com/0xshardy/status/2117202109313487328",
+   "postedAt": "2026-11-02T10:28:13+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "3 wallets, 1 funder, 3 SOL in. 632 $SOL out before most people saw the chart. - one address funded the dev and 2 fresh wallets seconds before launch - all 3 bought in the create slot: 3.06 SOL for 7.2% of supply - out with 634.8 SOL, about $59.6K profit - biggest one turned 2.77 SOL into 472 SOL - fully out about 8 hours before the $6.07M high that bag would be worth about $303K now. one operator, three wallets. check the funder before the chart. funder: funding tx: create-slot buy (2.77 SOL):",
+   "quoted": null,
+   "images": [
+    "A chart detailing the inflow and outflow of SOL tokens across three specific wallets and a developer account. The data highlights a net profit of 631…"
+   ],
+   "category": "platform",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "Solscan",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "https://solscan.io/account/5T6z6EuYVbpBRrXeHMc1yDbPADKxT7LX3yxmxYDGBzUY"
+    }
+   ],
+   "check": {
+    "agrees": false,
+    "note": "the second reading sees a crypto mentioned without a call."
+   }
+  },
+  {
+   "id": "2117162964658614739",
+   "url": "https://x.com/0xshardy/status/2117162964658614739",
+   "postedAt": "2026-11-02T07:52:40+00:00",
+   "type": "quote",
+   "pinned": false,
+   "from": "@kalosfun",
+   "text": "sources:",
+   "quoted": {
+    "author": "@kalosfun",
+    "text": "Kalos has been selected as the first project for the @AscendLaunch Builder Incubator. Working directly alongside the Ascend team, we’re accelerating our mission to power the next generation of onchain markets on @Enter_Elysium. Ascend to Elysium."
+   },
+   "images": [
+    "A promotional image featuring the logos for 'Ascend' and 'kalos' separated by a multiplication sign, overlaid on a scenic background of a hillside wi…"
+   ],
+   "category": "mention",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "KALOS",
+     "kind": "mention",
+     "label": "news or fact",
+     "quote": "Kalos has been selected as the first project for the @AscendLaunch Builder Incubator."
+    },
+    {
+     "asset": "ASCENDLAUNCH",
+     "kind": "mention",
+     "label": "news or fact",
+     "quote": "@AscendLaunch Builder Incubator"
+    },
+    {
+     "asset": "Enter Elysium",
+     "kind": "mention",
+     "label": "news or fact",
+     "quote": "on @Enter_Elysium"
+    }
+   ],
+   "check": {
+    "agrees": false,
+    "note": "the second reading sees a platform or promo."
+   }
+  },
+  {
+   "id": "2117162960304939424",
+   "url": "https://x.com/0xshardy/status/2117162960304939424",
+   "postedAt": "2026-11-02T07:52:39+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "first project picked for the ascend builder incubator : kalos. that part is official from @kalosfun. the rest is still discord talk, not announced: - wl checker reportedly opens today - genesis nft mint reportedly nov 4, 1,500 supply at about $25 - guaranteed wl reportedly for the first 1,000 active testnet users - genesis holders reportedly share 10% of $KALOS - mint chain not confirmed yet one more thing : on kiln testnet a single wallet launched a few hundred spam tokens in one afternoon. elysium mainnet opens nov 9, expect the same. wait for the official mint link. early, or just loud?",
+   "quoted": null,
+   "images": [
+    "A fantasy digital illustration showing a cloaked figure walking up a long stone staircase towards a glowing celestial city in the clouds. Floating la…"
+   ],
+   "category": "mention",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "KALOS",
+     "kind": "mention",
+     "label": "news or fact",
+     "quote": "$KALOS"
+    },
+    {
+     "asset": "KALOS Genesis NFT",
+     "kind": "mention",
+     "label": "news or fact",
+     "quote": "genesis nft mint reportedly nov 4, 1,500 supply at about $25"
+    },
+    {
+     "asset": "ELYSIUM",
+     "kind": "mention",
+     "label": "news or fact",
+     "quote": "elysium mainnet opens nov 9"
+    },
+    {
+     "asset": "KILN",
+     "kind": "mention",
+     "label": "news or fact",
+     "quote": "on kiln testnet a single wallet launched a few hundred spam tokens"
+    }
+   ],
+   "check": {
+    "agrees": false,
+    "note": "the second reading sees a platform or promo."
+   }
+  },
+  {
+   "id": "2116936947985711168",
+   "url": "https://x.com/0xshardy/status/2116936947985711168",
+   "postedAt": "2026-11-01T16:54:33+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "north korea took $6b+ from binance binance covered it from its own pocket and reopened withdrawals in 3 days btc didn't even blink meanwhile i lose one coin to a fake airdrop and pray to the heavens",
+   "quoted": null,
+   "images": [
+    "A digital painting depicts a group of men in a dark, stone-walled cellar holding sacks and boxes of gold coins. One man in a red robe holds a knife t…"
+   ],
+   "category": "mention",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "Binance",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "binance"
+    },
+    {
+     "asset": "BTC",
+     "kind": "mention",
+     "label": "context",
+     "quote": "btc didn't even blink"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2116894159420195276",
+   "url": "https://x.com/0xshardy/status/2116894159420195276",
+   "postedAt": "2026-11-01T14:04:32+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "every tx on elysium pays gas in HYPE. then the sequencer splits it : 50% buys and burns $KNTQ 25% goes to builders 25% runs the chain no new gas token. more usage, less KNTQ, paid in $HYPE kntq is a $181m market cap a week before that switch flips on nov 9 how much volume does it take before the burn shows up on the chart?",
+   "quoted": null,
+   "images": [
+    "A screenshot of a dark-themed web application interface featuring a navigation bar and a 3D perspective grid background. The top menu includes option…"
+   ],
+   "category": "mention",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "KNTQ",
+     "kind": "mention",
+     "label": "news or fact",
+     "quote": "$KNTQ"
+    },
+    {
+     "asset": "HYPE",
+     "kind": "mention",
+     "label": "news or fact",
+     "quote": "$HYPE"
+    },
+    {
+     "asset": "Elysium",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "every tx on elysium pays gas in HYPE"
+    }
+   ],
+   "check": {
+    "agrees": false,
+    "note": "the second reading sees a call on KNTQ that the method missed."
+   }
+  },
+  {
+   "id": "2116808756302348670",
+   "url": "https://x.com/0xshardy/status/2116808756302348670",
+   "postedAt": "2026-11-01T08:25:10+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "this wallet got 1,021,289 $HYPE at genesis he sold the spot. then opened a $17.85m $HYPE long, now up $4.93m and he's sitting on 1.24m $KNTQ the airdrop was the seed, not the exit what's he seeing?",
+   "quoted": null,
+   "images": [
+    "A screenshot of a crypto portfolio dashboard from hypurrscan.io showing a total balance of over 14 million dollars. The positions section displays a…"
+   ],
+   "category": "mention",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "HYPE",
+     "kind": "mention",
+     "label": "context",
+     "quote": "$HYPE"
+    },
+    {
+     "asset": "KNTQ",
+     "kind": "mention",
+     "label": "context",
+     "quote": "1.24m $KNTQ"
+    },
+    {
+     "asset": "BTC",
+     "kind": "mention",
+     "label": "context",
+     "quote": "image shows BTC-USD in portfolio"
+    },
+    {
+     "asset": "hypurrscan.io",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "https://hypurrscan.io/address/0xf517639a8872e756ac98d3c65507d2ebc25cc032#txs"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2116788250052317222",
+   "url": "https://x.com/0xshardy/status/2116788250052317222",
+   "postedAt": "2026-11-01T07:03:41+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "been in crypto for years and this is the first time a hamster is mining the blocks @squeekchain is a proof-of-work chain where the work comes from a real hamster running on a real wheel genesis is open now. connect your wallet and X, do the tasks, stack aura. aura decides your Whitelist Spot experimental for sure. but it's the most fun idea i've seen in a while would you trust a hamster with your blocks? -",
+   "quoted": null,
+   "images": [
+    "A promotional graphic for a crypto project called Genesis on the Squeekchain. It features a purple spiral logo, text about farming Aura and getting a…"
+   ],
+   "category": "platform",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "Squeekchain",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "@squeekchain is a proof-of-work chain where the work comes from a real hamster running on a real wheel"
+    },
+    {
+     "asset": "Aura",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "stack aura. aura decides your Whitelist Spot"
+    },
+    {
+     "asset": "Squeek NFT",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "get your Squeek NFT"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2116760508913029158",
+   "url": "https://x.com/0xshardy/status/2116760508913029158",
+   "postedAt": "2026-11-01T05:13:27+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "ELYSIUM TRADES WILL BE WON IN THE FIRST HOUR while most people are still bridging and hunting for gas, someone already bought kinetiq:native $ascend that's why i'm using @dawndottrade : - one usdc balance, trade on 10 chains - no bridge, no gas, no chain switching - copytrade any fomo handle or wallet - limit, stop loss, take profit, all inside telegram - elysium support from day 0 kinetiq and ascend are already in their replies bridge first, or buy first? -",
+   "quoted": null,
+   "images": [
+    "A screenshot of a social media thread showing posts from accounts named Ascend, dawn, and Kinetiq. The posts contain short text and engagement metric…"
+   ],
+   "category": "mention",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "ASCEND",
+     "kind": "mention",
+     "label": "context",
+     "quote": "kinetiq:native $ascend"
+    },
+    {
+     "asset": "KINETIQ",
+     "kind": "mention",
+     "label": "context",
+     "quote": "kinetiq:native $ascend"
+    },
+    {
+     "asset": "Dawn Trade Bot",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "https://t.me/DawnTradeBot?start=ref-0xshardy"
+    },
+    {
+     "asset": "ELYSIUM",
+     "kind": "mention",
+     "label": "context",
+     "quote": "ELYSIUM TRADES WILL BE WON IN THE FIRST HOUR"
+    },
+    {
+     "asset": "OP",
+     "kind": "mention",
+     "label": "context",
+     "quote": "image description includes \"OP\""
+    },
+    {
+     "asset": "DAWN",
+     "kind": "mention",
+     "label": "context",
+     "quote": "image description includes \"dawn\""
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2116538830119387636",
+   "url": "https://x.com/0xshardy/status/2116538830119387636",
+   "postedAt": "2026-10-31T14:32:35+00:00",
+   "type": "quote",
+   "pinned": false,
+   "from": "@termix_ai",
+   "text": "an agent paying for its own subscription is a fun pitch, but the hard part isn't finding jobs, it's getting paid for work nobody can objectively grade @termix_ai locks the USDC in onchain escrow and sends disputes to a random 3 evaluator panel. that works for \"does the code compile\". it gets messy for \"is this research any good\" so for subjective jobs, what share of settled orders so far went to a challenge?",
+   "quoted": {
+    "author": "@termix_ai",
+    "text": "Grok @Bot might be the best personal agent out there. People use it to make videos, trade and build games. But what if your Bot could earn for you, too? With TermiX Skills, your Bot can find jobs, deliver work and earn toward its subscription fee. Get started: help me install"
+   },
+   "images": [
+    "A promotional graphic featuring two green robots shaking hands at a market stall with an X logo. The text reads 'AGENTS HIRE AGENTS' and 'PAID ON DEL…",
+    "A promotional graphic featuring a small robot sitting at a desk with a holographic screen and gold coins. The image advertises a bot service with the…"
+   ],
+   "category": "platform",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "TermiX",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "With TermiX Skills, your Bot can find jobs, deliver work and earn toward its subscription fee"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2116521787723022387",
+   "url": "https://x.com/0xshardy/status/2116521787723022387",
+   "postedAt": "2026-10-31T13:24:51+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "15 years ago, nobody could have predicted today's bitcoin price. 15 years from now, nobody will be able to predict ethereum's.",
+   "quoted": null,
+   "images": [],
+   "category": "mention",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "BTC",
+     "kind": "mention",
+     "label": "mentioned, no view on what comes next",
+     "quote": "today's bitcoin price"
+    }
+   ],
+   "check": {
+    "agrees": false,
+    "note": "the second reading sees a call on ETH that the method missed."
+   }
+  },
+  {
+   "id": "2116473823822282838",
+   "url": "https://x.com/0xshardy/status/2116473823822282838",
+   "postedAt": "2026-10-31T10:14:16+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "elysium mainnet is 9 days out and there is still no official points program. that hasn't stopped the fake ones. what's confirmed : - hyperliquid's L2, $HYPE is gas, bridged 1:1. no new gas token - 100-200ms blocks - 50% of sequencer revenue buys and burns $KNTQ - confirmed for day one: @matchaxyz, @DeriveXYZ, @xStocksFi, @Pumpfun @fomo what to do before nov 9 : 1. hold HYPE on HyperEVM, or move it from HyperCore with the EVM transfer in the hyperliquid app 2. add the network only from the official site. mainnet chain id and RPC aren't public yet, so any list claiming them is guessing 3. bridg…",
+   "quoted": null,
+   "images": [
+    "A promotional graphic announcing the 'Day One' mainnet launch for a project named Elysium. The image features a stylized illustration of a bridge lea…"
+   ],
+   "category": "scored",
+   "calls": [
+    {
+     "asset": "HYPE",
+     "side": "long",
+     "words": "hold HYPE on HyperEVM, or move it from HyperCore with the EVM transfer in the hyperliquid app",
+     "decision": "Found by one AI reading, kept by 4 of 5 arbiter decisions",
+     "unscorable": "Token not identified",
+     "results": null
+    },
+    {
+     "asset": "WHYPE",
+     "side": "short",
+     "words": "look-alike WHYPE and USDC tokens",
+     "decision": "Kept by 3 of 5 arbiter decisions",
+     "token": {
+      "chain": "hyperevm",
+      "address": "0x5555555555555555555555555555555555555555",
+      "url": "https://www.geckoterminal.com/hyperevm/tokens/0x5555555555555555555555555555555555555555"
+     },
+     "identity": "Token: the most traded $WHYPE on hyperevm at the time of the post",
+     "correction": null,
+     "entry": 86.89,
+     "results": {
+      "1d": {
+       "pct": 1.44,
+       "score": 42.81,
+       "exit": 88.14
+      },
+      "1w": {
+       "pct": -9.84,
+       "score": 99.2,
+       "exit": 78.33999999999999
+      },
+      "1m": {
+       "status": "pending"
+      }
+     }
+    }
+   ],
+   "mentions": [
+    {
+     "asset": "KNTQ",
+     "kind": "mention",
+     "label": "news or fact",
+     "quote": "50% of sequencer revenue buys and burns $KNTQ"
+    },
+    {
+     "asset": "@matchaxyz",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "confirmed for day one: @matchaxyz, @DeriveXYZ, @xStocksFi, @Pumpfun @fomo"
+    },
+    {
+     "asset": "@DeriveXYZ",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "confirmed for day one: @matchaxyz, @DeriveXYZ, @xStocksFi, @Pumpfun @fomo"
+    }
+   ],
+   "check": {
+    "agrees": false,
+    "note": "the second reading sees no call: a how-to for the Elysium launch and a warning about fake WHYPE tokens."
+   }
+  },
+  {
+   "id": "2116432107824193867",
+   "url": "https://x.com/0xshardy/status/2116432107824193867",
+   "postedAt": "2026-10-31T07:28:30+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "kinetiq's elysium mainnet is 9 days out and $KNTQ is down 7.7% in 24h. the builder list says otherwise. defi side of elysium so far : launchpads @AscendLaunch – flagship launchpad, 80% of net revenue to KNTQ buybacks @MontraXYZ – launchpad @oxleydotfun – launchpad @perpmefun – launchpad trading @DeriveXYZ – options infra @ChainstackHQ – testnet RPC live, 100-200ms blocks, $HYPE as gas price cooling before launch is not interest dying. discount, or warning?",
+   "quoted": null,
+   "images": [],
+   "category": "scored",
+   "calls": [
+    {
+     "asset": "KNTQ",
+     "side": "long",
+     "words": "price cooling before launch is not interest dying.",
+     "decision": "Kept by 3 of 3 arbiter decisions",
+     "token": {
+      "chain": "hyperevm",
+      "address": "0x000000000000780555bd0bca3791f89f9542c2d6",
+      "url": "https://www.geckoterminal.com/hyperevm/tokens/0x000000000000780555bd0bca3791f89f9542c2d6"
+     },
+     "identity": "Token: the most traded $KNTQ on hyperevm at the time of the post",
+     "correction": null,
+     "entry": 0.521111830189579,
+     "results": {
+      "1d": {
+       "pct": 1.82,
+       "score": 59.11,
+       "exit": 0.530610317321904
+      },
+      "1w": {
+       "pct": -7.06,
+       "score": 14.72,
+       "exit": 0.4843443761408369
+      },
+      "1m": {
+       "status": "pending"
+      }
+     }
+    }
+   ],
+   "mentions": [
+    {
+     "asset": "HYPE",
+     "kind": "mention",
+     "label": "news or fact",
+     "quote": "$HYPE as gas"
+    },
+    {
+     "asset": "Elysium",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "kinetiq's elysium mainnet is 9 days out"
+    },
+    {
+     "asset": "AscendLaunch",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "@AscendLaunch – flagship launchpad, 80% of net revenue to KNTQ buybacks"
+    },
+    {
+     "asset": "MontraXYZ",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "@MontraXYZ – launchpad"
+    },
+    {
+     "asset": "oxleydotfun",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "@oxleydotfun – launchpad"
+    },
+    {
+     "asset": "perpmefun",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "@perpmefun – launchpad"
+    },
+    {
+     "asset": "DeriveXYZ",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "@DeriveXYZ – options"
+    },
+    {
+     "asset": "ChainstackHQ",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "@ChainstackHQ – testnet RPC live, 100-200ms blocks, $HYPE as gas"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2116258097408995818",
+   "url": "https://x.com/0xshardy/status/2116258097408995818",
+   "postedAt": "2026-10-30T19:57:03+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "this guy made $260K on $GTA6, sold everything at the top and pulled it all out",
+   "quoted": null,
+   "images": [
+    "A screenshot of a crypto trading profile for user G4, showing a PnL chart and a list of closed positions. The profile displays a total cash balance o…"
+   ],
+   "category": "mention",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "GTA6",
+     "kind": "mention",
+     "label": "news or fact",
+     "quote": "$GTA6"
+    },
+    {
+     "asset": "CATE",
+     "kind": "mention",
+     "label": "news or fact",
+     "quote": "CATE"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2116209114158133683",
+   "url": "https://x.com/0xshardy/status/2116209114158133683",
+   "postedAt": "2026-10-30T16:42:24+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "set up a binance agentic wallet today. agent id shardy ai it's already running, and it minted a few free agent-id nfts before most people knew they existed. meanwhile the agent tokens: $JAGENT peaked near 479x, $DOG still 183x after 24h, $SWARM topped out around 32x. the agent meta is early. i'd rather have mine running than watch.",
+   "quoted": null,
+   "images": [
+    "A screenshot of a mobile crypto wallet interface displaying a list of recent transactions. The activity log shows multiple successful contract calls…"
+   ],
+   "category": "mention",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "JAGENT",
+     "kind": "mention",
+     "label": "news or fact",
+     "quote": "$JAGENT peaked near 479x"
+    },
+    {
+     "asset": "DOG",
+     "kind": "mention",
+     "label": "news or fact",
+     "quote": "$DOG still 183x after 24h"
+    },
+    {
+     "asset": "SWARM",
+     "kind": "mention",
+     "label": "news or fact",
+     "quote": "$SWARM topped out around 32x"
+    },
+    {
+     "asset": "POPINA",
+     "kind": "mention",
+     "label": "context",
+     "quote": "image description lists POPINA"
+    },
+    {
+     "asset": "LAVENDA",
+     "kind": "mention",
+     "label": "context",
+     "quote": "image description lists LAVENDA"
+    },
+    {
+     "asset": "BOREALUX",
+     "kind": "mention",
+     "label": "context",
+     "quote": "image description lists BOREALUX"
+    },
+    {
+     "asset": "MIDMEGA",
+     "kind": "mention",
+     "label": "context",
+     "quote": "image description lists MIDMEGA"
+    },
+    {
+     "asset": "BNC",
+     "kind": "mention",
+     "label": "context",
+     "quote": "image description lists BNC"
+    },
+    {
+     "asset": "Binance",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "set up a binance agentic wallet today"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2116164616455696441",
+   "url": "https://x.com/0xshardy/status/2116164616455696441",
+   "postedAt": "2026-10-30T13:45:35+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "everyone is calling $KNTQ the next wealth-effect flywheel. the trigger: @AscendLaunch, elysium's launchpad, raised its kntq buybacks from 50% to 80% last night. price printed a new all-time high today, up 66% in 30 days. but only 32% of supply is circulating. $172M market cap, $545M fully diluted. flywheel, or float?",
+   "quoted": null,
+   "images": [
+    "An infographic chart displaying market statistics for the $KNTQ token, including price, market cap, and FDV. The graphic features a gear and coin ill…"
+   ],
+   "category": "scored",
+   "calls": [
+    {
+     "asset": "KNTQ",
+     "side": "long",
+     "words": "everyone is calling $KNTQ the next wealth-effect flywheel. flywheel, or float?",
+     "decision": "Kept by 3 of 3 arbiter decisions",
+     "token": {
+      "chain": "hyperevm",
+      "address": "0x000000000000780555bd0bca3791f89f9542c2d6",
+      "url": "https://www.geckoterminal.com/hyperevm/tokens/0x000000000000780555bd0bca3791f89f9542c2d6"
+     },
+     "identity": "Token: the most traded $KNTQ on hyperevm at the time of the post",
+     "correction": null,
+     "entry": 0.538157942092802,
+     "results": {
+      "1d": {
+       "pct": -1.85,
+       "score": 40.74,
+       "exit": 0.5281896188086919
+      },
+      "1w": {
+       "pct": -16.67,
+       "score": 0.0,
+       "exit": 0.44846863066878095
+      },
+      "1m": {
+       "status": "pending"
+      }
+     }
+    }
+   ],
+   "mentions": [
+    {
+     "asset": "@AscendLaunch",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "the trigger: @AscendLaunch, elysium's launchpad"
+    },
+    {
+     "asset": "elysium's launchpad",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "the trigger: @AscendLaunch, elysium's launchpad"
+    }
+   ],
+   "check": {
+    "agrees": false,
+    "note": "the second reading sees no call on KNTQ: he asks whether the rise is a flywheel or a thin float, without taking a side."
+   }
+  },
+  {
+   "id": "2116123249184555200",
+   "url": "https://x.com/0xshardy/status/2116123249184555200",
+   "postedAt": "2026-10-30T11:01:12+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "elysium isn't even live yet and $KNTQ is up 42% this week. hyperliquid's first L2 goes mainnet november 9. hype is the gas token, kinetiq is building it. the exclusive trading partner for elysium is fomo, and it says it will support elysium from day one. usdc in, one tap swaps, no extra bridge apps to babysit. big week coming. link below if you want in. -",
+   "quoted": null,
+   "images": [
+    "A promotional graphic for the Elysium token on the Hyperliquid L2 network, featuring a futuristic sci-fi landscape. The image highlights the token's…"
+   ],
+   "category": "scored",
+   "calls": [
+    {
+     "asset": "KNTQ",
+     "side": "long",
+     "words": "big week coming. link below if you want in",
+     "decision": "Found by one AI reading, kept by 3 of 3 arbiter decisions",
+     "token": {
+      "chain": "hyperevm",
+      "address": "0x000000000000780555bd0bca3791f89f9542c2d6",
+      "url": "https://www.geckoterminal.com/hyperevm/tokens/0x000000000000780555bd0bca3791f89f9542c2d6"
+     },
+     "identity": "Token: the most traded $KNTQ on hyperevm at the time of the post",
+     "correction": null,
+     "entry": 0.5834561470865269,
+     "results": {
+      "1d": {
+       "pct": -11.67,
+       "score": 0.0,
+       "exit": 0.51537211990508
+      },
+      "1w": {
+       "pct": -27.24,
+       "score": 0.0,
+       "exit": 0.424534339871457
+      },
+      "1m": {
+       "status": "pending"
+      }
+     }
+    }
+   ],
+   "mentions": [
+    {
+     "asset": "KNQ",
+     "kind": "mention",
+     "label": "named, but no call (no view on what comes next)",
+     "quote": "big week coming. link below if you want in."
+    },
+    {
+     "asset": "Hyperliquid",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "hyperliquid's first L2 goes mainnet november 9."
+    },
+    {
+     "asset": "Fomo",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "the exclusive trading partner for elysium is fomo"
+    },
+    {
+     "asset": "KINETIQ",
+     "kind": "mention",
+     "label": "context",
+     "quote": "kinetiq is building it"
+    },
+    {
+     "asset": "ELYSIUM",
+     "kind": "mention",
+     "label": "context",
+     "quote": "elysium isn't even live yet"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2116101363851543011",
+   "url": "https://x.com/0xshardy/status/2116101363851543011",
+   "postedAt": "2026-10-30T09:34:15+00:00",
+   "type": "quote",
+   "pinned": false,
+   "from": "@umia_finance",
+   "text": "Looked into $SLOP, the next auction on Umia after $UMIA sold out at its $0.36 cap. How to take part : - Public bids Nov 7-10, paid in USDG on Robinhood Chain - You set a budget and a max price, unspent budget is returned - Price only rises, so earlier bids average lower - FDV from ~$0.89M, $400K min raise or full refund",
+   "quoted": {
+    "author": "@umia_finance",
+    "text": "Agents cook. Maintainers taste. Only merged work gets paid. @SlopCash service opens Nov 5, on Robinhood Chain @RobinhoodCrypto."
+   },
+   "images": [
+    "A collage of three 3D rendered images showing a quaint corner building with a sign that reads 'Le Git'. The scenes depict a wet cobblestone street at…"
+   ],
+   "category": "unscorable",
+   "calls": [
+    {
+     "asset": "SLOP",
+     "side": "long",
+     "words": "How to take part : - Public bids Nov 7-10, paid in USDG on Robinhood Chain - You set a budget and a max price, unspent budget is returned - Price only rises, s…",
+     "decision": "Kept by 3 of 3 arbiter decisions",
+     "unscorable": "Token not identified",
+     "results": null
+    }
+   ],
+   "mentions": [
+    {
+     "asset": "UMIA",
+     "kind": "mention",
+     "label": "news or fact",
+     "quote": "$UMIA sold out at its $0.36 cap."
+    },
+    {
+     "asset": "USDG",
+     "kind": "mention",
+     "label": "context",
+     "quote": "paid in USDG on Robinhood Chain"
+    },
+    {
+     "asset": "Robinhood Chain",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "on Robinhood Chain"
+    },
+    {
+     "asset": "Robinhood Crypto",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "@RobinhoodCrypto"
+    },
+    {
+     "asset": "SlopCash",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "@SlopCash service opens Nov 5"
+    }
+   ],
+   "check": {
+    "agrees": false,
+    "note": "the second reading sees no call on SLOP: how to join an auction that had not started."
+   }
+  },
+  {
+   "id": "2116023317882941531",
+   "url": "https://x.com/0xshardy/status/2116023317882941531",
+   "postedAt": "2026-10-30T04:24:07+00:00",
+   "type": "quote",
+   "pinned": false,
+   "from": "@elonmusk",
+   "text": "the biggest exchange hack ever didn't need a smart contract bug. it needed one engineer's laptop. every security budget in crypto still loses to one compromised device. how many of your coins sit behind someone else's laptop?",
+   "quoted": {
+    "author": "@elonmusk",
+    "text": "Everyday is Zeroday"
+   },
+   "images": [],
+   "category": "none",
+   "calls": [],
+   "mentions": [],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2115841077697540575",
+   "url": "https://x.com/0xshardy/status/2115841077697540575",
+   "postedAt": "2026-10-29T16:19:58+00:00",
+   "type": "quote",
+   "pinned": false,
+   "from": "@elonmusk",
+   "text": "druckenmiller invests, elon says interesting. but the part nobody is quoting : trade[xyz] markets did about $4.2B in volume yesterday, before any of this. $HYPE almost as much as hyperliquid's own main perps. tradfi didn't discover it today. it just admitted it.",
+   "quoted": {
+    "author": "@elonmusk",
+    "text": "Interesting"
+   },
+   "images": [],
+   "category": "mention",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "HYPE",
+     "kind": "mention",
+     "label": "news or fact",
+     "quote": "$HYPE"
+    },
+    {
+     "asset": "Hyperliquid",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "hyperliquid's own main perps"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2115772038631551140",
+   "url": "https://x.com/0xshardy/status/2115772038631551140",
+   "postedAt": "2026-10-29T11:45:37+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "$20K to $230K in one week. G41T3R caught a 1,000% move on $GTA6 , all public trades on fomo. the people following early saw it and got paid. and $JAGENT might be the next position he's waiting on. he trades on fomo like me. usdc on every chain, one tap swaps. link below if you want in. -",
+   "quoted": null,
+   "images": [
+    "A screenshot of a Fomo trading app interface showing a user profile and a position for the GTA VI token. The interface displays a portfolio value of…"
+   ],
+   "category": "scored",
+   "calls": [
+    {
+     "asset": "JAGENT",
+     "side": "long",
+     "words": "might be the next position he's waiting on.",
+     "decision": "Found by one AI reading, kept by 3 of 3 arbiter decisions",
+     "token": {
+      "chain": "BNB Chain",
+      "address": "0x8e6442663a4f8c50b6132c68d42a30e7dfe4ae15",
+      "url": "https://www.geckoterminal.com/bsc/tokens/0x8e6442663a4f8c50b6132c68d42a30e7dfe4ae15"
+     },
+     "identity": "Token: the most traded $JAGENT on BNB Chain at the time of the post",
+     "correction": null,
+     "entry": 2.7816251377698795e-06,
+     "results": {
+      "1d": {
+       "pct": 191.32,
+       "score": 100.0,
+       "exit": 8.10339878869817e-06
+      },
+      "1w": {
+       "pct": -34.87,
+       "score": 0.0,
+       "exit": 1.81178142706081e-06
+      },
+      "1m": {
+       "status": "pending"
+      }
+     }
+    }
+   ],
+   "mentions": [
+    {
+     "asset": "GTA6",
+     "kind": "mention",
+     "label": "context",
+     "quote": "$GTA6"
+    },
+    {
+     "asset": "Fomo",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "https://fomo.family/r/0xshardy"
+    }
+   ],
+   "check": {
+    "agrees": false,
+    "note": "the second reading sees no call on JAGENT: another trader's possible next position."
+   }
+  },
+  {
+   "id": "2115705309532475637",
+   "url": "https://x.com/0xshardy/status/2115705309532475637",
+   "postedAt": "2026-10-29T07:20:28+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "genius leaderboard, last 24h the app just launched and the top wallets are already up $1,700 in a day. i'm not on that list yet. give it time. holding 1.51K $GENIUS and 582K $GSTOCK in the app. and with the binance agent id hype, i think those agent tokens will trade on genius a lot more. join here :",
+   "quoted": null,
+   "images": [
+    "A screenshot of a crypto trading app's leaderboard showing top users ranked by 24-hour profit and loss. The list displays user avatars, handles, and…",
+    "A screenshot of a cryptocurrency portfolio or wallet interface displaying a list of four tokens. Each entry shows the token name, ticker, total value…"
+   ],
+   "category": "scored",
+   "calls": [
+    {
+     "asset": "JAGENT",
+     "side": "long",
+     "words": "i think those agent tokens will trade on genius a lot more.",
+     "decision": "Found by one AI reading, kept by 3 of 3 arbiter decisions",
+     "token": {
+      "chain": "BNB Chain",
+      "address": "0x8e6442663a4f8c50b6132c68d42a30e7dfe4ae15",
+      "url": "https://www.geckoterminal.com/bsc/tokens/0x8e6442663a4f8c50b6132c68d42a30e7dfe4ae15"
+     },
+     "identity": "Token: the most traded $JAGENT on BNB Chain at the time of the post",
+     "correction": null,
+     "entry": 1.6712314276657098e-06,
+     "results": {
+      "1d": {
+       "pct": 418.43,
+       "score": 100.0,
+       "exit": 8.6640997596927e-06
+      },
+      "1w": {
+       "pct": 14.93,
+       "score": 100.0,
+       "exit": 1.9207892876893295e-06
+      },
+      "1m": {
+       "status": "pending"
+      }
+     }
+    }
+   ],
+   "mentions": [
+    {
+     "asset": "GENIUS",
+     "kind": "mention",
+     "label": "mentioned, no view on what comes next",
+     "quote": "holding 1.51K $GENIUS"
+    },
+    {
+     "asset": "GSTOCK",
+     "kind": "mention",
+     "label": "mentioned, no view on what comes next",
+     "quote": "holding 582K $GSTOCK"
+    },
+    {
+     "asset": "DOG",
+     "kind": "mention",
+     "label": "mentioned, no view on what comes next",
+     "quote": "image token list shows 24.81M DOG"
+    },
+    {
+     "asset": "Binance",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "binance agent id hype"
+    },
+    {
+     "asset": "Trade Genius",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "join here : https://t.co/t3YGFxHPHX"
+    }
+   ],
+   "check": {
+    "agrees": false,
+    "note": "the second reading sees a call on GENIUS that the method missed; no call on JAGENT, which only appears in his wallet screenshot."
+   }
+  },
+  {
+   "id": "2115507797102358557",
+   "url": "https://x.com/0xshardy/status/2115507797102358557",
+   "postedAt": "2026-10-28T18:15:37+00:00",
+   "type": "quote",
+   "pinned": false,
+   "from": "@cz_binance",
+   "text": "CZ's new app a new social trading app where people could make six figures just went live. genius is now on the app store and google play. hold 1,000 $GENIUS and your profile gets verified. if the price climbs, verifying with 1,000 tokens won't stay this easy for long. link below if you want to grab your spot early. -",
+   "quoted": {
+    "author": "@cz_binance",
+    "text": "Degen or Genius?"
+   },
+   "images": [
+    "A screenshot of a mobile crypto trading app interface displaying a user's portfolio balance and a list of trending tokens with their prices and marke…"
+   ],
+   "category": "scored",
+   "calls": [
+    {
+     "asset": "GENIUS",
+     "side": "long",
+     "words": "if the price climbs, verifying with 1,000 tokens won't stay this easy for long",
+     "decision": "Found by one AI reading, kept by 3 of 3 arbiter decisions",
+     "token": {
+      "chain": "BNB Chain",
+      "address": "0x1f12b85aac097e43aa1555b2881e98a51090e9a6",
+      "url": "https://www.geckoterminal.com/bsc/tokens/0x1f12b85aac097e43aa1555b2881e98a51090e9a6"
+     },
+     "identity": "Token: the most traded $GENIUS on BNB Chain at the time of the post",
+     "correction": null,
+     "entry": 0.317616012611202,
+     "results": {
+      "1d": {
+       "pct": -0.79,
+       "score": 46.07,
+       "exit": 0.315119452448569
+      },
+      "1w": {
+       "pct": -4.53,
+       "score": 27.36,
+       "exit": 0.30323221061506195
+      },
+      "1m": {
+       "status": "pending"
+      }
+     }
+    }
+   ],
+   "mentions": [
+    {
+     "asset": "B13B",
+     "kind": "mention",
+     "label": "mentioned, no view on what comes next",
+     "quote": "image tokens list includes B13B"
+    },
+    {
+     "asset": "JAGENT",
+     "kind": "mention",
+     "label": "mentioned, no view on what comes next",
+     "quote": "image tokens list includes JAGENT"
+    },
+    {
+     "asset": "DOG",
+     "kind": "mention",
+     "label": "mentioned, no view on what comes next",
+     "quote": "image tokens list includes DOG"
+    },
+    {
+     "asset": "AKE",
+     "kind": "mention",
+     "label": "mentioned, no view on what comes next",
+     "quote": "image tokens list includes AKE"
+    },
+    {
+     "asset": "DEGEN",
+     "kind": "mention",
+     "label": "context",
+     "quote": "quoted post text \"Degen or Genius?\""
+    },
+    {
+     "asset": "Genius.FUN",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "image description mentions \"Genius.FUN\" branding"
+    },
+    {
+     "asset": "tradegenius.com",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "link https://tradegenius.com/ref/8FV3XQS32E"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2115498637409042652",
+   "url": "https://x.com/0xshardy/status/2115498637409042652",
+   "postedAt": "2026-10-28T17:39:13+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "",
+   "quoted": null,
+   "images": [],
+   "category": "platform",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "Priors",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "https://board.priors.trade and https://defillama.com/protocol/priors"
+    }
+   ],
+   "check": {
+    "agrees": false,
+    "note": "the second reading sees no crypto."
+   }
+  },
+  {
+   "id": "2115498632480694406",
+   "url": "https://x.com/0xshardy/status/2115498632480694406",
+   "postedAt": "2026-10-28T17:39:12+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "a credit score usually starts small. a cheap card, a few bills paid on time. @priors_trade is trying that for ai agents on robinhood chain. agents borrow USDG, pay it back, and every repayment stays on chain. 53,327 loans repaid so far. the median loan is about $7. that's not a credit market yet. it's a reputation being built one coffee at a time. would you lend to a bot on its record alone?",
+   "quoted": null,
+   "images": [
+    "A screenshot of a DeFiLama token page for Priors (PRIORS). It displays key metrics including Total Value Locked, Market Cap, and price."
+   ],
+   "category": "mention",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "USDG",
+     "kind": "mention",
+     "label": "context",
+     "quote": "agents borrow USDG, pay it back, and every repayment stays on chain"
+    },
+    {
+     "asset": "PRIORS",
+     "kind": "mention",
+     "label": "context",
+     "quote": "@priors_trade is trying that for ai agents on robinhood chain"
+    },
+    {
+     "asset": "Robinhood Chain",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "on robinhood chain"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2115453335289356652",
+   "url": "https://x.com/0xshardy/status/2115453335289356652",
+   "postedAt": "2026-10-28T14:39:13+00:00",
+   "type": "quote",
+   "pinned": false,
+   "from": "@SolPlay_jonas",
+   "text": "a solana foundation dev asked an AI agent to make him a wallet and trade. - the agent created the wallet on its own computer and kept the key there - he funded it with 0.1 SOL and said \"make some money\" - it swapped into $JUP and $BONK - the address was visible in his screenshot - that wallet now holds about 29 SOL, sent by strangers - copycat tickers and a fake \"giveaway\" link showed up in the replies even @grok said it : the key stays on its side. play money only. your wallet, or whoever runs the instance?",
+   "quoted": {
+    "author": "@SolPlay_jonas",
+    "text": "Lol! Did you know you can just ask @grok to make you a @solana wallet and trade with it? Not sure how secure it is. But it just works 🤯🤯🤯"
+   },
+   "images": [
+    "A screenshot of a chat conversation where a user asks an AI to create a Solana wallet and trade with their funds. The AI responds by generating a wal…",
+    "A screenshot of a crypto wallet interface displaying the 'Tokens' tab. It lists token holdings for Jupiter (JUP) and Bonk (BONK) with their respectiv…"
+   ],
+   "category": "mention",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "JUP",
+     "kind": "mention",
+     "label": "news or fact",
+     "quote": "$JUP"
+    },
+    {
+     "asset": "BONK",
+     "kind": "mention",
+     "label": "news or fact",
+     "quote": "$BONK"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2115450860234850565",
+   "url": "https://x.com/0xshardy/status/2115450860234850565",
+   "postedAt": "2026-10-28T14:29:22+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "over 23 million coins have launched on $PUMP fun about 120 of them are worth more than $1M today. that's roughly 1 in 190,000. most people call it a launchpad. the math says lottery. still worth the ticket?",
+   "quoted": null,
+   "images": [
+    "A screenshot of a 'launch monitor' dashboard for pump.fun featuring an isometric illustration of a machine dispensing colorful coins. An activity fee…"
+   ],
+   "category": "mention",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "Pump.fun",
+     "kind": "mention",
+     "label": "mentioned, no view on what comes next",
+     "quote": "over 23 million coins have launched on $PUMP fun"
+    },
+    {
+     "asset": "CoinGecko",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "visible_text includes 'CoinGecko'"
+    },
+    {
+     "asset": "Dune",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "visible_text includes 'Dune'"
+    },
+    {
+     "asset": "Stakeace",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "visible_text includes 'Stakeace'"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2115422506022490434",
+   "url": "https://x.com/0xshardy/status/2115422506022490434",
+   "postedAt": "2026-10-28T12:36:42+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "paying gas on most chains is like buying arcade tokens before you can play. @arc skips that step. the gas token is USDC itself, so fees are priced in dollars. USDC on the chain just crossed $1B, about $350M of that in the last 9 days. six weeks after mainnet. but TVL has sat flat at $628M for five days. the money is landing, not working yet. payments rail, or parking lot? - -",
+   "quoted": null,
+   "images": [
+    "A line chart titled 'Arc, six weeks after mainnet' displays the growth of stablecoins on Arc and Arc TVL from September to October 2026. The chart hi…"
+   ],
+   "category": "platform",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "Arc",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "@arc skips that step"
+    }
+   ],
+   "check": {
+    "agrees": false,
+    "note": "the second reading sees a crypto mentioned without a call."
+   }
+  },
+  {
+   "id": "2115330375459193069",
+   "url": "https://x.com/0xshardy/status/2115330375459193069",
+   "postedAt": "2026-10-28T06:30:37+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "the buyback debate is all over the timeline again this morning. meanwhile hyperliquid put $63.9M of revenue into buybacks in the last 30 days. about $2.1M a day, every day hyperliquid:native buybacks paid by real fees are not the same as a treasury propping up a chart. real value, or just a crutch?",
+   "quoted": null,
+   "images": [
+    "A screenshot of a DeFiLlama analytics page for Hyperliquid (HYPE), displaying a bar chart of holders revenue and a list of key metrics. The data show…"
+   ],
+   "category": "mention",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "HYPE",
+     "kind": "mention",
+     "label": "context",
+     "quote": "hyperliquid put $63.9M of revenue into buybacks in the last 30 days"
+    },
+    {
+     "asset": "Hyperliquid",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "hyperliquid:native"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2115158021613437295",
+   "url": "https://x.com/0xshardy/status/2115158021613437295",
+   "postedAt": "2026-10-27T19:05:44+00:00",
+   "type": "quote",
+   "pinned": false,
+   "from": "@json1444",
+   "text": "PumpFun's fee defense only looks at coins that already made it. Their own fee docs : - above 98,240 SOL mcap: 0.30% per trade - just graduated (420 to 1,470 SOL mcap): 1.20% per trade - 0.95% of that 1.20% goes to the creator The old Raydium setup was 0.25% for everyone. So every future runner now starts out paying nearly 5x the fee. How is a coin supposed to reach $100M like that?",
+   "quoted": {
+    "author": "@json1444",
+    "text": "Addressing PumpSwap There are a few things here. Firstly, the graph in the quoted post is designed to pin an entire bear market's activity on the creation of a single protocol's AMM - which is obviously wrong I've taken this persons propaganda graph and overlayed a few things wh…"
+   },
+   "images": [
+    "A screenshot of a fee schedule table for a crypto protocol, showing different fee percentages based on market cap ranges. Specific rows highlighting…",
+    "A chart titled 'Pumpfun coins that passed $100M' displays the trading volume of various meme coins over time. The graph highlights specific tokens li…"
+   ],
+   "category": "mention",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "Pump.fun",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "PumpFun's fee defense only looks at coins that already made it"
+    },
+    {
+     "asset": "FARTCOIN",
+     "kind": "mention",
+     "label": "context",
+     "quote": "FARTCOIN appears in the chart titled \"Pumpfun coins that passed $100M\""
+    },
+    {
+     "asset": "PEANUT",
+     "kind": "mention",
+     "label": "context",
+     "quote": "PEANUT appears in the chart titled \"Pumpfun coins that passed $100M\""
+    },
+    {
+     "asset": "GOAT",
+     "kind": "mention",
+     "label": "context",
+     "quote": "GOAT appears in the chart titled \"Pumpfun coins that passed $100M\""
+    },
+    {
+     "asset": "ACT",
+     "kind": "mention",
+     "label": "context",
+     "quote": "ACT appears in the chart titled \"Pumpfun coins that passed $100M\""
+    },
+    {
+     "asset": "PIPPIN",
+     "kind": "mention",
+     "label": "context",
+     "quote": "PIPPIN appears in the chart titled \"Pumpfun coins that passed $100M\""
+    },
+    {
+     "asset": "CAR",
+     "kind": "mention",
+     "label": "context",
+     "quote": "CAR appears in the chart titled \"Pumpfun coins that passed $100M\""
+    },
+    {
+     "asset": "VERSE",
+     "kind": "mention",
+     "label": "context",
+     "quote": "VERSE appears in the chart titled \"Pumpfun coins that passed $100M\""
+    },
+    {
+     "asset": "ANSEM",
+     "kind": "mention",
+     "label": "context",
+     "quote": "ANSEM appears in the chart titled \"Pumpfun coins that passed $100M\""
+    },
+    {
+     "asset": "WHITEWHALE",
+     "kind": "mention",
+     "label": "context",
+     "quote": "WHITEWHALE appears in the chart titled \"Pumpfun coins that passed $100M\""
+    },
+    {
+     "asset": "PENGUIN",
+     "kind": "mention",
+     "label": "context",
+     "quote": "PENGUIN appears in the chart titled \"Pumpfun coins that passed $100M\""
+    },
+    {
+     "asset": "CATE",
+     "kind": "mention",
+     "label": "context",
+     "quote": "CATE appears in the chart titled \"Pumpfun coins that passed $100M\""
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2115096176261214356",
+   "url": "https://x.com/0xshardy/status/2115096176261214356",
+   "postedAt": "2026-10-27T14:59:59+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "Everyone is setting up a Grok Bot this week and asking what it's actually good for. Mine has been running for weeks. - it doesn't sleep - it doesn't miss a move on-chain - it doesn't talk until it has a receipt - it has never once asked for a day off I'm not sharing what it does for me. You'll see it on my timeline before you understand it.",
+   "quoted": null,
+   "images": [
+    "A 3D illustration of colorful geometric characters, including a star and a cloud, gathered around a table in a trading room. The background features…"
+   ],
+   "category": "mention",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "Grok Bot",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "Everyone is setting up a Grok Bot this week"
+    },
+    {
+     "asset": "ATLAS",
+     "kind": "mention",
+     "label": "mentioned, no view on what comes next",
+     "quote": "visible_text \"ATLAS\" in attached meme image"
+    }
+   ],
+   "check": {
+    "agrees": false,
+    "note": "the second reading sees no crypto."
+   }
+  },
+  {
+   "id": "2115008529182437561",
+   "url": "https://x.com/0xshardy/status/2115008529182437561",
+   "postedAt": "2026-10-27T09:11:42+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "A wallet sleuths tie to the UXLINK exploit is now running a $69.9M $ETH long on Hyperliquid. - 30,282 ETH long, 20x cross - entry $2,134, ETH now $2,310 - up $5.3M unrealized - already paid $1.3M in funding to hold it - liquidation at $1,786 The link: its funding wallet swept leftover gas into the same wallet as a known exploiter address, on the same day. If that holds, stolen money is outtrading most of CT right now. Who is on the other side of this?",
+   "quoted": null,
+   "images": [
+    "A financial chart from Hyperliquid displaying the price history and trade annotations for a large ETH long position. The graph shows candlestick move…"
+   ],
+   "category": "mention",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "Hyperliquid",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "on Hyperliquid"
+    },
+    {
+     "asset": "CT",
+     "kind": "mention",
+     "label": "context",
+     "quote": "outtrading most of CT right now"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2114771553925951890",
+   "url": "https://x.com/0xshardy/status/2114771553925951890",
+   "postedAt": "2026-10-26T17:30:03+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "I don't hype tools. Bot is the exception.",
+   "quoted": null,
+   "images": [
+    "A 3D illustration showing a group of colorful, geometric characters standing in a circle surrounded by a crowd of identical grey robots. The image ap…"
+   ],
+   "category": "none",
+   "calls": [],
+   "mentions": [],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2114729451078451273",
+   "url": "https://x.com/0xshardy/status/2114729451078451273",
+   "postedAt": "2026-10-26T14:42:45+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "Robinhood said \"tomorrow\" yesterday. it's tomorrow. where Robinhood Chain stands going into the reveal : - $1.13B TVL, right near its all-time high - four months old - this teaser alone: 390K views and still climbing people called the chain dead this week. a company with millions of users doesn't post \"the stars are aligning\" for nothing. $HOOD holders and Robinhood Chain degens are watching the same post right now. what's your guess, what drops today?",
+   "quoted": null,
+   "images": [
+    "A promotional graphic on a black background featuring the text '7 assets. 4 weeks.' above a vertical arrangement of seven cryptocurrency logos. The l…"
+   ],
+   "category": "mention",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "HOOD",
+     "kind": "mention",
+     "label": "news or fact",
+     "quote": "$HOOD holders and Robinhood Chain degens are watching the same post right now."
+    },
+    {
+     "asset": "Robinhood Chain",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "where Robinhood Chain stands going into the reveal"
+    },
+    {
+     "asset": "Robinhood",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "Robinhood said \"tomorrow\" yesterday."
+    }
+   ],
+   "check": {
+    "agrees": false,
+    "note": "the second reading sees a platform or promo."
+   }
+  },
+  {
+   "id": "2114620039932575989",
+   "url": "https://x.com/0xshardy/status/2114620039932575989",
+   "postedAt": "2026-10-26T07:27:59+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "everyone is calling Robinhood Chain dead because $PONS and launchpad revenue cooled off. meanwhile TVL just sat at $1.13B, right near its all-time high. four months old. memecoin season cooling off is not the same as a chain dying. dead, or just quiet?",
+   "quoted": null,
+   "images": [
+    "A line chart from DeFiLlama showing the Total Value Locked in DeFi reaching $1.131b as of October 26, 2026. The graph illustrates a steady upward tre…"
+   ],
+   "category": "mention",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "PONS",
+     "kind": "mention",
+     "label": "context",
+     "quote": "$PONS"
+    },
+    {
+     "asset": "Robinhood Chain",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "Robinhood Chain"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2114403367078199671",
+   "url": "https://x.com/0xshardy/status/2114403367078199671",
+   "postedAt": "2026-10-25T17:07:01+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "every company was one piece of the same plan made with Grok @Bot . @elonmusk",
+   "quoted": null,
+   "images": [
+    "A dark night sky filled with scattered stars. The bottom portion of the image is a solid white block."
+   ],
+   "category": "none",
+   "calls": [],
+   "mentions": [],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2114349578044449240",
+   "url": "https://x.com/0xshardy/status/2114349578044449240",
+   "postedAt": "2026-10-25T13:33:16+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "From $3.20 to $98. No VCs, no insiders. This is the $HYPE story.",
+   "quoted": null,
+   "images": [
+    "The image is a blank graphic divided into two sections. The top half is solid black and the bottom half is solid white."
+   ],
+   "category": "mention",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "HYPE",
+     "kind": "mention",
+     "label": "context",
+     "quote": "$HYPE"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2114251793177944195",
+   "url": "https://x.com/0xshardy/status/2114251793177944195",
+   "postedAt": "2026-10-25T07:04:43+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "hundreds of thousands of people are probably going to save this one my next post goes live at the best time of the day on X spent all night on a video for it, and honestly this is the best thing I have made turn on notifications and just wait for it",
+   "quoted": null,
+   "images": [],
+   "category": "none",
+   "calls": [],
+   "mentions": [],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2114077725799682368",
+   "url": "https://x.com/0xshardy/status/2114077725799682368",
+   "postedAt": "2026-10-24T19:33:02+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "",
+   "quoted": null,
+   "images": [],
+   "category": "none",
+   "calls": [],
+   "mentions": [],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2114077720371974222",
+   "url": "https://x.com/0xshardy/status/2114077720371974222",
+   "postedAt": "2026-10-24T19:33:00+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "5 liquidations in ONE hour and he still went long $ETH again 31 seconds after getting wiped, @machibigbrother was back in this man does not stop - 315 ETH long, fully wiped - 31 sec later: 50 ETH long back on - kept stacking all the way to 90 ETH at 25x - just $8.2K of margin holding the whole thing - liq at $2,291.94, ETH sitting at $2,339 he is just 2% away from liquidation number 6 absolute degen or absolute legend?",
+   "quoted": null,
+   "images": [
+    "A screenshot of a trading dashboard displaying a list of recent transactions including liquidations and a summary of an open ETH position. The interf…"
+   ],
+   "category": "none",
+   "calls": [],
+   "mentions": [],
+   "check": {
+    "agrees": false,
+    "note": "the second reading sees a crypto mentioned without a call."
+   }
+  },
+  {
+   "id": "2113883105278750846",
+   "url": "https://x.com/0xshardy/status/2113883105278750846",
+   "postedAt": "2026-10-24T06:39:41+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "+$2.9M on $AI and he still left ~$340K on the table with one click @Salem1299534 dumped all 20.06M $AI in a single tx for 460.9 $ETH (~$1.1M) the bag was worth ~$1.44M right before he hit sell mcap went $72M to $38M on his dump, then bounced right back near $70M would you split it into 10 sells or just hit the button? tx:",
+   "quoted": null,
+   "images": [
+    "A screenshot of a crypto wallet profile page on a platform like OpenSea, displaying user statistics and transaction history. The interface shows a to…"
+   ],
+   "category": "mention",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "AI",
+     "kind": "mention",
+     "label": "mentioned, no view on what comes next",
+     "quote": "+ $2.9M on $AI"
+    },
+    {
+     "asset": "Etherscan",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "tx: https://t.co/gzgUArNx3f"
+    },
+    {
+     "asset": "OpenSea",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "image description mentions platform like OpenSea"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2113613681887949277",
+   "url": "https://x.com/0xshardy/status/2113613681887949277",
+   "postedAt": "2026-10-23T12:49:05+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "",
+   "quoted": null,
+   "images": [],
+   "category": "mention",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "BTC",
+     "kind": "mention",
+     "label": "mentioned, no view on what comes next",
+     "quote": "https://mempool.space/address/1L6HpaTyCRS33oiBKRUe1fsKrzDPsJALcg"
+    }
+   ],
+   "check": {
+    "agrees": false,
+    "note": "the second reading sees no crypto."
+   }
+  },
+  {
+   "id": "2113613677135901151",
+   "url": "https://x.com/0xshardy/status/2113613677135901151",
+   "postedAt": "2026-10-23T12:49:04+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "one wallet just pushed 4,000 $BTC (~$325M) out in four clean 1,000 BTC transfers i checked the chain: - 07:46 TRT: 1,000 BTC out - 09:30: 1,000 BTC out - 09:57: 1,000 BTC out - 10:04: 1,000 BTC out - 11:37: the receiving address sweeps 2,000 BTC onward in one tx and goes to zero that last line is exactly how deposit addresses behave same wallet got loaded with 3,500 BTC on tuesday seller getting ready, or just a desk moving inventory?",
+   "quoted": null,
+   "images": [
+    "A screenshot of a cryptocurrency wallet interface displaying details for a specific Bitcoin address. It shows the approved balance, waiting balance,…"
+   ],
+   "category": "unscorable",
+   "calls": [
+    {
+     "asset": "BTC",
+     "side": "short",
+     "words": "seller getting ready, or just a desk moving inventory?",
+     "decision": "Kept by 3 of 3 arbiter decisions",
+     "unscorable": "Token not identified",
+     "results": null
+    }
+   ],
+   "mentions": [],
+   "check": {
+    "agrees": false,
+    "note": "the second reading sees no call on BTC: a question about a large transfer, without taking a side."
+   }
+  },
+  {
+   "id": "2113591119850230214",
+   "url": "https://x.com/0xshardy/status/2113591119850230214",
+   "postedAt": "2026-10-23T11:19:26+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "map:",
+   "quoted": null,
+   "images": [],
+   "category": "platform",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "BubbleMaps",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "https://app.bubblemaps.io/sol/token/6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN"
+    }
+   ],
+   "check": {
+    "agrees": false,
+    "note": "the second reading sees no crypto."
+   }
+  },
+  {
+   "id": "2113591113474863595",
+   "url": "https://x.com/0xshardy/status/2113591113474863595",
+   "postedAt": "2026-10-23T11:19:24+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "the priority fee is the tell on $TRUMP wallet funded ~4 hours before the coin existed (per Bubblemaps / Decrypt) ~$1.09M at open ~$84K paid just to land first split across ~9 wallets attributed profit: $ 100M+ insider timing doesn't look like this by accident $KIMCHI",
+   "quoted": null,
+   "images": [
+    "A digital visualization of a network graph featuring numerous colored nodes connected by directional arrows on a dark background. The image appears t…",
+    "A photo of a young man in a white shirt holding up an Acne shopping bag. The image is repeated in a grid layout."
+   ],
+   "category": "mention",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "TRUMP",
+     "kind": "mention",
+     "label": "named, but no call (no view on what comes next)",
+     "quote": "the priority fee is the tell on $TRUMP"
+    },
+    {
+     "asset": "KIMCHI",
+     "kind": "mention",
+     "label": "mentioned, no view on what comes next",
+     "quote": "$KIMCHI"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2113512905627062356",
+   "url": "https://x.com/0xshardy/status/2113512905627062356",
+   "postedAt": "2026-10-23T06:08:38+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "wait wait wait a QR drop. a founder repost. then the chart nuked and half the posts got deleted overnight? $KIMCHI is still the only story in the trenches this morning.",
+   "quoted": null,
+   "images": [],
+   "category": "mention",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "KIMCHI",
+     "kind": "mention",
+     "label": "context",
+     "quote": "$KIMCHI is still the only story in the trenches this morning."
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2113278284775768281",
+   "url": "https://x.com/0xshardy/status/2113278284775768281",
+   "postedAt": "2026-10-22T14:36:20+00:00",
+   "type": "quote",
+   "pinned": false,
+   "from": "@bubblemaps",
+   "text": "the \"$40M on TRUMP\" story behind $KIMCHI was a lie bubblemaps traced the wallets. real number: ~$6M the fake $34M sold a year of launchpad pitches and copy-trade courses. the wallet was public the whole time how many of you bought because of that screenshot?",
+   "quoted": {
+    "author": "@bubblemaps",
+    "text": "1/ Kimchi didn't make $40M on $TRUMP Not even close. We traced his wallets and found his actual profits 🧵"
+   },
+   "images": [
+    "A graphic design featuring the text '~$6M' in large, stylized letters with a chromatic aberration effect. Below the main text, the words 'ON-CHAIN' a…",
+    "A flowchart diagram illustrating a network of financial transactions between various accounts and wallets. The chart includes specific dollar amounts…"
+   ],
+   "category": "mention",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "KIMCHI",
+     "kind": "mention",
+     "label": "news or fact",
+     "quote": "$KIMCHI"
+    },
+    {
+     "asset": "TRUMP",
+     "kind": "mention",
+     "label": "news or fact",
+     "quote": "$TRUMP"
+    },
+    {
+     "asset": "Coinbase",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "\"Coinbase deposit\" in chart description"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2113254303016038802",
+   "url": "https://x.com/0xshardy/status/2113254303016038802",
+   "postedAt": "2026-10-22T13:01:02+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "metric is still early, and the volume you build before points go live is the cheap part. spot dex for tokenized stocks and RWAs. live on robinhood chain, bnb chain and ethereum. $ 25B+ traded so far. why it's different: liquidity moves with the live reference price instead of sitting in a range, so less capital handles more volume and your fill matches where the asset actually trades. how i'm using it @metricxyz - connect evm wallet and verify - swap on robinhood chain stocks, pick metric route when it shows - add LP to stock pools if you want extra weight already active on robinhood chain? t…",
+   "quoted": null,
+   "images": [
+    "A screenshot of a decentralized exchange (DEX) website landing page featuring a dark theme and a 3D wireframe graphic. The page displays a tagline ab…"
+   ],
+   "category": "platform",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "BNB Chain",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "live on robinhood chain, bnb chain and ethereum"
+    },
+    {
+     "asset": "Robinhood Chain",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "live on robinhood chain, bnb chain and ethereum"
+    },
+    {
+     "asset": "Metric",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "metric is still early, and the volume you build before points go live is the cheap part. how i'm using it @metricxyz"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2113245815863222779",
+   "url": "https://x.com/0xshardy/status/2113245815863222779",
+   "postedAt": "2026-10-22T12:27:19+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "headline numbers usually count unrealized bags and transfers as profit. the wallet tells the real story",
+   "quoted": null,
+   "images": [],
+   "category": "none",
+   "calls": [],
+   "mentions": [],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2113245810116694320",
+   "url": "https://x.com/0xshardy/status/2113245810116694320",
+   "postedAt": "2026-10-22T12:27:17+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "the $Kimchi wallet everyone's quoting at $282K. i pulled it on-chain. 8 SOL in, ~30 seconds after launch 34 sells for 1,132 SOL then 5 buybacks for 118 SOL 3M tokens sent to a separate wallet net ~1,000 SOL taken out, still holding ~$48K worth. great trade. just not the number on the timeline. always check the wallet before the headline",
+   "quoted": null,
+   "images": [
+    "An infographic detailing the on-chain transaction history and profit of a wallet associated with the $Kimchi token. It compares the claimed profit ag…"
+   ],
+   "category": "mention",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "KIMCHI",
+     "kind": "mention",
+     "label": "news or fact",
+     "quote": "the $Kimchi wallet everyone's quoting at $282K. i pulled it on-chain."
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2113223760522424770",
+   "url": "https://x.com/0xshardy/status/2113223760522424770",
+   "postedAt": "2026-10-22T10:59:40+00:00",
+   "type": "retweet",
+   "pinned": false,
+   "from": "@isnotberlin",
+   "text": "Bot League | Update 2 Yayında! 🤖 Merhabalar, Sevdiğim dostum Shardy'nin geliştirdiği @BotLeague_ oyununu gerçekten çok beğendim. Siz de göz atmak istersiniz diye paylaşmak istedim. Oyunun ikinci büyük güncellemesi yayınlandı ve birçok yeni özellik eklenmiş. Neler değişti? - 5 farklı karakter sınıfı: Warrior, Mage, Rogue, Priest ve Archer. - Her sınıfa özel 1 pasif yetenek ve 3 farklı beceri. - Yenilenen savaş mekanikleri, özel saldırı efektleri ve geri savurma animasyonları. - 1x ve 2x savaş hızı seçenekleri. - Karakter sınıfına uygun silahlarla ekstra XP kazanma imkânı. - Sınırsız antrenman…",
+   "quoted": null,
+   "images": [
+    "A promotional image for a game or project called 'Bot League' featuring a lineup of seven stylized robot characters in a colosseum setting. The image…"
+   ],
+   "category": "none",
+   "calls": [],
+   "mentions": [],
+   "check": {
+    "agrees": false,
+    "note": "the second reading sees a platform or promo."
+   }
+  },
+  {
+   "id": "2113203075590898066",
+   "url": "https://x.com/0xshardy/status/2113203075590898066",
+   "postedAt": "2026-10-22T09:37:29+00:00",
+   "type": "quote",
+   "pinned": false,
+   "from": "@Deestar",
+   "text": "+$5M to -$785k is what no exit plan looks like. nobody sells the top, but pulling your initial out anywhere in that $5.8M swing makes the rest a free ride $PONS that's conviction with a seatbelt",
+   "quoted": {
+    "author": "@Deestar",
+    "text": "from +$5,000,000→ -$785,675 on $PONS ~$5.8 million roundtrip conviction or retarded??"
+   },
+   "images": [
+    "A screenshot of a Fomo app interface displaying a user's portfolio performance. It shows a profit of $4,427.21 for the user 'Pons' and a buy transact…"
+   ],
+   "category": "scored",
+   "calls": [
+    {
+     "asset": "PONS",
+     "side": "long",
+     "words": "nobody sells the top, but pulling your initial out anywhere in that $5.8M swing makes the rest a free ride $PONS",
+     "decision": "Found by one AI reading, kept by 4 of 5 arbiter decisions",
+     "token": {
+      "chain": "Solana",
+      "address": "2K6N3AwwC9ZXbkBTpkwGCpW9DMasz9686sC2QZHQbuim",
+      "url": "https://www.geckoterminal.com/solana/tokens/2K6N3AwwC9ZXbkBTpkwGCpW9DMasz9686sC2QZHQbuim"
+     },
+     "identity": "Token: the most traded $PONS on Solana at the time of the post",
+     "correction": null,
+     "entry": 0.6507734854361678,
+     "results": {
+      "1d": {
+       "pct": 0.25,
+       "score": 51.24,
+       "exit": 0.6523895437611028
+      },
+      "1w": {
+       "pct": -0.16,
+       "score": 49.22,
+       "exit": 0.6497599534984178
+      },
+      "1m": {
+       "pct": 0.27,
+       "score": 51.33,
+       "exit": 0.6525054978602023
+      }
+     }
+    }
+   ],
+   "mentions": [],
+   "check": {
+    "agrees": false,
+    "note": "the second reading sees no call on PONS: a comment on another trader's round trip."
+   }
+  },
+  {
+   "id": "2113160174777389518",
+   "url": "https://x.com/0xshardy/status/2113160174777389518",
+   "postedAt": "2026-10-22T06:47:00+00:00",
+   "type": "quote",
+   "pinned": false,
+   "from": "@lookonchain",
+   "text": "whales pulling eth off exchanges while eth etfs bled $384M in the last 7 days. two groups reading the same market very differently. who's right this time?",
+   "quoted": {
+    "author": "@lookonchain",
+    "text": "Whales are accumulating $ETH! 0x4A85 withdrew 10,954 $ETH ($26.97M) from #Kraken and staked it after 4 months of inactivity. 0xdeA6 withdrew 9,000 $ETH ($22.42M) from #Binance and deposited it into Aave. 0xD338 withdrew 4,500 $ETH ($11.29M) from #Binance 10 hours ago."
+   },
+   "images": [
+    "A screenshot of a blockchain explorer displaying a list of ETH transactions. The transactions show transfers from a Kraken hot wallet to an Eth2 Beac…",
+    "A screenshot of a blockchain transaction explorer displaying a list of transfers involving USDC, ETH, and USDT. The transactions show movements betwe…"
+   ],
+   "category": "mention",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "AETHWETH",
+     "kind": "mention",
+     "label": "context",
+     "quote": "visible_text includes \"AETHWETH\""
+    },
+    {
+     "asset": "PENDLE",
+     "kind": "mention",
+     "label": "context",
+     "quote": "visible_text includes \"PENDLE\""
+    },
+    {
+     "asset": "MHYPER",
+     "kind": "mention",
+     "label": "context",
+     "quote": "visible_text includes \"MHYPER\""
+    },
+    {
+     "asset": "CBBTC",
+     "kind": "mention",
+     "label": "context",
+     "quote": "visible_text includes \"CBBTC\""
+    },
+    {
+     "asset": "Kraken",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "#Kraken"
+    },
+    {
+     "asset": "Binance",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "#Binance"
+    },
+    {
+     "asset": "Aave",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "Aave"
+    },
+    {
+     "asset": "ETH ETFs",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "eth etfs bled $384M"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2112968690710806587",
+   "url": "https://x.com/0xshardy/status/2112968690710806587",
+   "postedAt": "2026-10-21T18:06:07+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "i've been using ai bots for my crypto research for a few weeks now. the best part isn't the speed. it's that i stopped posting numbers i hadn't checked. before anything goes out, a bot pulls the wallet data and i look at it myself. slower, but i haven't had to delete a tweet since.",
+   "quoted": null,
+   "images": [],
+   "category": "none",
+   "calls": [],
+   "mentions": [],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2112917184267583637",
+   "url": "https://x.com/0xshardy/status/2112917184267583637",
+   "postedAt": "2026-10-21T14:41:27+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "everyone's checking their $AXIS allocation today. kaito isn't dead after all. i'm at 148 aura, rank 2,550. not there yet. but scroll the airdrop search for a minute. accounts posting the same \"checker is live\" text every few minutes, each with a different link. the only real claim is on the project's own account. don't sign anything else.",
+   "quoted": null,
+   "images": [
+    "A screenshot of a user profile on a social platform showing the name 'shardy' and handle '@0xshardy'. The profile displays statistics including 110 S…"
+   ],
+   "category": "mention",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "AXIS",
+     "kind": "mention",
+     "label": "context",
+     "quote": "everyone's checking their $AXIS allocation today."
+    },
+    {
+     "asset": "AURA",
+     "kind": "mention",
+     "label": "context",
+     "quote": "i'm at 148 aura, rank 2,550."
+    },
+    {
+     "asset": "KAI",
+     "kind": "mention",
+     "label": "context",
+     "quote": "kaito isn't dead after all."
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2112201807082787185",
+   "url": "https://x.com/0xshardy/status/2112201807082787185",
+   "postedAt": "2026-10-19T15:18:48+00:00",
+   "type": "quote",
+   "pinned": false,
+   "from": "@0x_Samir",
+   "text": "holy fuck, i just turned $73,000 into $761 but on testnet",
+   "quoted": {
+    "author": "@0x_Samir",
+    "text": "holy fuck, i just turned $183 into $28,000 but on testnet"
+   },
+   "images": [],
+   "category": "none",
+   "calls": [],
+   "mentions": [],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2112199659196428640",
+   "url": "https://x.com/0xshardy/status/2112199659196428640",
+   "postedAt": "2026-10-19T15:10:16+00:00",
+   "type": "quote",
+   "pinned": false,
+   "from": "@isnotberlin",
+   "text": "Değerli abim @isnotberlin ‘in sizler için faydalı olabilecek geliştirdiği bir projesi var. İşinize yarayacak birçok özellik var ve yenileri eklenerek devam ediyor. Bence @SolRePay ‘a bir göz atın derim. Eline emeğine sağlık",
+   "quoted": {
+    "author": "@isnotberlin",
+    "text": "Arkadaşlar, @SolRePay'in arkasındaki kişi benim. Solana cüzdanlarımızda, artık kullanmadığımız boş token hesaplarında bir miktar SOL kilitli kalabiliyor. SolRePay bu hesapları buluyor, kapatmanıza yardımcı oluyor ve geri alınabilir SOL doğrudan cüzdanınıza dönüyor. Siteyi baştan…"
+   },
+   "images": [],
+   "category": "platform",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "SolRePay",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "Bence @SolRePay ‘a bir göz atın derim."
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2111813815268720848",
+   "url": "https://x.com/0xshardy/status/2111813815268720848",
+   "postedAt": "2026-10-18T13:37:03+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "Just found this sitting in one of my Privy accounts No way. Go check yours :",
+   "quoted": null,
+   "images": [
+    "A screenshot of a mobile crypto wallet app displaying a total balance of $60,442.94. The interface includes an 'Add funds' button and a 'Breakdown' s…"
+   ],
+   "category": "platform",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "Privy",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "Just found this sitting in one of my Privy accounts"
+    }
+   ],
+   "check": {
+    "agrees": false,
+    "note": "the second reading sees no crypto."
+   }
+  },
+  {
+   "id": "2111750446851276829",
+   "url": "https://x.com/0xshardy/status/2111750446851276829",
+   "postedAt": "2026-10-18T09:25:15+00:00",
+   "type": "quote",
+   "pinned": false,
+   "from": "@conso_xyz",
+   "text": "I run AI agents every day. on-chain checks, research, content, all of it. none of that history belongs to me. it lives inside whatever app I used. that's the part @conso_xyz gets right: your everyday AI usage becomes reputation you actually own, on-chain. CONSO Bots take it further. reputation-backed agentic collectibles that run mobile nodes for the network, built on Sui and secured through Walrus. bots that farm get filtered. bots that verify get rewarded. if reputation becomes portable, which app do you leave first?",
+   "quoted": {
+    "author": "@conso_xyz",
+    "text": "CONSO BOTS Eligibility Checker is now LIVE 🚨 5,555 BOTS | Free Mint | Agentic Collectibles 🤖 Check your eligibility 👇"
+   },
+   "images": [
+    "A collage of three images showing the interior of a spaceship with a dashboard and a view of a blue warp-speed tunnel through the windows. The images…"
+   ],
+   "category": "platform",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "Sui",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "built on Sui"
+    },
+    {
+     "asset": "Walrus",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "secured through Walrus"
+    },
+    {
+     "asset": "CONSO",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "that's the part @conso_xyz gets right"
+    },
+    {
+     "asset": "CONSO BOTS",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "5,555 BOTS | Free Mint | Agentic Collectibles"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2111469801252008415",
+   "url": "https://x.com/0xshardy/status/2111469801252008415",
+   "postedAt": "2026-10-17T14:50:04+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "Öyle birşey öğrendim ki para kazanmamanın mümkünatı yok gibi Nasıl kazanamazsınız biliyomusunuz bu bir vaat deği bahsetceğim şey tamamen öğrenmeye dayalı bir durum Kimse sizinle paylaşmıyor Millet size parayla satıyor Ben yakında size telegramdan ücretsiz öğreteceğim gel -",
+   "quoted": null,
+   "images": [
+    "A 3D animated character wearing a white bucket hat with a yellow logo and a striped shirt makes a peace sign. Another character stands behind him wit…"
+   ],
+   "category": "none",
+   "calls": [],
+   "mentions": [],
+   "check": {
+    "agrees": false,
+    "note": "the second reading sees a platform or promo."
+   }
+  },
+  {
+   "id": "2111430587219165382",
+   "url": "https://x.com/0xshardy/status/2111430587219165382",
+   "postedAt": "2026-10-17T12:14:15+00:00",
+   "type": "quote",
+   "pinned": false,
+   "from": "@lookonchain",
+   "text": "wallet : 0x35b29bdd690f95fe35c9645f21866b04616295a7 first spotted by :",
+   "quoted": {
+    "author": "@lookonchain",
+    "text": "Meet this guy who really knows how to make money on @papertrade_xyz! He's made $762K so far. On the first day of @papertrade_xyz's launch, he generated $10.1B in trading volume and lost $979K, earning 252M $PAPER tokens. He then stopped trading and has since claimed $1.73M in US…"
+   },
+   "images": [
+    "A screenshot of the Papertrade portfolio dashboard displaying open positions, trading statistics, and a PnL chart. The lower section lists a transact…"
+   ],
+   "category": "mention",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "PAPER",
+     "kind": "mention",
+     "label": "news or fact",
+     "quote": "earned $1.73M in USDC rewards just by staking his 252M $PAPER"
+    },
+    {
+     "asset": "Papertrade",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "@papertrade_xyz"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2111430583364485484",
+   "url": "https://x.com/0xshardy/status/2111430583364485484",
+   "postedAt": "2026-10-17T12:14:14+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "this wallet lost $979K on paper trade's first day. then it stopped trading. staked all 252M $PAPER it earned. zero trades since oct 11. just claiming. USDC rewards claimed: ~$1.87M net profit after the loss: ~$891K lost by trading. won by doing nothing. would this still work once rewards drop?",
+   "quoted": null,
+   "images": [
+    "A bar chart comparing trading losses, USDC rewards, and net profit for a paper trade wallet on HyperEVM. The graphic highlights a net profit of $891K…"
+   ],
+   "category": "mention",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "PAPER",
+     "kind": "mention",
+     "label": "news or fact",
+     "quote": "$PAPER"
+    },
+    {
+     "asset": "HyperEVM",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "HyperEVM"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2111364857496793271",
+   "url": "https://x.com/0xshardy/status/2111364857496793271",
+   "postedAt": "2026-10-17T07:53:03+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "been stacking ethereum:0x4a220e6096b25eadb88358cb44068a3248254675 for a while. here's what actually moved it. $67 to $287 in 9 days. sep 24: The Clearing House, the payments network owned by the biggest US banks, picked Quant to connect its tokenized deposit network to RTP and CHIPS. launch target: first half of 2027. volume went from ~$8M a day to $1.49B in four days. now $203. +235% on the month, -17% on the week, mcap $2.96B, still about half its 2021 high. the open question: TCH never said banks need to hold QNT. if that link shows up, this was the start. if it doesn't, it was a headline…",
+   "quoted": null,
+   "images": [
+    "A 30-day price and volume chart for the QNT token showing a significant price increase from $67 to a peak of $287. The chart highlights a specific ev…"
+   ],
+   "category": "unscorable",
+   "calls": [
+    {
+     "asset": "QNT",
+     "side": "long",
+     "words": "if that link shows up, this was the start. if it doesn't, it was a headline pump.",
+     "decision": "Kept by 3 of 5 arbiter decisions",
+     "unscorable": "Token not identified",
+     "results": null
+    }
+   ],
+   "mentions": [
+    {
+     "asset": "The Clearing House",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "The Clearing House, the payments network owned by the biggest US banks"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2111164401885794458",
+   "url": "https://x.com/0xshardy/status/2111164401885794458",
+   "postedAt": "2026-10-16T18:36:31+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "Stop consuming. Start producing. The ones who ship eat. The ones who watch stay hungry.",
+   "quoted": null,
+   "images": [],
+   "category": "none",
+   "calls": [],
+   "mentions": [],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2111071520474730520",
+   "url": "https://x.com/0xshardy/status/2111071520474730520",
+   "postedAt": "2026-10-16T12:27:26+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "Bildirimleri açın derim 🤭",
+   "quoted": null,
+   "images": [],
+   "category": "none",
+   "calls": [],
+   "mentions": [],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2110079637124694297",
+   "url": "https://x.com/0xshardy/status/2110079637124694297",
+   "postedAt": "2026-10-13T18:46:03+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "",
+   "quoted": null,
+   "images": [],
+   "category": "none",
+   "calls": [],
+   "mentions": [],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2110068189283459140",
+   "url": "https://x.com/0xshardy/status/2110068189283459140",
+   "postedAt": "2026-10-13T18:00:34+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "1500$ > 180.000$ Hemde 4 saatte 🫪 ZypherHQ adlı kullanıcı $VEIL alımından %12.000 kâr etti. Aynı kullanıcı diğer cüzdanlarını tarıyorum $Ansem $claudia ve $vrax işlemlerinde de başarılı oldu İşlemlerini halka açık olarak gerçekleştirdi ve bu arkadaşı da size ücretsiz olarak sunduğum telegram botuma diğer işlemlerini de analiz ettirip ekletmeyi düşünüyorum++ Tg grubumuzu yorumlara bırakırım ++ ++ biliyosunuz robinhood chainde yakında güzel bir proje çıkartacağım @sherwoodrh_ Projemin sayfasına live chart + 2 tane agent’ımız var bunlar sürekli olarak piyasadan verileri okuyup işlemleri size hem…",
+   "quoted": null,
+   "images": [
+    "A screenshot of a Fomo app interface showing a user's trading portfolio and profit for the Veil token. The image includes a promotional banner at the…"
+   ],
+   "category": "mention",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "VEIL",
+     "kind": "mention",
+     "label": "context",
+     "quote": "$VEIL alımından %12.000 kâr etti"
+    },
+    {
+     "asset": "ANSEM",
+     "kind": "mention",
+     "label": "context",
+     "quote": "$Ansem ... işlemlerinde de başarılı oldu"
+    },
+    {
+     "asset": "CLAUDIA",
+     "kind": "mention",
+     "label": "context",
+     "quote": "$claudia ... işlemlerinde de başarılı oldu"
+    },
+    {
+     "asset": "VRAX",
+     "kind": "mention",
+     "label": "context",
+     "quote": "$vrax ... işlemlerinde de başarılı oldu"
+    },
+    {
+     "asset": "Robinhood Chain",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "robinhood chainde yakında güzel bir proje çıkartacağım"
+    },
+    {
+     "asset": "Fomo",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "Screenshot of a Fomo app interface showing Veil token portfolio"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2110038522845696350",
+   "url": "https://x.com/0xshardy/status/2110038522845696350",
+   "postedAt": "2026-10-13T16:02:41+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "a wallet bought $CRAWLER 11 seconds after launch. $370 → $25.8K ~30 more wallets got in within 35 seconds. most are still holding. luck or coordination?",
+   "quoted": null,
+   "images": [
+    "A screenshot of a blockchain transaction explorer showing a successful swap of WSOL tokens. The image highlights the transaction amount, timestamp, a…"
+   ],
+   "category": "mention",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "CRAWLER",
+     "kind": "mention",
+     "label": "news or fact",
+     "quote": "$CRAWLER"
+    },
+    {
+     "asset": "Pump.fun",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "Pump.fun AMM"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2110017628815098032",
+   "url": "https://x.com/0xshardy/status/2110017628815098032",
+   "postedAt": "2026-10-13T14:39:39+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "Bu arada bende bu paranın bi yarısı kadarını aylık veriyorum ama karşılığını ++++ olarak alıyorum bedavaya geliyor gençler",
+   "quoted": null,
+   "images": [
+    "A social media post screenshot showing a user's monthly and yearly digital subscription costs in Turkish Lira. The image includes a list of 18 subscr…"
+   ],
+   "category": "none",
+   "calls": [],
+   "mentions": [],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2109667325406548111",
+   "url": "https://x.com/0xshardy/status/2109667325406548111",
+   "postedAt": "2026-10-12T15:27:40+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "Özel sinyalleri paylaşacağım ve sizin için ücretsiz oluşturduğum tg botunun özelliklerinden faydalacağınız bir kanal oluşturdum Güzel para kazanmıştık geçen sene bunu yine yapıyorum Bedava gel bildirimleri aç :",
+   "quoted": null,
+   "images": [],
+   "category": "platform",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "Telegram",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "https://t.co/Kk4i2bXFBI"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2109648916551512077",
+   "url": "https://x.com/0xshardy/status/2109648916551512077",
+   "postedAt": "2026-10-12T14:14:31+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "Yeah… it actually happened. Used AI properly and started shipping. 1.5 weeks later this is the result. New site is live, working on a project, built a Telegram bot that catches solid signals, and I’m also building a game on the side. Turn notifications on if you want the real-time stuff. People who caught the earlier ones made good money. Dropping proof videos soon. More coming. Also follow the project account.",
+   "quoted": null,
+   "images": [
+    "A screenshot of a crypto wallet interface displaying an estimated total value of 2,691.34 USDT. The value is also shown in US dollar equivalent."
+   ],
+   "category": "none",
+   "calls": [],
+   "mentions": [],
+   "check": {
+    "agrees": false,
+    "note": "the second reading sees a platform or promo."
+   }
+  },
+  {
+   "id": "2109356264807624704",
+   "url": "https://x.com/0xshardy/status/2109356264807624704",
+   "postedAt": "2026-10-11T18:51:38+00:00",
+   "type": "quote",
+   "pinned": false,
+   "from": "@realcryptoboost",
+   "text": "Soğuk cüzdanın içine ince bir çip yerleştirmişler İlk ledger’ımı fransadan getirtmiştim Bi süre kullandım hatta çok güveniyordum ama fud olunca direkt bırakmıştım İyiki bırakmışım diyorum sıcak cüzdanlar bile doğru sitelere bağlanıp bağlantıyı kestiğinde daha güvenli gibi gelmeye başladı Düşünsenize birde soğuk cüzdana küçük para atmak için almıyorlar insanlar Tüm birikimini güvenilir biyere yatırıyorum diye düşünüp dolandırıcalara teslim edebiliyorsun Tüm firmalar için bunu söyleyemem çünkü zamanında ledger da ben video da çektiğimde böyle problemler yoktu Ama sonuç iç açıcı değil en azından…",
+   "quoted": {
+    "author": "@realcryptoboost",
+    "text": "Un Ledger peut passer tous les tests d'authenticité… et envoyer tes 24 mots à un inconnu par réseau mobile. ❌ Pour moi, c'est terminé. Je raccroche les hardware wallets. Et ça me fait mal de l'écrire. Pendant des années, c'était LE conseil. \"Not your keys, not your coins.\" Achèt…"
+   },
+   "images": [
+    "A close-up photo of a person's hands holding a small purple object, possibly a hardware wallet or crypto device. The background shows a desk with a b…"
+   ],
+   "category": "mention",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "Ledger",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "Ledger a confirmé un implant dans l'appareil d'une victime..."
+    },
+    {
+     "asset": "Mt. Gox",
+     "kind": "mention",
+     "label": "context",
+     "quote": "Mark Karpelès (ex-patron de Mt. Gox)"
+    }
+   ],
+   "check": {
+    "agrees": false,
+    "note": "the second reading sees a platform or promo."
+   }
+  },
+  {
+   "id": "2109349232490541177",
+   "url": "https://x.com/0xshardy/status/2109349232490541177",
+   "postedAt": "2026-10-11T18:23:41+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "- $STRK is seeing some massive buys coming in. RSI Swing has never been this overheated before. Not sure if it can break through that purple zone, but if it does, it looks like nothing will be able to stop it.",
+   "quoted": null,
+   "images": [
+    "A screenshot of a TradingView candlestick chart for the STRK/USDT perpetual contract on Binance. The chart displays price action, an RSI indicator, a…"
+   ],
+   "category": "scored",
+   "calls": [
+    {
+     "asset": "STRK",
+     "side": "long",
+     "words": "Not sure if it can break through that purple zone, but if it does, it looks like nothing will be able to stop it.",
+     "decision": "Found by one AI reading, kept by 3 of 3 arbiter decisions",
+     "token": {
+      "chain": "starknet-alpha",
+      "address": "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+      "url": "https://www.geckoterminal.com/starknet-alpha/tokens/0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"
+     },
+     "identity": "Token: the most traded $STRK on starknet-alpha at the time of the post",
+     "correction": null,
+     "entry": 0.11517008215322498,
+     "results": {
+      "1d": {
+       "pct": -15.87,
+       "score": 0.0,
+       "exit": 0.0968927953732021
+      },
+      "1w": {
+       "pct": -48.5,
+       "score": 0.0,
+       "exit": 0.0593158904737124
+      },
+      "1m": {
+       "pct": -67.34,
+       "score": 0.0,
+       "exit": 0.037613659662157
+      }
+     }
+    }
+   ],
+   "mentions": [
+    {
+     "asset": "Binance",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "on Binance"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2109294754622259683",
+   "url": "https://x.com/0xshardy/status/2109294754622259683",
+   "postedAt": "2026-10-11T14:47:12+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "Video kanıtlı 🍸 Bu arada daha demin 10$’lık kart aldım 47$ lık kart çıktı Katılması bedava her referans size 1$ getiriyor Uygulamadan cık gir yapınca geliyor çevrenize ref yapın bedava para - Code : fc67adf0af6b",
+   "quoted": null,
+   "images": [
+    "A screenshot of a mobile app displaying a digital 2019 Articuno-GX Pokémon card. The interface shows the card's value at $46.92 with options to sell…"
+   ],
+   "category": "mention",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "Phygitals",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "https://phygitals.onelink.me/1HmK/td3mve01 and text promoting the app with a referral code"
+    },
+    {
+     "asset": "ARTICUNOGX",
+     "kind": "mention",
+     "label": "context",
+     "quote": "Image description shows a digital 2019 Articuno-GX Pokémon card valued at $46.92"
+    }
+   ],
+   "check": {
+    "agrees": false,
+    "note": "the second reading sees a platform or promo."
+   }
+  },
+  {
+   "id": "2109288429879992416",
+   "url": "https://x.com/0xshardy/status/2109288429879992416",
+   "postedAt": "2026-10-11T14:22:05+00:00",
+   "type": "retweet",
+   "pinned": false,
+   "from": "@isnotberlin",
+   "text": "Sevdiğim ve değer verdiğim dostum @0xshardy nin build ettiği proje lütfen aşsağıdaki konuyu olabildiğince kişi görsün. Ayrıca birde rica etsem projeyi takip edebilir misiniz? Bu post herhangi bir işbirliği ya da reklam değildir.",
+   "quoted": null,
+   "images": [],
+   "category": "none",
+   "calls": [],
+   "mentions": [],
+   "check": {
+    "agrees": false,
+    "note": "the second reading sees a platform or promo."
+   }
+  },
+  {
+   "id": "2109243645559750888",
+   "url": "https://x.com/0xshardy/status/2109243645559750888",
+   "postedAt": "2026-10-11T11:24:07+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "Hepinize ÜCRETSİZ veriyorum. Tek şart gruba katılmanız. Balina cüzdanlarını tek tek araştırdım, nadir cüzdanları seçtim ve sizin için ücretsiz bir Telegram botu geliştirdim. Bot şu an Telegram grubumuzda aktif olarak çalışıyor. Önümüzdeki dönemde yeni özellikler ve eklemeler de gelecek. Ayrıca kendi projem olan @sherwoodrh_ ‘ı bence takip edin çok güzel bir site oluşturdum çok güzel güncellemeler yakında hepsi bedava 💎 Takipte kalın, bildirimleri açmayı unutmayın. 🔔 link :",
+   "quoted": null,
+   "images": [
+    "A screenshot of a user profile on a dark-themed application. The profile displays an orange blob avatar, the name 'Shardy', and the bio 'insider bot'."
+   ],
+   "category": "platform",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "sherwoodrh",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "kendi projem olan @sherwoodrh_ ‘ı bence takip edin"
+    },
+    {
+     "asset": "Telegram",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "Telegram botu geliştirdim... Bot şu an Telegram grubumuzda aktif"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2109022421999313343",
+   "url": "https://x.com/0xshardy/status/2109022421999313343",
+   "postedAt": "2026-10-10T20:45:03+00:00",
+   "type": "quote",
+   "pinned": false,
+   "from": "@strkworld",
+   "text": "I applied for this using Ready Wallet",
+   "quoted": {
+    "author": "@strkworld",
+    "text": "wen launch?"
+   },
+   "images": [
+    "A meme image featuring a Minecraft-style blocky character standing in a field of hay next to a blurry animal. The image is duplicated in a vertical l…"
+   ],
+   "category": "platform",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "Ready Wallet",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "I applied for this using Ready Wallet"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2109021902995914789",
+   "url": "https://x.com/0xshardy/status/2109021902995914789",
+   "postedAt": "2026-10-10T20:43:00+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "Been using the Grok bot for 2 days and had it build me a solid signal bot (Telegram for now). It already spotted some clear insiders people who launch a token, “don’t sell,” then buy through other wallets and send to Binance. Adding more features soon and I’ll drop it for free at the start. Stay tuned, turn on notifications. You might actually make some money.",
+   "quoted": null,
+   "images": [
+    "A screenshot of a user profile on a dark-mode application. The profile displays an orange blob avatar, the name 'Shardy', and the bio 'insider bot'."
+   ],
+   "category": "platform",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "Grok bot",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "Been using the Grok bot for 2 days"
+    },
+    {
+     "asset": "Telegram",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "(Telegram for now)"
+    },
+    {
+     "asset": "Binance",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "send to Binance"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2108979632573952160",
+   "url": "https://x.com/0xshardy/status/2108979632573952160",
+   "postedAt": "2026-10-10T17:55:02+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "Hesoyam just publicly dropped $127k into $HOTBOT on fomo 👀 Does he know something we don’t… or is this just pure chaos? Watching this one closely. Might have to join the circus. -",
+   "quoted": null,
+   "images": [
+    "A screenshot of a crypto trading app displaying the price chart and holder feed for a token named HOTBOT. The interface shows a significant price inc…"
+   ],
+   "category": "scored",
+   "calls": [
+    {
+     "asset": "HOTBOT",
+     "side": "long",
+     "words": "Might have to join the circus.",
+     "decision": "Kept by 3 of 3 arbiter decisions",
+     "token": {
+      "chain": "Solana",
+      "address": "8nnaeWCw8mUypcGAgbmSuzAT85uWx4UN12adDrMhXrGF",
+      "url": "https://www.geckoterminal.com/solana/tokens/8nnaeWCw8mUypcGAgbmSuzAT85uWx4UN12adDrMhXrGF"
+     },
+     "identity": "Token: the most traded $HOTBOT on Solana at the time of the post",
+     "correction": null,
+     "entry": 0.00579381533806455,
+     "results": {
+      "1d": {
+       "pct": -21.27,
+       "score": 0.0,
+       "exit": 0.0045616143767113135
+      },
+      "1w": {
+       "pct": -38.55,
+       "score": 0.0,
+       "exit": 0.0035603247405964975
+      },
+      "1m": {
+       "pct": -86.93,
+       "score": 0.0,
+       "exit": 0.0007571831398950601
+      }
+     }
+    }
+   ],
+   "mentions": [
+    {
+     "asset": "FOMO",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "on fomo"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  }
+ ]
+}

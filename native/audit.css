@@ -210,7 +210,7 @@
   /* on a phone the prices and result go on a second line, right under the date and the coin */
   .audit-what { display: contents; }
   .audit-coin { grid-column: 3; grid-row: 1; min-width: 0; }
-  .audit-row-result { grid-column: 2 / 4; grid-row: 2; gap: 8px; }
+  .audit-row-result { grid-column: 2 / 4; grid-row: 2; gap: 2px 8px; flex-wrap: wrap; }
   .audit-chevron { grid-column: 4; grid-row: 1; }
   .audit-prices, .audit-pct, .audit-score { min-width: 0; }
   .audit-windows { margin-left: 0; }
