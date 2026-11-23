@@ -1,0 +1,1549 @@
+{
+ "account": "wulfcryptox",
+ "generatedAt": "2026-11-23T18:39:35+00:00",
+ "from": "2026-10-09T14:15:43+00:00",
+ "to": "2026-11-23T14:50:49+00:00",
+ "summary": {
+  "posts": 46,
+  "calls": 11,
+  "scored": 11,
+  "average1d": 32.2,
+  "checkedAgree": 41
+ },
+ "method": [
+  "Every post on the profile from Oct 9 was collected again: posts, quotes and retweets, with their full text, the quoted post and every image.",
+  "A vision model describes each image, so a token shown only on a chart or a token page is not missed.",
+  "Two separate AI readings (gpt-oss-120b) list every crypto reference and every possible call. Any token the author names himself, by ticker, address or chart, is checked too.",
+  "An arbiter decides each possible call three times and keeps it only when at least two decisions agree. The author must name a specific token and say where it goes next: praise of a past move, a platform or a retweet is not a call.",
+  "Each call is tied to one token address: the one written in the post, shown on the image, or used by this account for that ticker, and only if that token was trading in the 24 hours before the post.",
+  "Prices come from GeckoTerminal. Score = 50 + 5 points per % gained in the called direction, between 0 and 100, after 1 day, 1 week and 1 month, as for every call on the site.",
+  "Each post was also read one by one by Claude as a second check."
+ ],
+ "items": [
+  {
+   "id": "2124878343078400015",
+   "url": "https://x.com/wulfcryptox/status/2124878343078400015",
+   "postedAt": "2026-11-23T14:50:49+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "Free 6x for anyone who tailed me on the Pump app for Nvidia reinstating Jensen as CEO",
+   "quoted": null,
+   "images": [
+    "A screenshot of a prediction market app showing a poll for the next CEO of NVIDIA, with Jensen Huang leading at 98%. The post includes a user's open…"
+   ],
+   "category": "platform",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "Pump.fun",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "Free 6x for anyone who tailed me on the Pump app ... https://pump.fun/u/WulfCrypto"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2124472124975010104",
+   "url": "https://x.com/wulfcryptox/status/2124472124975010104",
+   "postedAt": "2026-11-22T11:56:40+00:00",
+   "type": "quote",
+   "pinned": false,
+   "from": "@wulfcryptox",
+   "text": "Giga candle loading Huss Huss Huss",
+   "quoted": {
+    "author": "@wulfcryptox",
+    "text": "Locked in working for my bags while they’re out partying btw Huss Huss Huss"
+   },
+   "images": [
+    "A screenshot of a crypto token page for 'Huss' on the pump.fun platform. It displays a 6-day candlestick price chart showing a significant upward tre…",
+    "A 3D rendered LEGO-style character with a dragon tattoo sits at a desk with multiple monitors displaying a rising crypto chart. The scene includes a…"
+   ],
+   "category": "scored",
+   "calls": [
+    {
+     "asset": "HUSS",
+     "side": "long",
+     "words": "Giga candle loading",
+     "decision": "Found by one AI reading, kept by 3 of 3 arbiter decisions",
+     "token": {
+      "chain": "Solana",
+      "address": "CUg7AzWL5p8imZVqqdjEPgRhUsXAkBMW5JxkSJ9fpump",
+      "url": "https://www.geckoterminal.com/solana/tokens/CUg7AzWL5p8imZVqqdjEPgRhUsXAkBMW5JxkSJ9fpump"
+     },
+     "identity": "Token: address shown on the image",
+     "correction": null,
+     "entry": 0.0006050344740920846,
+     "results": {
+      "1d": {
+       "pct": -1.25,
+       "score": 43.76
+      },
+      "1w": {
+       "status": "pending"
+      },
+      "1m": {
+       "status": "pending"
+      }
+     }
+    }
+   ],
+   "mentions": [
+    {
+     "asset": "pump.fun",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "A screenshot of a crypto token page for 'Huss' on the pump.fun platform"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2124204780621029817",
+   "url": "https://x.com/wulfcryptox/status/2124204780621029817",
+   "postedAt": "2026-11-21T18:14:20+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "This market got mfs willing to burn bridges for the smallest of payoffs No way u mfs are down that bad Glad this market is showing everyone’s true colors though The bull will come eventually sooner rather than later and trust me notes are being taken Some of us have long memories",
+   "quoted": null,
+   "images": [],
+   "category": "none",
+   "calls": [],
+   "mentions": [],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2123836809251893347",
+   "url": "https://x.com/wulfcryptox/status/2123836809251893347",
+   "postedAt": "2026-11-20T17:52:08+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "Could’ve stabled and secured Genny But on the bright side looks like ima be stuck here with u mfs for a while longer",
+   "quoted": null,
+   "images": [],
+   "category": "mention",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "GENNY",
+     "kind": "mention",
+     "label": "context",
+     "quote": "Could’ve stabled and secured Genny"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2123759632166387720",
+   "url": "https://x.com/wulfcryptox/status/2123759632166387720",
+   "postedAt": "2026-11-20T12:45:28+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "Let’s be logical for a second $Macca is the mascot of GTA 6 the most anticipated game of the decade A character with this kind of exposure deserves 9 figs minimum But it’s going to take the right team to get it there And the more I hear about the ties to the Pepe cabal the more convinced I get Everyone has had a chance to get positioned and we’re still sitting below $1M MC Free at these levels imo C5eGEXJZYvXEbKdyvPtasksjGNV4xvMowpKM92bVv47f",
+   "quoted": null,
+   "images": [],
+   "category": "scored",
+   "calls": [
+    {
+     "asset": "MACCA",
+     "side": "long",
+     "words": "Free at these levels imo",
+     "decision": "Found by both AI readings, kept by 3 of 3 arbiter decisions",
+     "token": {
+      "chain": "Solana",
+      "address": "C5eGEXJZYvXEbKdyvPtasksjGNV4xvMowpKM92bVv47f",
+      "url": "https://www.geckoterminal.com/solana/tokens/C5eGEXJZYvXEbKdyvPtasksjGNV4xvMowpKM92bVv47f"
+     },
+     "identity": "Token: address written in the post",
+     "correction": null,
+     "entry": 0.0009073839021472064,
+     "results": {
+      "1d": {
+       "pct": -16.25,
+       "score": 0.0
+      },
+      "1w": {
+       "status": "pending"
+      },
+      "1m": {
+       "status": "pending"
+      }
+     }
+    }
+   ],
+   "mentions": [],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2123755064435122239",
+   "url": "https://x.com/wulfcryptox/status/2123755064435122239",
+   "postedAt": "2026-11-20T12:27:19+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "Locked in working for my bags while they’re out partying btw Huss Huss Huss",
+   "quoted": null,
+   "images": [
+    "A 3D rendered LEGO-style character with a dragon tattoo sits at a desk with multiple monitors displaying a rising crypto chart. The scene includes a…"
+   ],
+   "category": "none",
+   "calls": [],
+   "mentions": [],
+   "check": {
+    "agrees": false,
+    "note": "the second reading sees a crypto mentioned without a call."
+   }
+  },
+  {
+   "id": "2123620882643878307",
+   "url": "https://x.com/wulfcryptox/status/2123620882643878307",
+   "postedAt": "2026-11-20T03:34:08+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "$MACCA is exactly the kind of character coin I want to be positioned in The official GTA 6 mascot, massive normie appeal, an actual identity and a narrative that isn’t going away anytime soon Hearing some very good things about the team behind this too At this market cap the upside is fuckin ridiculous imo Will come back to this C5eGEXJZYvXEbKdyvPtasksjGNV4xvMowpKM92bVv47f",
+   "quoted": null,
+   "images": [
+    "A candlestick chart showing the price movement of the MACCA/USDC trading pair. The graph displays a significant price increase followed by a slight p…",
+    "A screenshot of an AI-generated text overview describing Macca the Gator, a character from Grand Theft Auto VI. The text details the character's role…"
+   ],
+   "category": "scored",
+   "calls": [
+    {
+     "asset": "MACCA",
+     "side": "long",
+     "words": "$MACCA is exactly the kind of character coin I want to be positioned in At this market cap the upside is fuckin ridiculous imo",
+     "decision": "Found by both AI readings, kept by 3 of 3 arbiter decisions",
+     "token": {
+      "chain": "Solana",
+      "address": "C5eGEXJZYvXEbKdyvPtasksjGNV4xvMowpKM92bVv47f",
+      "url": "https://www.geckoterminal.com/solana/tokens/C5eGEXJZYvXEbKdyvPtasksjGNV4xvMowpKM92bVv47f"
+     },
+     "identity": "Token: address written in the post",
+     "correction": null,
+     "entry": 0.00044519079445122495,
+     "results": {
+      "1d": {
+       "pct": 50.61,
+       "score": 100.0
+      },
+      "1w": {
+       "status": "pending"
+      },
+      "1m": {
+       "status": "pending"
+      }
+     }
+    }
+   ],
+   "mentions": [],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2123550666991817122",
+   "url": "https://x.com/wulfcryptox/status/2123550666991817122",
+   "postedAt": "2026-11-19T22:55:07+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "People need to understand that GTA 6 launching is just the beginning for a community like solana:GexThZHgaswpAQ7Fi8QrHFubjPimUNSYhJiAA7XZpump This game is going to be all over everyone’s timelines for months Clips, memes, gameplay and GTA Online hasn’t even dropped yet We’ve gone through a 78%+ retracement which is healthy for redistribution after that run In the last couple of days I’ve also seen some big names in the space hop on board Study this community, CTO team is strong af and imo the community behind it isn’t going anywhere",
+   "quoted": null,
+   "images": [
+    "A screenshot of a cryptocurrency price chart for the WASTED/SOL trading pair. The chart displays a candlestick graph with a recent price spike and a…"
+   ],
+   "category": "scored",
+   "calls": [
+    {
+     "asset": "WASTED",
+     "side": "long",
+     "words": "Study this community, CTO team is strong af and imo the community behind it isn’t going anywhere",
+     "decision": "Found by one AI reading, kept by 3 of 3 arbiter decisions",
+     "token": {
+      "chain": "Solana",
+      "address": "GexThZHgaswpAQ7Fi8QrHFubjPimUNSYhJiAA7XZpump",
+      "url": "https://www.geckoterminal.com/solana/tokens/GexThZHgaswpAQ7Fi8QrHFubjPimUNSYhJiAA7XZpump"
+     },
+     "identity": "Token: address written in the post",
+     "correction": null,
+     "entry": 0.001160860496157031,
+     "results": {
+      "1d": {
+       "pct": -21.21,
+       "score": 0.0
+      },
+      "1w": {
+       "status": "pending"
+      },
+      "1m": {
+       "status": "pending"
+      }
+     }
+    }
+   ],
+   "mentions": [],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2123281157626241161",
+   "url": "https://x.com/wulfcryptox/status/2123281157626241161",
+   "postedAt": "2026-11-19T05:04:11+00:00",
+   "type": "quote",
+   "pinned": false,
+   "from": "@stevewilldoit",
+   "text": "If u put $1k into @skel’s NFT project, u would have over $2k right now If u put $1k into yours, u would have $73 That tells u everything u need to know",
+   "quoted": {
+    "author": "@stevewilldoit",
+    "text": "I GOT IT DONE. NO THANKS to @skel He made sure a giveaway farmer was taken care of !!! Bro worry about ur fucking players and if ur on my twitter complaining or trying to help… Help about my tweet about saving someone with brain cancer , not trying to tear my name down with a fu…"
+   },
+   "images": [],
+   "category": "mention",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "SKEL",
+     "kind": "mention",
+     "label": "news or fact",
+     "quote": "If u put $1k into @skel’s NFT project, u would have over $2k right now"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2122898755707981917",
+   "url": "https://x.com/wulfcryptox/status/2122898755707981917",
+   "postedAt": "2026-11-18T03:44:39+00:00",
+   "type": "retweet",
+   "pinned": false,
+   "from": "@DopamineFeenFr1",
+   "text": "solana:GexThZHgaswpAQ7Fi8QrHFubjPimUNSYhJiAA7XZpump just hit 11K HOLDERS!!! Big shoutout to the WASTED Army grinding every damn day. Our thesis posts are closing in on 100K on FOMO. 11K deep and still loud as fuck. LFG @Wastedrespawned @seyong @fomo @tryfomo @solana_daily 👀",
+   "quoted": null,
+   "images": [],
+   "category": "relayed",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "WASTED",
+     "kind": "relayed",
+     "label": "someone else's call",
+     "quote": "pump just hit 11K HOLDERS!!!",
+     "side": "long"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2122882325919027402",
+   "url": "https://x.com/wulfcryptox/status/2122882325919027402",
+   "postedAt": "2026-11-18T02:39:22+00:00",
+   "type": "quote",
+   "pinned": false,
+   "from": "@json1444",
+   "text": "If you’re not grinding everyday on the pump app you’re ngmi",
+   "quoted": {
+    "author": "@json1444",
+    "text": "it's literally pointless to trade anywhere else at this point"
+   },
+   "images": [
+    "A screenshot of a social media post featuring a notification about a $23,069.93 payout from a trading app. The post includes a caption claiming it is…"
+   ],
+   "category": "platform",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "Pump app",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "If you’re not grinding everyday on the pump app you’re ngmi"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2122709962937802926",
+   "url": "https://x.com/wulfcryptox/status/2122709962937802926",
+   "postedAt": "2026-11-17T15:14:27+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "solana:Ai66LHZG9MCzg1WKdawwqduVAXpNDUuV8M3uyq5ppump generational comeback loading",
+   "quoted": null,
+   "images": [
+    "A screenshot of a candlestick price chart for the CATE/SOL trading pair on the Pump.fun platform. The chart displays a 1-day view showing a significa…"
+   ],
+   "category": "scored",
+   "calls": [
+    {
+     "asset": "CATE",
+     "side": "long",
+     "words": "generational comeback loading",
+     "decision": "Found by both AI readings, kept by 3 of 3 arbiter decisions",
+     "token": {
+      "chain": "Solana",
+      "address": "Ai66LHZG9MCzg1WKdawwqduVAXpNDUuV8M3uyq5ppump",
+      "url": "https://www.geckoterminal.com/solana/tokens/Ai66LHZG9MCzg1WKdawwqduVAXpNDUuV8M3uyq5ppump"
+     },
+     "identity": "Token: address written in the post",
+     "correction": null,
+     "entry": 0.02246121381281413,
+     "results": {
+      "1d": {
+       "pct": -13.44,
+       "score": 0.0
+      },
+      "1w": {
+       "status": "pending"
+      },
+      "1m": {
+       "status": "pending"
+      }
+     }
+    }
+   ],
+   "mentions": [
+    {
+     "asset": "Pump.fun",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "on the Pump.fun platform"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2122680967697416374",
+   "url": "https://x.com/wulfcryptox/status/2122680967697416374",
+   "postedAt": "2026-11-17T13:19:14+00:00",
+   "type": "retweet",
+   "pinned": false,
+   "from": "@rafael_on_chain",
+   "text": "Perfection PA. Panic sellers and people who were up too much got shaken out on a candle that recovered with a 2x bounce. Chart-wise, super bullish above 3M Considering the huge cash payment made for upcoming viral marketing, the GTA 6 release and the launch of a pad... I expect nothing less than 10M next solana:GexThZHgaswpAQ7Fi8QrHFubjPimUNSYhJiAA7XZpump",
+   "quoted": {
+    "author": "@J777Crypto",
+    "text": "Man this market is so wasted"
+   },
+   "images": [
+    "A 1-hour candlestick chart for the WASTED/SOL trading pair on PumpSwap, sourced from dexscreener.com. The chart shows a significant price spike follo…",
+    "A pixelated image of a character's head and shoulders, resembling a GTA character, set against a background of black and white horizontal bars. The w…"
+   ],
+   "category": "relayed",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "WASTED",
+     "kind": "relayed",
+     "label": "someone else's call",
+     "quote": "solana:GexThZHgaswpAQ7Fi8QrHFubjPimUNSYhJiAA7XZpump ... super bullish above 3M ... I expect nothing less than 10M next",
+     "side": "long"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2122506231843528828",
+   "url": "https://x.com/wulfcryptox/status/2122506231843528828",
+   "postedAt": "2026-11-17T01:44:54+00:00",
+   "type": "retweet",
+   "pinned": false,
+   "from": "@DopamineFeenFr1",
+   "text": "Bears on the roof. Foot on the fucking gas. solana:GexThZHgaswpAQ7Fi8QrHFubjPimUNSYhJiAA7XZpump 💀🔥 Dev rugged. Community respawned. Now we’re building something worth coming back for. That’s the thesis: a comeback story people can rally behind, a meme people already understand, and a community willing to put money and work behind it. I’ve committed $35,000 to CoinViral marketing. First $17,500 paid. A launchpad for community-created GTA memes paired with $WASTED is getting closer to release. The ambition is to give people more ways to discover us, create with us, and build around WASTED. And…",
+   "quoted": null,
+   "images": [
+    "A collage of three images showing a vintage car driving on a forest road with a group of people standing on its roof. The car is depicted from the re…"
+   ],
+   "category": "relayed",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "WASTED",
+     "kind": "relayed",
+     "label": "someone else's call",
+     "quote": "solana:GexThZHgaswpAQ7Fi8QrHFubjPimUNSYhJiAA7XZpump",
+     "side": "long"
+    },
+    {
+     "asset": "CoinViral",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "CoinViral marketing"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2122464681730170880",
+   "url": "https://x.com/wulfcryptox/status/2122464681730170880",
+   "postedAt": "2026-11-16T22:59:48+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "$WASTED just went through a 78% retracement after going parabolic for multiple days Iykyk, this is part of the process. redistribution and shakeouts are key for a stronger foundation to be built The thesis hasn’t changed one bit Act accordingly",
+   "quoted": null,
+   "images": [
+    "A candlestick chart showing the trading volume for the WASTED/SOL pair over a 4-hour period. The chart displays a significant spike in volume followe…"
+   ],
+   "category": "scored",
+   "calls": [
+    {
+     "asset": "WASTED",
+     "side": "long",
+     "words": "Act accordingly",
+     "decision": "Kept by 4 of 5 arbiter decisions",
+     "token": {
+      "chain": "Solana",
+      "address": "GexThZHgaswpAQ7Fi8QrHFubjPimUNSYhJiAA7XZpump",
+      "url": "https://www.geckoterminal.com/solana/tokens/GexThZHgaswpAQ7Fi8QrHFubjPimUNSYhJiAA7XZpump"
+     },
+     "identity": "Token: the Solana address this account uses for $WASTED",
+     "correction": null,
+     "entry": 0.0022683350402267835,
+     "results": {
+      "1d": {
+       "pct": 42.95,
+       "score": 100.0
+      },
+      "1w": {
+       "status": "pending"
+      },
+      "1m": {
+       "status": "pending"
+      }
+     }
+    }
+   ],
+   "mentions": [],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2122105826445811841",
+   "url": "https://x.com/wulfcryptox/status/2122105826445811841",
+   "postedAt": "2026-11-15T23:13:50+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "A chart this strong after going parabolic over the weekend is not something I’d be fading Sunday consolidation is usually the best time to bid Don’t be the guy buying back higher ethereum:0x083c2e89ca8272b7a1edcb1292639867c8cf780c",
+   "quoted": null,
+   "images": [
+    "A screenshot of a candlestick chart for the WASTED/SOL trading pair. The chart displays price action and volume over a 1-hour timeframe, showing a re…"
+   ],
+   "category": "scored",
+   "calls": [
+    {
+     "asset": "WASTED",
+     "side": "long",
+     "words": "A chart this strong after going parabolic over the weekend is not something I’d be fading. Sunday consolidation is usually the best time to bid.",
+     "decision": "Found by both AI readings, kept by 5 of 5 arbiter decisions",
+     "token": {
+      "chain": "Solana",
+      "address": "GexThZHgaswpAQ7Fi8QrHFubjPimUNSYhJiAA7XZpump",
+      "url": "https://www.geckoterminal.com/solana/tokens/GexThZHgaswpAQ7Fi8QrHFubjPimUNSYhJiAA7XZpump"
+     },
+     "identity": "Token: the Solana address this account uses for $WASTED",
+     "correction": "The post carries the address of WASTED on Ethereum, a token that had stopped trading ($43 traded in the 24 hours before the post). The WASTED on Solana that this account promotes, shown on the post's chart, is used instead.",
+     "entry": 0.0050265133268423915,
+     "results": {
+      "1d": {
+       "pct": -53.54,
+       "score": 0.0
+      },
+      "1w": {
+       "pct": -85.87,
+       "score": 0.0
+      },
+      "1m": {
+       "status": "pending"
+      }
+     }
+    }
+   ],
+   "mentions": [],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2121758871542767634",
+   "url": "https://x.com/wulfcryptox/status/2121758871542767634",
+   "postedAt": "2026-11-15T00:15:10+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "All my giveaways are REAL and winners are picked at random Every reply guy/gal has a chance I do these multiple times a week. Pays to stay active",
+   "quoted": null,
+   "images": [
+    "A screenshot of a direct message conversation between a user and a contact named Endeavour. The chat shows a discussion about sending a wallet addres…"
+   ],
+   "category": "none",
+   "calls": [],
+   "mentions": [],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2121754712491917472",
+   "url": "https://x.com/wulfcryptox/status/2121754712491917472",
+   "postedAt": "2026-11-14T23:58:38+00:00",
+   "type": "retweet",
+   "pinned": false,
+   "from": "@DopamineFeenFr1",
+   "text": "solana:GexThZHgaswpAQ7Fi8QrHFubjPimUNSYhJiAA7XZpump 🚀🚀🚀🚀🚀🔥🔥🔥",
+   "quoted": {
+    "author": "@Wastedrespawned",
+    "text": "Time to grow the $WASTED Army! 💀 Slap the WASTED badge on your profile pic and rep the army! You can even add the WASTED overlay to your videos, choose when it appears, and make your own GTA-style clips! Trim, crop, customize, all in your browser. No downloads needed! Give it a…"
+   },
+   "images": [
+    "A tattooed man is climbing a ladder in a dark setting. The rungs of the ladder are labeled with milestones: 1M, 2M, and 3M."
+   ],
+   "category": "relayed",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "WASTED",
+     "kind": "relayed",
+     "label": "someone else's call",
+     "quote": "solana:GexThZHgaswpAQ7Fi8QrHFubjPimUNSYhJiAA7XZpump 🚀🚀🚀🚀🚀🔥🔥🔥",
+     "side": "long"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2121751740961685553",
+   "url": "https://x.com/wulfcryptox/status/2121751740961685553",
+   "postedAt": "2026-11-14T23:46:49+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "Everything is bleeding except $WASTED Price going parabolic, holders climbing exponentially and the community getting louder by the day Just look at how people are moving on SocialFi and X. Everyone rocking their WASTED PFPs and spamming thesis A movement is forming that’ll soon be impossible to ignore We are still early",
+   "quoted": null,
+   "images": [
+    "A screenshot of a cryptocurrency trading chart for the WASTED/SOL pair. The chart displays volume data with a current value of 5.030M and a percentag…",
+    "A screenshot of a token analytics page for a token named WASTED, showing holder statistics over different time periods. A bar chart at the bottom vis…"
+   ],
+   "category": "scored",
+   "calls": [
+    {
+     "asset": "WASTED",
+     "side": "long",
+     "words": "Price going parabolic, holders climbing exponentially and the community getting louder by the day. A movement is forming that’ll soon be impossible to ignore.…",
+     "decision": "Found by both AI readings, kept by 3 of 3 arbiter decisions",
+     "token": {
+      "chain": "Solana",
+      "address": "GexThZHgaswpAQ7Fi8QrHFubjPimUNSYhJiAA7XZpump",
+      "url": "https://www.geckoterminal.com/solana/tokens/GexThZHgaswpAQ7Fi8QrHFubjPimUNSYhJiAA7XZpump"
+     },
+     "identity": "Token: the Solana address this account uses for $WASTED",
+     "correction": null,
+     "entry": 0.005575011762361575,
+     "results": {
+      "1d": {
+       "pct": -16.15,
+       "score": 0.0
+      },
+      "1w": {
+       "pct": -83.87,
+       "score": 0.0
+      },
+      "1m": {
+       "status": "pending"
+      }
+     }
+    }
+   ],
+   "mentions": [],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2121750225203466578",
+   "url": "https://x.com/wulfcryptox/status/2121750225203466578",
+   "postedAt": "2026-11-14T23:40:48+00:00",
+   "type": "retweet",
+   "pinned": false,
+   "from": "@DopamineFeenFr1",
+   "text": "solana:GexThZHgaswpAQ7Fi8QrHFubjPimUNSYhJiAA7XZpump supply is moving into stronger, more convicted hands. Exactly where it belongs. Less than 2% of supply left in the Pump liquidity pool. 👀 If demand keeps building, this squeeze could get fucking wild. FOMO verification may be closer than you think. 💀🔥 @Wastedrespawned",
+   "quoted": {
+    "author": "@DopamineFeenFr1",
+    "text": "Only 3% of $WASTED’s supply left in the Pump liquidity pool. 👀 If you don’t understand why that matters: as pool supply shrinks, continued buying can move price harder. If demand keeps coming and holders stay firm, that’s where a supply squeeze can get fucking wild. 💀 @Wastedres…"
+   },
+   "images": [],
+   "category": "relayed",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "WASTED",
+     "kind": "relayed",
+     "label": "someone else's call",
+     "quote": "solana:GexThZHgaswpAQ7Fi8QrHFubjPimUNSYhJiAA7XZpump supply is moving into stronger, more convicted hands.",
+     "side": "long"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2121526129789956502",
+   "url": "https://x.com/wulfcryptox/status/2121526129789956502",
+   "postedAt": "2026-11-14T08:50:20+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "When I see a coin showing this kind of momentum and strength in a market like this, top blasting doesn’t bother me one bit Between how the CTO team is handling everything, the constant developments, the GTA 6 narrative that will only grow stronger and a community on crack that refuses to give up and has never folded, I genuinely think this has all the ingredients to become something huge Let’s make history ethereum:0x083c2e89ca8272b7a1edcb1292639867c8cf780c bros",
+   "quoted": null,
+   "images": [
+    "A screenshot of a candlestick chart for the WASTED/SOL trading pair. The chart displays a recent price drop with a volume of 3.46M and a change of -9…"
+   ],
+   "category": "scored",
+   "calls": [
+    {
+     "asset": "WASTED",
+     "side": "long",
+     "words": "I genuinely think this has all the ingredients to become something huge",
+     "decision": "Found by both AI readings, kept by 3 of 3 arbiter decisions",
+     "token": {
+      "chain": "Solana",
+      "address": "GexThZHgaswpAQ7Fi8QrHFubjPimUNSYhJiAA7XZpump",
+      "url": "https://www.geckoterminal.com/solana/tokens/GexThZHgaswpAQ7Fi8QrHFubjPimUNSYhJiAA7XZpump"
+     },
+     "identity": "Token: the Solana address this account uses for $WASTED",
+     "correction": "The post carries the address of WASTED on Ethereum, a token that had stopped trading ($197 traded in the 24 hours before the post). The WASTED on Solana that this account promotes, shown on the post's chart, is used instead.",
+     "entry": 0.00386936804381061,
+     "results": {
+      "1d": {
+       "pct": 30.82,
+       "score": 100.0
+      },
+      "1w": {
+       "pct": -76.99,
+       "score": 0.0
+      },
+      "1m": {
+       "status": "pending"
+      }
+     }
+    }
+   ],
+   "mentions": [],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2121255736898400377",
+   "url": "https://x.com/wulfcryptox/status/2121255736898400377",
+   "postedAt": "2026-11-13T14:55:53+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "Bottom is in Bookmark it.",
+   "quoted": null,
+   "images": [],
+   "category": "none",
+   "calls": [],
+   "mentions": [],
+   "check": {
+    "agrees": false,
+    "note": "the second reading sees a call with no identifiable token."
+   }
+  },
+  {
+   "id": "2121041161812869370",
+   "url": "https://x.com/wulfcryptox/status/2121041161812869370",
+   "postedAt": "2026-11-13T00:43:14+00:00",
+   "type": "quote",
+   "pinned": false,
+   "from": "@a1lon9",
+   "text": "Think this is a really good direction for Pump Rewarding higher quality calls, expanding to perps and EVM tokens and giving traders more ways to earn for sharing their plays 30M+ paid out already and I think there’s still a lot of untapped potential here",
+   "quoted": {
+    "author": "@a1lon9",
+    "text": "We've now paid out over $30M in Callout Rewards to callers on the Pumpfun app. If you trade perps or EVM tokens, you're leaving money on the table by not posting callouts on the app. The new Diamond Callout Rewards algorithm not only encourages calling higher market cap tokens,…"
+   },
+   "images": [
+    "A screenshot of a crypto trading app interface displaying a list of token callouts. It shows performance metrics for two tokens, '牛逼' and 'GANG', inc…"
+   ],
+   "category": "mention",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "GANG",
+     "kind": "mention",
+     "label": "context",
+     "quote": "Callouts, Earned, 牛逼, GANG, $879K -> $8M MC, $907K -> $11M MC, 10x Boosted, tailers, tail volume"
+    },
+    {
+     "asset": "Pumpfun app",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "We've now paid out over $30M in Callout Rewards to callers on the Pumpfun app."
+    }
+   ],
+   "check": {
+    "agrees": false,
+    "note": "the second reading sees a platform or promo."
+   }
+  },
+  {
+   "id": "2120557049654165576",
+   "url": "https://x.com/wulfcryptox/status/2120557049654165576",
+   "postedAt": "2026-11-11T16:39:33+00:00",
+   "type": "quote",
+   "pinned": false,
+   "from": "@PumpfunEco",
+   "text": "We’ve seen posts of wallets making life changing money for a long time But it’s cool to see someone’s conviction from the start, sharing it with others and giving them the opportunity to make money alongside them This trader has made 700k+ from the trade itself, a substantial amount from bringing others along and built a massive following almost overnight Nice to see pump app making it a win win for everyone involved",
+   "quoted": {
+    "author": "@PumpfunEco",
+    "text": "Trader @faceofsol has gained over 25,000 followers on the Pumpfun app in the past day!"
+   },
+   "images": [
+    "A screenshot of a crypto influencer's X profile showing a pinned callout about an airdrop and a large portfolio value of over $1.2 million. The profi…"
+   ],
+   "category": "platform",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "Pumpfun app",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "Pumpfun app"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2120518525760463317",
+   "url": "https://x.com/wulfcryptox/status/2120518525760463317",
+   "postedAt": "2026-11-11T14:06:28+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "Like it or not mihao is great for the trenches Gives people something to believe in again and reminds everyone that top blasting can still pay off If you’re hating on this u must be sidelined, gay or both",
+   "quoted": null,
+   "images": [
+    "A screenshot of a cryptocurrency trading chart for the token 'ni hao cat' showing a massive price spike. The interface displays the current price at…"
+   ],
+   "category": "mention",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "MIHAO",
+     "kind": "mention",
+     "label": "mentioned, no view on what comes next",
+     "quote": "Like it or not mihao is great for the trenches"
+    },
+    {
+     "asset": "NIHAOCAT",
+     "kind": "mention",
+     "label": "mentioned, no view on what comes next",
+     "quote": "A screenshot of a cryptocurrency trading chart for the token 'ni hao cat' showing a massive price spike. The interface…"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2120482037907771757",
+   "url": "https://x.com/wulfcryptox/status/2120482037907771757",
+   "postedAt": "2026-11-11T11:41:29+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "Gm It's good to touch grass sometimes.",
+   "quoted": null,
+   "images": [
+    "A collage of photos showing a woman in a sparkly top and shorts standing next to a black Lamborghini SUV parked in the driveway of a large house. The…"
+   ],
+   "category": "none",
+   "calls": [],
+   "mentions": [],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2120475130505867533",
+   "url": "https://x.com/wulfcryptox/status/2120475130505867533",
+   "postedAt": "2026-11-11T11:14:02+00:00",
+   "type": "quote",
+   "pinned": false,
+   "from": "@wulfcryptox",
+   "text": "Congrats on the $100 win Used X Picker and will continue using it for all giveaways to keep things fair for everyone It pays to support and stay active Winner: @Endevou_r Draw ID: 1794395149853",
+   "quoted": {
+    "author": "@wulfcryptox",
+    "text": "$100 $SOL giveaway Blessing an active reply guy Just drop your solana wallet, RT and make sure you’re following Winner chosen in 48 hours 🤝"
+   },
+   "images": [],
+   "category": "mention",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "SOL",
+     "kind": "mention",
+     "label": "giveaway",
+     "quote": "$100 $SOL giveaway"
+    },
+    {
+     "asset": "X Picker",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "Used X Picker and will continue using it for all giveaways"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2118777500322918767",
+   "url": "https://x.com/wulfcryptox/status/2118777500322918767",
+   "postedAt": "2026-11-06T18:48:15+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "About to go on a generational run publicly on the pump app Just watch",
+   "quoted": null,
+   "images": [
+    "A screenshot of a crypto portfolio dashboard for the user WulfCrypto. It displays a total balance of $54,116.70 with a green performance chart showin…"
+   ],
+   "category": "platform",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "pump app",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "About to go on a generational run publicly on the pump app"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2118772096969134515",
+   "url": "https://x.com/wulfcryptox/status/2118772096969134515",
+   "postedAt": "2026-11-06T18:26:47+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "$100 $SOL giveaway Blessing an active reply guy Just drop your solana wallet, RT and make sure you’re following Winner chosen in 48 hours 🤝",
+   "quoted": null,
+   "images": [],
+   "category": "mention",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "SOL",
+     "kind": "mention",
+     "label": "giveaway",
+     "quote": "$100 $SOL giveaway"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2118167474902339898",
+   "url": "https://x.com/wulfcryptox/status/2118167474902339898",
+   "postedAt": "2026-11-05T02:24:14+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "Been a minute since we ran a giveaway who’s active?",
+   "quoted": null,
+   "images": [],
+   "category": "none",
+   "calls": [],
+   "mentions": [],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2115962481407566329",
+   "url": "https://x.com/wulfcryptox/status/2115962481407566329",
+   "postedAt": "2026-10-30T00:22:22+00:00",
+   "type": "quote",
+   "pinned": false,
+   "from": "@notesystems",
+   "text": "scooped local bottom for this gem of Robinhood tech - 10k+ users with actual use case that can be mass adopted by the whole market onchain",
+   "quoted": {
+    "author": "@notesystems",
+    "text": "Holding $NVDA vs. taking a note on it. Which one fits you? $NVDA is down 10% from its 6 Oct high, from $239.24 to $215.38. Here’s how that looked three ways, for a note struck that day: – Just holding: $10,000 is now $9,003 – Shield ($NVDA in): $276 paid for cover so far. No pay…"
+   },
+   "images": [
+    "A financial infographic from Note Systems comparing the performance of holding NVDA stock versus a specific note product. The image displays a line c…"
+   ],
+   "category": "scored",
+   "calls": [
+    {
+     "asset": "NOTE",
+     "side": "long",
+     "words": "scooped local bottom for this gem",
+     "decision": "Kept by 3 of 3 arbiter decisions",
+     "token": {
+      "chain": "Robinhood",
+      "address": "0xc4f730335fb9e439ca5552f7b52b8e638c4245b0",
+      "url": "https://www.geckoterminal.com/robinhood/tokens/0xc4f730335fb9e439ca5552f7b52b8e638c4245b0"
+     },
+     "identity": "Token: the most traded $NOTE on Robinhood at the time of the post",
+     "correction": null,
+     "entry": 0.037625263760540796,
+     "results": {
+      "1d": {
+       "pct": -14.01,
+       "score": 0.0
+      },
+      "1w": {
+       "pct": -28.38,
+       "score": 0.0
+      },
+      "1m": {
+       "status": "pending"
+      }
+     }
+    }
+   ],
+   "mentions": [
+    {
+     "asset": "USDG",
+     "kind": "mention",
+     "label": "context",
+     "quote": "$USDG"
+    },
+    {
+     "asset": "Robinhood",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "Robinhood tech"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2115812625888026688",
+   "url": "https://x.com/wulfcryptox/status/2115812625888026688",
+   "postedAt": "2026-10-29T14:26:54+00:00",
+   "type": "quote",
+   "pinned": false,
+   "from": "@vibe_trading",
+   "text": "Looks like something new is coming to perps About time",
+   "quoted": {
+    "author": "@vibe_trading",
+    "text": "Finally something new is coming."
+   },
+   "images": [
+    "A 3D rendered purple frog character wearing a blue tracksuit and sunglasses sits on a lounge chair by a pool at sunset. The character is using a lapt…"
+   ],
+   "category": "platform",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "perps",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "Looks like something new is coming to perps"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2115529853336510621",
+   "url": "https://x.com/wulfcryptox/status/2115529853336510621",
+   "postedAt": "2026-10-28T19:43:16+00:00",
+   "type": "retweet",
+   "pinned": false,
+   "from": "@mauritsneo",
+   "text": "Im giving away a Porsche GT3 (it’s free and takes 30 seconds to enter) simply vote for me below: help me win the vote &amp; if I win I will be giving the car to someone who voted for me",
+   "quoted": null,
+   "images": [
+    "A promotional image featuring a private jet and a silver Porsche GT3 car. Large text overlays announce a giveaway of the car to one person.",
+    "A promotional image featuring a large text overlay about a crypto competition and winning a Porsche, set against a background of a trading screen and…"
+   ],
+   "category": "platform",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "Frontier Traders",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "https://www.frontiertraders.com/wildcard/maurits-neo and image text \"Frontier Traders, Vote me to the London Final, Mau…"
+    }
+   ],
+   "check": {
+    "agrees": false,
+    "note": "the second reading sees no crypto."
+   }
+  },
+  {
+   "id": "2115517187838312617",
+   "url": "https://x.com/wulfcryptox/status/2115517187838312617",
+   "postedAt": "2026-10-28T18:52:56+00:00",
+   "type": "quote",
+   "pinned": false,
+   "from": "@skel",
+   "text": "What scum bags fr",
+   "quoted": {
+    "author": "@skel",
+    "text": "I’ve now gone through @bitcoinhodlco audited FY2026 accounts, and as a shareholder with over 10% of the company, I think it’s time for the board to confront some very uncomfortable numbers. At 30 June 2026, B HODL had £8.5m in assets, including £7.36m of Bitcoin. Its entire annu…"
+   },
+   "images": [],
+   "category": "mention",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "BTC",
+     "kind": "mention",
+     "label": "news or fact",
+     "quote": "including £7.36m of Bitcoin"
+    },
+    {
+     "asset": "CoinCorner",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "CoinCorner Rewards Account"
+    },
+    {
+     "asset": "Lightning",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "Lightning business generated just £14,183"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2115240560046870574",
+   "url": "https://x.com/wulfcryptox/status/2115240560046870574",
+   "postedAt": "2026-10-28T00:33:43+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "Most memes would kill to have even a fraction of the cultural relevance $TripleT has This mf is literally everywhere The meme of this generation And somehow most people are gonna ignore this generational entry to chase some shiny new bs Couldn’t be me.",
+   "quoted": null,
+   "images": [
+    "A screenshot of a cryptocurrency trading chart for the TripleT/SOL pair. The chart displays a volume indicator with a peak and a current value of 4.6…"
+   ],
+   "category": "scored",
+   "calls": [
+    {
+     "asset": "TRIPLET",
+     "side": "long",
+     "words": "Couldn’t be me.",
+     "decision": "Kept by 3 of 3 arbiter decisions",
+     "token": {
+      "chain": "Solana",
+      "address": "J8PSdNP3QewKq2Z1JJJFDMaqF7KcaiJhR7gbr5KZpump",
+      "url": "https://www.geckoterminal.com/solana/tokens/J8PSdNP3QewKq2Z1JJJFDMaqF7KcaiJhR7gbr5KZpump"
+     },
+     "identity": "Token: the most traded $TRIPLET on Solana at the time of the post",
+     "correction": null,
+     "entry": 0.004787156986061877,
+     "results": {
+      "1d": {
+       "pct": -7.96,
+       "score": 10.22
+      },
+      "1w": {
+       "pct": -35.51,
+       "score": 0.0
+      },
+      "1m": {
+       "status": "pending"
+      }
+     }
+    }
+   ],
+   "mentions": [],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2113586171024703547",
+   "url": "https://x.com/wulfcryptox/status/2113586171024703547",
+   "postedAt": "2026-10-23T10:59:46+00:00",
+   "type": "quote",
+   "pinned": false,
+   "from": "@xandereef",
+   "text": "Pumpfun is fkn WINNING",
+   "quoted": {
+    "author": "@xandereef",
+    "text": "Holy @Pumpfun packs…"
+   },
+   "images": [
+    "A screenshot of a mobile app displaying a graded Umbreon Pokémon card with a 'Cash out' option. The interface shows a current balance of $120,840.83…"
+   ],
+   "category": "mention",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "PUMP",
+     "kind": "mention",
+     "label": "news or fact",
+     "quote": "Pumpfun is fkn WINNING"
+    }
+   ],
+   "check": {
+    "agrees": false,
+    "note": "the second reading sees a platform or promo."
+   }
+  },
+  {
+   "id": "2113319142552178866",
+   "url": "https://x.com/wulfcryptox/status/2113319142552178866",
+   "postedAt": "2026-10-22T17:18:41+00:00",
+   "type": "quote",
+   "pinned": false,
+   "from": "@Pumpfun",
+   "text": "At this point the Pump team is shipping genuinely needed features multiple times a week It’s becoming more and more obvious that they’re building THE trading app for everyone From new users entering crypto to traders moving serious size W Pump",
+   "quoted": {
+    "author": "@Pumpfun",
+    "text": "EVM LIMIT ORDERS: Every trader wanted it, no social trading app shipped it. We changed that. Introducing EVM limit orders on Pumpfun: the FIRST social trading app with take profit and stop losses on Robinhood, BSC, Base, HyperEVM, Arc and Ink, with more chains coming soon 👇"
+   },
+   "images": [
+    "A digital illustration of two cylindrical, mint-green podiums with silver rims against a white background. The image appears to be a generic stock gr…"
+   ],
+   "category": "platform",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "Pumpfun",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "At this point the Pump team is shipping genuinely needed features multiple times a week ... building THE trading app fo…"
+    },
+    {
+     "asset": "Robinhood",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "take profit and stop losses on Robinhood, BSC, Base, HyperEVM, Arc and Ink"
+    },
+    {
+     "asset": "BSC",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "take profit and stop losses on Robinhood, BSC, Base, HyperEVM, Arc and Ink"
+    },
+    {
+     "asset": "Base",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "take profit and stop losses on Robinhood, BSC, Base, HyperEVM, Arc and Ink"
+    },
+    {
+     "asset": "HyperEVM",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "take profit and stop losses on Robinhood, BSC, Base, HyperEVM, Arc and Ink"
+    },
+    {
+     "asset": "Arc",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "take profit and stop losses on Robinhood, BSC, Base, HyperEVM, Arc and Ink"
+    },
+    {
+     "asset": "Ink",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "take profit and stop losses on Robinhood, BSC, Base, HyperEVM, Arc and Ink"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2113037764459659695",
+   "url": "https://x.com/wulfcryptox/status/2113037764459659695",
+   "postedAt": "2026-10-21T22:40:36+00:00",
+   "type": "quote",
+   "pinned": false,
+   "from": "@Pumpfun",
+   "text": "Hope you guys are starting to see why I've been using Pump Relay has been a headache for cross chain trading for way too long so seeing the team actually build their own solution is massive Love to see it",
+   "quoted": {
+    "author": "@Pumpfun",
+    "text": "Your crosschain trades have been slow, broken and overpriced for months. Relay, used by Fomo &amp; Pumpfun, has led traders to worse fills, missed trades and poor experiences. We refused to let this go on. Introducing Pump Bridge: 2x FASTER, 12x FEWER buy errors &amp; the BEST f…"
+   },
+   "images": [
+    "A text-based image on a white background with the phrase 'your social trading app has been f*cking' written in black and pink font. The text is repea…"
+   ],
+   "category": "platform",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "Pump",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "Hope you guys are starting to see why I've been using Pump"
+    },
+    {
+     "asset": "Relay",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "Relay has been a headache for cross chain trading for way too long"
+    },
+    {
+     "asset": "Pump Bridge",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "Introducing Pump Bridge: 2x FASTER, 12x FEWER buy errors & the BEST fills"
+    },
+    {
+     "asset": "Fomo",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "Relay, used by Fomo & Pumpfun"
+    },
+    {
+     "asset": "Pumpfun",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "Relay, used by Fomo & Pumpfun"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2113001402738045057",
+   "url": "https://x.com/wulfcryptox/status/2113001402738045057",
+   "postedAt": "2026-10-21T20:16:06+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "Lfg @MetaWin just hooked me up with a free $100 for u guys Deposit $100 on using code WULF They’ll match it with another $100 instantly No KYC needed either Only live for the next 24 hours",
+   "quoted": null,
+   "images": [
+    "A promotional graphic for the Metawin platform featuring an anime-style character in a car surrounded by gold coins and casino elements. The image ad…"
+   ],
+   "category": "platform",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "MetaWin",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "Lfg @MetaWin just hooked me up with a free $100 for u guys"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2112755051558998503",
+   "url": "https://x.com/wulfcryptox/status/2112755051558998503",
+   "postedAt": "2026-10-21T03:57:12+00:00",
+   "type": "retweet",
+   "pinned": false,
+   "from": "@dylansdegens",
+   "text": "the best coin on Pumpfun is $CATE by a mile and there’s not even a close second every other coin there relies on crime from the pump mm or a single person shilling it everyday rather than real fundamentals and collectivism sure there might be a lucky short term play every once in a while that you can make a quick buck on if you have an extreme edge but in the end, with variance included, 99% of traders are better off positioning in long term, cycle defining projects that can breakout of the CT bubble and reach retail through mass onboarding the stars have aligned for the biggest PVE coin in t…",
+   "quoted": null,
+   "images": [],
+   "category": "relayed",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "CATE",
+     "kind": "relayed",
+     "label": "someone else's call",
+     "quote": "the best coin on Pumpfun is $CATE by a mile",
+     "side": "long"
+    },
+    {
+     "asset": "Pumpfun",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "the best coin on Pumpfun is $CATE by a mile"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2112643648407871639",
+   "url": "https://x.com/wulfcryptox/status/2112643648407871639",
+   "postedAt": "2026-10-20T20:34:31+00:00",
+   "type": "post",
+   "pinned": true,
+   "from": null,
+   "text": "Officially joining the @Pumpfun ecosystem Been seeing everything they’ve been building lately and honestly it’s hard not to be bullish Lowest fees in social trading, fast execution, and some crazy rewards for callouts Drop me a follow we’re gonna run it up",
+   "quoted": null,
+   "images": [
+    "A screenshot of a crypto influencer's profile on X, displaying their name, follower count, and a performance chart showing a total value of $34,571.7…"
+   ],
+   "category": "platform",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "Pumpfun",
+     "kind": "platform",
+     "label": "platform or promo",
+     "quote": "Officially joining the @Pumpfun ecosystem"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2112270496339239086",
+   "url": "https://x.com/wulfcryptox/status/2112270496339239086",
+   "postedAt": "2026-10-19T19:51:45+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "Friendly reminder that cash is also a position Sometimes sitting on the sidelines is the best play",
+   "quoted": null,
+   "images": [],
+   "category": "none",
+   "calls": [],
+   "mentions": [],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2110767250558865768",
+   "url": "https://x.com/wulfcryptox/status/2110767250558865768",
+   "postedAt": "2026-10-15T16:18:23+00:00",
+   "type": "retweet",
+   "pinned": false,
+   "from": "@itsjonmelillo",
+   "text": "We all know what happens next, all of the Indians sold. Up and to the right szn is here for solana:Ai66LHZG9MCzg1WKdawwqduVAXpNDUuV8M3uyq5ppump Cat super cycle 🐱",
+   "quoted": null,
+   "images": [
+    "A screenshot of the Catecoin mobile app displaying a candlestick price chart for the CATE/SOL trading pair. The interface includes volume indicators,…",
+    "A screenshot of a crypto trading interface showing a profitable position in the CATE token. The display includes a price chart, current value of $157…"
+   ],
+   "category": "relayed",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "CATE",
+     "kind": "relayed",
+     "label": "someone else's call",
+     "quote": "Up and to the right szn is here for solana:Ai66LHZG9MCzg1WKdawwqduVAXpNDUuV8M3uyq5ppump",
+     "side": "long"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2110152019935891628",
+   "url": "https://x.com/wulfcryptox/status/2110152019935891628",
+   "postedAt": "2026-10-13T23:33:40+00:00",
+   "type": "retweet",
+   "pinned": false,
+   "from": "@DabalFNF",
+   "text": "Bad week at the office Onwards!",
+   "quoted": null,
+   "images": [
+    "A dark graphic with the text 'WEEKLY SCANS' and a social media handle. The image appears to be a title card or header for a post."
+   ],
+   "category": "none",
+   "calls": [],
+   "mentions": [],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2109179352009105756",
+   "url": "https://x.com/wulfcryptox/status/2109179352009105756",
+   "postedAt": "2026-10-11T07:08:38+00:00",
+   "type": "post",
+   "pinned": false,
+   "from": null,
+   "text": "Don’t let the course sellers find this one",
+   "quoted": null,
+   "images": [
+    "A screenshot of an app store listing for an application called 'LARP: Fake Dashboards & Notifs'. The page displays the app icon, a 4.6-star rating, a…"
+   ],
+   "category": "none",
+   "calls": [],
+   "mentions": [],
+   "check": {
+    "agrees": true
+   }
+  },
+  {
+   "id": "2108562053338145244",
+   "url": "https://x.com/wulfcryptox/status/2108562053338145244",
+   "postedAt": "2026-10-09T14:15:43+00:00",
+   "type": "retweet",
+   "pinned": false,
+   "from": "@dylansdegens",
+   "text": "the fastest horse when the markets flips bullish the 50 to 500m speed run will be glorious",
+   "quoted": null,
+   "images": [
+    "A screenshot of a candlestick chart for the CATE/SOL trading pair on PumpSwap from dexscreener.com. The chart displays a 12-hour market cap trend wit…"
+   ],
+   "category": "relayed",
+   "calls": [],
+   "mentions": [
+    {
+     "asset": "CATE",
+     "kind": "relayed",
+     "label": "someone else's call",
+     "quote": "A screenshot of a candlestick chart for the CATE/SOL trading pair on PumpSwap from dexscreener.com. The chart displays…",
+     "side": "long"
+    }
+   ],
+   "check": {
+    "agrees": true
+   }
+  }
+ ]
+}
