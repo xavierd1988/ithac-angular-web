@@ -6,7 +6,7 @@
   'use strict';
 
   const ACCOUNTS = new Set(['wulfcryptox']);
-  const VERSION = '20261123-audit3';
+  const VERSION = '20261123-audit4';
   const CATEGORIES = [
     { key: 'scored', label: 'Scored call', help: 'A call by this account on an identified token, with a price: scored with the same rule as every call on the site.' },
     { key: 'unscorable', label: 'Call without a price', help: 'A call on a known token whose exact token or price could not be pinned down, so it cannot be scored.' },
@@ -127,8 +127,10 @@
           aria-label="${esc(`${cat.label}, ${dateTime(item.postedAt)}, ${coin}. Show the post`)}" aria-haspopup="dialog">
           <span class="audit-led" data-cat="${esc(cat.key)}" aria-hidden="true"></span>
           <time datetime="${esc(item.postedAt)}">${esc(dateTime(item.postedAt))}</time>
-          <span class="audit-coin${item.category === 'none' ? ' quiet' : ''}">${esc(coin)}</span>
-          ${rowResultHtml(item)}
+          <span class="audit-what">
+            <span class="audit-coin${item.category === 'none' ? ' quiet' : ''}">${esc(coin)}</span>
+            ${rowResultHtml(item)}
+          </span>
           <span class="audit-chevron" aria-hidden="true">›</span>
         </button>
       </li>
@@ -137,7 +139,7 @@
 
   function rowResultHtml(item) {
     const call = (item.calls || []).find((c) => c.results) || (item.calls || [])[0];
-    if (!call) return '<span class="audit-row-result"></span>';
+    if (!call) return '';
     const w = windowOf(state.window);
     const r = call.results?.[w.h];
     const entry = Number.isFinite(call.entry) ? price(call.entry) : '–';
