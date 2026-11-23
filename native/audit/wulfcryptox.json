@@ -1,6 +1,6 @@
 {
  "account": "wulfcryptox",
- "generatedAt": "2026-11-23T18:39:35+00:00",
+ "generatedAt": "2026-11-23T18:52:06+00:00",
  "from": "2026-10-09T14:15:43+00:00",
  "to": "2026-11-23T14:50:49+00:00",
  "summary": {
@@ -93,7 +93,7 @@
    ],
    "mentions": [
     {
-     "asset": "pump.fun",
+     "asset": "Pump.fun",
      "kind": "platform",
      "label": "platform or promo",
      "quote": "A screenshot of a crypto token page for 'Huss' on the pump.fun platform"
@@ -318,7 +318,7 @@
    "calls": [],
    "mentions": [
     {
-     "asset": "SKEL",
+     "asset": "skel's NFT project",
      "kind": "mention",
      "label": "news or fact",
      "quote": "If u put $1k into @skel’s NFT project, u would have over $2k right now"
@@ -372,7 +372,7 @@
    "calls": [],
    "mentions": [
     {
-     "asset": "Pump app",
+     "asset": "Pump.fun",
      "kind": "platform",
      "label": "platform or promo",
      "quote": "If you’re not grinding everyday on the pump app you’re ngmi"
@@ -807,7 +807,7 @@
      "quote": "Callouts, Earned, 牛逼, GANG, $879K -> $8M MC, $907K -> $11M MC, 10x Boosted, tailers, tail volume"
     },
     {
-     "asset": "Pumpfun app",
+     "asset": "Pump.fun",
      "kind": "platform",
      "label": "platform or promo",
      "quote": "We've now paid out over $30M in Callout Rewards to callers on the Pumpfun app."
@@ -837,7 +837,7 @@
    "calls": [],
    "mentions": [
     {
-     "asset": "Pumpfun app",
+     "asset": "Pump.fun",
      "kind": "platform",
      "label": "platform or promo",
      "quote": "Pumpfun app"
@@ -867,12 +867,6 @@
      "kind": "mention",
      "label": "mentioned, no view on what comes next",
      "quote": "Like it or not mihao is great for the trenches"
-    },
-    {
-     "asset": "NIHAOCAT",
-     "kind": "mention",
-     "label": "mentioned, no view on what comes next",
-     "quote": "A screenshot of a cryptocurrency trading chart for the token 'ni hao cat' showing a massive price spike. The interface…"
     }
    ],
    "check": {
@@ -947,7 +941,7 @@
    "calls": [],
    "mentions": [
     {
-     "asset": "pump app",
+     "asset": "Pump.fun",
      "kind": "platform",
      "label": "platform or promo",
      "quote": "About to go on a generational run publicly on the pump app"
@@ -1223,7 +1217,7 @@
    "calls": [],
    "mentions": [
     {
-     "asset": "PUMP",
+     "asset": "Pump.fun",
      "kind": "mention",
      "label": "news or fact",
      "quote": "Pumpfun is fkn WINNING"
@@ -1253,7 +1247,7 @@
    "calls": [],
    "mentions": [
     {
-     "asset": "Pumpfun",
+     "asset": "Pump.fun",
      "kind": "platform",
      "label": "platform or promo",
      "quote": "At this point the Pump team is shipping genuinely needed features multiple times a week ... building THE trading app fo…"
@@ -1318,7 +1312,7 @@
    "calls": [],
    "mentions": [
     {
-     "asset": "Pump",
+     "asset": "Pump.fun",
      "kind": "platform",
      "label": "platform or promo",
      "quote": "Hope you guys are starting to see why I've been using Pump"
@@ -1337,12 +1331,6 @@
     },
     {
      "asset": "Fomo",
-     "kind": "platform",
-     "label": "platform or promo",
-     "quote": "Relay, used by Fomo & Pumpfun"
-    },
-    {
-     "asset": "Pumpfun",
      "kind": "platform",
      "label": "platform or promo",
      "quote": "Relay, used by Fomo & Pumpfun"
@@ -1399,7 +1387,7 @@
      "side": "long"
     },
     {
-     "asset": "Pumpfun",
+     "asset": "Pump.fun",
      "kind": "platform",
      "label": "platform or promo",
      "quote": "the best coin on Pumpfun is $CATE by a mile"
@@ -1425,7 +1413,7 @@
    "calls": [],
    "mentions": [
     {
-     "asset": "Pumpfun",
+     "asset": "Pump.fun",
      "kind": "platform",
      "label": "platform or promo",
      "quote": "Officially joining the @Pumpfun ecosystem"
