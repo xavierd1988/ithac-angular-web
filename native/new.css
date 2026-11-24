@@ -21,8 +21,6 @@
   .leaderboard-head > .sort-head[data-sort="score"] { grid-column: 3; }
   .leaderboard-head > .sort-head[data-sort="tweets"] { grid-column: 4; }
   .leaderboard-head > :last-child { grid-column: 5; }
-  .new-call { grid-template-columns: minmax(0, 1fr) auto; padding: 7px 4px; }
-  .new-call .new-tweet-meta { grid-column: 1 / -1; }
 }
 
 .new-detail {
@@ -33,21 +31,62 @@
   padding: 12px var(--row-padding) 16px;
   border-top: 1px solid var(--line);
   background: #f3f5f8;
+  --detail-inset: 10px;
   color: var(--muted);
   font-size: 13px;
 }
 .new-detail p { margin: 0; }
-.new-profile {
-  display: inline-block;
-  padding: 7px 12px;
-  border-radius: 999px;
-  background: var(--ink);
-  color: #fff;
-  font-weight: 600;
+
+/* The name and the photo open the account on X; the rest of the row opens its calls. The link covers only the photo
+   and the name, and takes the click itself (what is inside it lets the click through), so it never opens the row. */
+.leaderboard-account > .account-link {
+  display: inline-flex;
+  align-items: center;
+  gap: inherit;
+  min-width: 0;
+  max-width: 100%;
+  border-radius: 6px;
+  color: inherit;
   text-decoration: none;
 }
-.new-profile:hover { background: var(--accent); }
-.new-profile:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.account-link * { pointer-events: none; }
+.account-link:hover strong { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+.account-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+/* Under the calls, the tweets folded in a list that unfolds on a click, with a small arrow that turns down. */
+.new-tweets-drop { flex: 1 1 100%; min-width: 0; }
+.new-tweets-drop > summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 6px var(--detail-inset);
+  border-radius: 8px;
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 600;
+  list-style: none;
+  cursor: pointer;
+}
+.new-tweets-drop > summary::-webkit-details-marker { display: none; }
+.new-tweets-drop > summary::before {
+  width: 6px;
+  height: 6px;
+  border: solid currentColor;
+  border-width: 0 1.5px 1.5px 0;
+  transform: rotate(-45deg);
+  transition: transform .15s ease;
+  content: "";
+}
+.new-tweets-drop[open] > summary::before { transform: translateY(-2px) rotate(45deg); }
+.new-tweets-drop > summary:hover { background: #fff; }
+.new-tweets-drop > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.new-tweets-drop[open] > summary { margin-bottom: 2px; }
+.new-tweets-none { flex: 1 1 100%; padding: 0 var(--detail-inset); }
+.new-tweets-note { padding: 0 var(--detail-inset); }
+.new-all { display: block; width: fit-content; margin: 10px var(--detail-inset) 0; color: var(--accent); font-weight: 600; text-decoration: none; }
+.new-all:hover { text-decoration: underline; }
+.new-all:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { .new-tweets-drop > summary::before { transition: none; } }
 
 /* Account types: small diodes in the colours the page already uses (the green of the "Live" diode, the gold
    of the mark, the royal blue of the banner, plus red). The legend sits beside the ranking in the same small
@@ -156,7 +195,7 @@
   display: grid;
   grid-template-columns: 8em minmax(0, 1fr);
   gap: 2px 14px;
-  padding: 8px 10px;
+  padding: 8px var(--detail-inset);
   border-radius: 8px;
   color: var(--ink);
   text-decoration: none;
@@ -174,11 +213,11 @@
   line-height: 1.45;
   overflow-wrap: anywhere;
 }
-.new-more { margin: 8px 10px 0; padding: 0; border: 0; background: none; color: var(--accent); font: inherit; font-weight: 600; cursor: pointer; }
+.new-more { margin: 8px var(--detail-inset) 0; padding: 0; border: 0; background: none; color: var(--accent); font: inherit; font-weight: 600; cursor: pointer; }
 .new-more:hover { text-decoration: underline; }
 .new-more:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 @media (max-width: 720px) {
-  .new-tweet { grid-template-columns: minmax(0, 1fr); padding: 8px 4px; }
+  .new-tweet { grid-template-columns: minmax(0, 1fr); }
   .new-tweet-text { -webkit-line-clamp: 3; }
   .new-tweet-meta { flex-direction: row; flex-wrap: wrap; gap: 0 10px; }
 }
@@ -333,11 +372,11 @@
 /* The account's scored calls, above its tweets: when, which asset, which way, and the result for the window. */
 .new-calls { flex: 1 1 100%; min-width: 0; }
 .new-calls:empty { display: none; }
-.new-calls-head { margin: 0 0 4px; padding: 0 10px; color: var(--ink); font-size: 13px; font-weight: 600; }
+.new-calls-head { margin: 0 0 4px; padding: 0 var(--detail-inset); color: var(--ink); font-size: 13px; font-weight: 600; }
 .new-call-list { margin: 0 0 12px; padding: 0; list-style: none; }
 .new-call-list > li + li { border-top: 1px solid var(--line); }
 .new-call { display: grid; grid-template-columns: 8em minmax(0, 1fr) auto; gap: 2px 14px; align-items: baseline;
-  padding: 7px 10px; border-radius: 8px; color: var(--ink); font-size: 13px; text-decoration: none; }
+  padding: 7px var(--detail-inset); border-radius: 8px; color: var(--ink); font-size: 13px; text-decoration: none; }
 .new-call:hover { background: #fff; }
 .new-call:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 .new-call-asset { display: inline-flex; align-items: center; gap: 7px; min-width: 0; font-weight: 600; overflow-wrap: anywhere; }
@@ -360,3 +399,11 @@
 .rank-move.down { color: #d43c41; }
 .rank-move.same { color: var(--muted); font-weight: 600; }
 .rank-move.new { color: var(--accent); font-weight: 600; }
+
+/* Phones: the calls on two lines (when, then the asset and its result at the right edge), and everything in the
+   opened account inset the same, a little less than on a wide screen. Kept last so it wins over the rules above. */
+@media (max-width: 720px) {
+  .new-detail { --detail-inset: 6px; }
+  .new-call { grid-template-columns: minmax(0, 1fr) auto; }
+  .new-call .new-tweet-meta { grid-column: 1 / -1; }
+}
