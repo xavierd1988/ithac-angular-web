@@ -271,11 +271,15 @@
     state.page = 1;
     render();
   });
+  // The legend shows only the types that some account has (off-topic and inactive accounts now live in the Garage).
   function showLegend() {
     const has = state.accounts.some((a) => typeOf(a));
     if (!legend) return;
     legend.hidden = !has;
     legend.closest('.ranking-layout')?.classList.toggle('has-legend', has);
+    for (const b of legend.querySelectorAll('[data-cat]')) {
+      if (b.dataset.cat !== 'all') b.hidden = !state.accounts.some((a) => typeOf(a) === b.dataset.cat);
+    }
   }
   search.addEventListener('input', () => { state.query = search.value; state.page = 1; render(); });
 
