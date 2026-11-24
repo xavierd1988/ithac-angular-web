@@ -35,6 +35,41 @@
 .new-profile:hover { background: var(--accent); }
 .new-profile:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
+/* Tweets under an opened account, newest first, for the chosen window; each one opens on X. */
+.new-tweets { flex: 1 1 100%; min-width: 0; }
+.new-tweet-list { margin: 0; padding: 0; list-style: none; }
+.new-tweet-list > li + li { border-top: 1px solid var(--line); }
+.new-tweet {
+  display: grid;
+  grid-template-columns: 8em minmax(0, 1fr);
+  gap: 2px 14px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  color: var(--ink);
+  text-decoration: none;
+}
+.new-tweet:hover { background: #fff; }
+.new-tweet:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.new-tweet-meta { display: flex; flex-direction: column; gap: 2px; color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+.new-tweet-kind { font-size: 11px; overflow-wrap: anywhere; }
+.new-tweet-text {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  font-size: 13px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+.new-more { margin: 8px 10px 0; padding: 0; border: 0; background: none; color: var(--accent); font: inherit; font-weight: 600; cursor: pointer; }
+.new-more:hover { text-decoration: underline; }
+.new-more:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+@media (max-width: 720px) {
+  .new-tweet { grid-template-columns: minmax(0, 1fr); padding: 8px 4px; }
+  .new-tweet-text { -webkit-line-clamp: 3; }
+  .new-tweet-meta { flex-direction: row; flex-wrap: wrap; gap: 0 10px; }
+}
+
 /* The three windows sit in the blue banner, centred under the title and the mark.
    A glossy white pill slides to the chosen window. */
 .page-intro .cover-inner { padding-bottom: clamp(12px, 1.6vw, 20px); }
