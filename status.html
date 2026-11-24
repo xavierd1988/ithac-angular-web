@@ -71,7 +71,7 @@
     (() => {
       'use strict';
       const SOURCE = 'https://api.ithacapp.com/new/status.json';
-      const COLORS = { independent: '#3fcf7f', promoter: '#e8b931', institution: '#3b6cf6', news: '#3b6cf6', bot: '#e5484d' };
+      const COLORS = { independent: '#3fcf7f', promoter: '#e8b931', institution: '#3b6cf6', news: '#3b6cf6', bot: '#e5484d', offtopic: '#fff', inactive: '#8b5cf6' };
       const LABELS = { independent: 'Independent', promoter: 'Promoter', institution: 'Institution', news: 'News', bot: 'Bot', offtopic: 'Off topic', inactive: 'Inactive' };
       const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
       const num = (v) => Number(v || 0).toLocaleString('en-US');
@@ -109,7 +109,7 @@
         const types = Object.entries(n.types || {})
           .filter(([k]) => LABELS[k])
           .sort((a, b) => b[1] - a[1])
-          .map(([k, v]) => `<span>${COLORS[k] ? `<i class="dot" style="background:${COLORS[k]}"></i>` : ''}${esc(LABELS[k])} ${num(v)}</span>`).join('');
+          .map(([k, v]) => `<span>${COLORS[k] ? `<i class="dot" style="background:${COLORS[k]}${COLORS[k] === '#fff' ? ';box-shadow:inset 0 0 0 1px #9aa5b5' : ''}"></i>` : ''}${esc(LABELS[k])} ${num(v)}</span>`).join('');
         const rows = [
           ['Tweets in the base', num(n.tweets)],
           ['Accounts that tweeted in 30 days', num(n.accountsWithTweets)],

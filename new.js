@@ -11,8 +11,8 @@
   const WINDOW_WORDS = { day: 'in the last 24 hours', week: 'in the last 7 days', month: 'in the last month' };
   const tweetCache = new Map();
   // Account types from the server's classification, shown as a coloured dot; news outlets count as institutions.
-  const GROUP = { independent: 'independent', promoter: 'promoter', institution: 'institution', news: 'institution', bot: 'bot' };
-  const LABEL = { independent: 'Independent', promoter: 'Promoter', institution: 'Institution', bot: 'Bot' };
+  const GROUP = { independent: 'independent', promoter: 'promoter', institution: 'institution', news: 'institution', bot: 'bot', offtopic: 'offtopic', inactive: 'inactive' };
+  const LABEL = { independent: 'Independent', promoter: 'Promoter', institution: 'Institution', bot: 'Bot', offtopic: 'Off topic', inactive: 'Inactive' };
   const typeOf = (a) => GROUP[a.category] || null;
 
   const list = document.getElementById('list');
