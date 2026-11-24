@@ -27,3 +27,23 @@
 }
 .new-profile:hover { background: var(--accent); }
 .new-profile:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* The three windows sit in the blue banner, under the title. */
+.cover-text { display: grid; justify-items: start; gap: clamp(14px, 2vw, 22px); min-width: 0; }
+.page-intro .ranking-period { border: 1px solid rgba(255, 255, 255, 0.18); background: rgba(255, 255, 255, 0.08); }
+.page-intro .period-button { color: rgba(255, 255, 255, 0.8); }
+.page-intro .period-button:hover { color: #fff; }
+.page-intro .period-button:is([aria-pressed="true"], .active) { border-color: transparent; color: #02093e; background: #fff; }
+.page-intro .period-button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+
+/* The card starts directly with the column titles. */
+.list-card > .leaderboard-head:first-child { border-top: 0; }
+
+/* Pages at the bottom of the list. */
+.new-pager { justify-content: center; border-top: 1px solid var(--line); }
+.new-pager .page-numbers { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+.new-pager .page-gap { padding: 0 4px; color: var(--muted); }
+.new-pager label { display: inline-flex; align-items: center; gap: 6px; margin-left: 8px; color: var(--muted); }
+.new-pager button:disabled { opacity: 0.4; cursor: default; }
+.ranking-footer-row { align-items: center; }
+.ranking-footer-stats { margin: 0; color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
