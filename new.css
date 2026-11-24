@@ -2,7 +2,14 @@
 .leaderboard-last.new-followers { cursor: inherit; }
 .leaderboard-last.new-followers:hover { background: none; }
 .leaderboard-last.new-followers:hover b { color: inherit; text-decoration: none; }
-.leaderboard-score, .leaderboard-calls { color: var(--dim); }
+.leaderboard-score.new-last, .leaderboard-calls.new-count { color: var(--ink); font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.leaderboard-score.new-last { white-space: nowrap; }
+.leaderboard-head .label-short { display: none; }
+@media (max-width: 720px) {
+  .leaderboard-head .label-long { display: none; }
+  .leaderboard-head .label-short { display: inline; }
+  .leaderboard-score.new-last, .leaderboard-calls.new-count { font-size: 12px; }
+}
 
 .new-detail {
   display: flex;
