@@ -258,12 +258,15 @@
   });
   markSort();
 
-  // The legend: a click shows only that type of account, a second click shows them all again.
+  // The legend: a click shows only that type of account; "All" (or a second click on the type) shows them all again.
   legend?.addEventListener('click', (event) => {
     const item = event.target.closest('[data-cat]');
     if (!item) return;
-    state.cat = state.cat === item.dataset.cat ? null : item.dataset.cat;
-    for (const b of legend.querySelectorAll('[data-cat]')) b.setAttribute('aria-pressed', String(b.dataset.cat === state.cat));
+    const cat = item.dataset.cat === 'all' ? null : item.dataset.cat;
+    state.cat = state.cat === cat ? null : cat;
+    for (const b of legend.querySelectorAll('[data-cat]')) {
+      b.setAttribute('aria-pressed', String((b.dataset.cat === 'all' ? null : b.dataset.cat) === state.cat));
+    }
     legend.classList.toggle('filtering', Boolean(state.cat));
     state.page = 1;
     render();
