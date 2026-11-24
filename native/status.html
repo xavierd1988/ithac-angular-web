@@ -111,6 +111,7 @@
           .sort((a, b) => b[1] - a[1])
           .map(([k, v]) => `<span>${COLORS[k] ? `<i class="dot" style="background:${COLORS[k]}${COLORS[k] === '#fff' ? ';box-shadow:inset 0 0 0 1px #9aa5b5' : ''}"></i>` : ''}${esc(LABELS[k])} ${num(v)}</span>`).join('');
         const rows = [
+          ['Accounts in the new version', num(n.accountsFollowed)],
           ['Tweets in the base', num(n.tweets)],
           ['Accounts that tweeted in 30 days', num(n.accountsWithTweets)],
           ['Tweets in the last 24 hours', num(n.tweets24h)],
