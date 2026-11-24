@@ -348,3 +348,15 @@
 .new-call-result.up { color: #16a05a; }
 .new-call-result.down { color: #d43c41; }
 @media (max-width: 720px) { :root { --ranking-columns: 28px minmax(0, 1fr) 64px 46px 12px; } }
+
+/* Countdown to the next update, under the period buttons in the banner. */
+.cover-periods { flex-direction: column; align-items: center; }
+.next-update { min-height: 1.4em; margin: 10px 0 0; color: rgba(255, 255, 255, .72); font-size: 12.5px; font-variant-numeric: tabular-nums;
+  letter-spacing: .02em; text-align: center; }
+
+/* Movement since the previous update, under the rank: up in green, down in red, unchanged, or new in the ranking. */
+.rank-move { display: block; margin-top: 3px; font-size: 10.5px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+.rank-move.up { color: #16a05a; }
+.rank-move.down { color: #d43c41; }
+.rank-move.same { color: var(--muted); font-weight: 600; }
+.rank-move.new { color: var(--accent); font-weight: 600; }
