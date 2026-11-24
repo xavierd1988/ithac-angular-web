@@ -6,10 +6,14 @@
 
   const SOURCE = new URLSearchParams(location.search).get('src') || 'https://api.ithacapp.com/new/accounts.json';
   const BASE = SOURCE.replace(/[^/]*$/, '');
-  const state = { accounts: [], query: '', page: 1, size: 100, open: null, window: 'day' };
+  const state = { accounts: [], query: '', page: 1, size: 100, open: null, window: 'day', cat: null };
   const WINDOW_MS = { day: 864e5, week: 7 * 864e5, month: 30 * 864e5 };
   const WINDOW_WORDS = { day: 'in the last 24 hours', week: 'in the last 7 days', month: 'in the last month' };
   const tweetCache = new Map();
+  // Account types from the server's classification, shown as a coloured dot; news outlets count as institutions.
+  const GROUP = { independent: 'independent', promoter: 'promoter', institution: 'institution', news: 'institution', bot: 'bot' };
+  const LABEL = { independent: 'Independent', promoter: 'Promoter', institution: 'Institution', bot: 'Bot' };
+  const typeOf = (a) => GROUP[a.category] || null;
 
   const list = document.getElementById('list');
   const stats = document.getElementById('rankingStats');
@@ -19,14 +23,18 @@
   const next = document.getElementById('nextPage');
   const sizeSelect = document.getElementById('pageSize');
   const search = document.getElementById('rankingSearch');
+  const legend = document.getElementById('catLegend');
 
   const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const count = (value) => Number(value || 0).toLocaleString('en-US');
 
+  // A chosen account type keeps only those accounts and numbers them from 1; a search then narrows them further.
   function visible() {
+    const base = state.cat ? state.accounts.filter((a) => typeOf(a) === state.cat) : state.accounts;
+    base.forEach((a, i) => { a.shownRank = i + 1; });
     const q = state.query.trim().toLowerCase().replace(/^@/, '');
-    if (!q) return state.accounts;
-    return state.accounts.filter((a) => a.username.toLowerCase().includes(q) || a.name.toLowerCase().includes(q));
+    if (!q) return base;
+    return base.filter((a) => a.username.toLowerCase().includes(q) || a.name.toLowerCase().includes(q));
   }
 
   // Last tweet and number of tweets come from the new collection; until it fills the new base they show "–".
@@ -117,15 +125,16 @@
 
   function row(a) {
     const open = state.open === a.username;
+    const g = typeOf(a);
+    const dot = g ? `<span class="cat-dot cat-${g}" title="${LABEL[g]}"><span class="visually-hidden">${LABEL[g]}: </span></span>` : '';
     return `
       <details class="leaderboard-entry" data-username="${esc(a.username)}"${open ? ' open' : ''}>
         <summary class="leaderboard-summary">
-          <span class="leaderboard-rank"><span class="visually-hidden">Rank </span>${a.rank}</span>
+          <span class="leaderboard-rank"><span class="visually-hidden">Rank </span>${a.shownRank}</span>
           <span class="leaderboard-account">
             ${avatar(a)}
             <span class="leaderboard-name">
-              <strong>${esc(a.name)}</strong>
-              <small class="grading-badge">@${esc(a.username)}</small>
+              <strong>${dot}${esc(a.name)}</strong>
             </span>
           </span>
           <span class="leaderboard-last new-followers"><span class="last-label">Followers</span><b>${count(a.followers)}</b></span>
@@ -135,7 +144,7 @@
         </summary>
         <div class="new-detail">
           <div class="new-tweets"></div>
-          <a class="new-profile" href="https://x.com/${encodeURIComponent(a.username)}" target="_blank" rel="noopener noreferrer">Open @${esc(a.username)} on X</a>
+          <a class="new-profile" href="https://x.com/${encodeURIComponent(a.username)}" target="_blank" rel="noopener noreferrer">Open on X</a>
         </div>
       </details>`;
   }
@@ -177,7 +186,7 @@
       ? '<span class="page-gap" aria-hidden="true">…</span>'
       : `<button type="button" data-page="${p}"${p === state.page ? ' class="active" aria-current="page"' : ''}>${p}</button>`).join('');
     stats.textContent = rows.length
-      ? `Accounts ${count(start + 1)}–${count(start + pageRows.length)} of ${count(rows.length)}${state.query.trim() ? ` matching “${state.query.trim()}”` : ''}`
+      ? `Accounts ${count(start + 1)}–${count(start + pageRows.length)} of ${count(rows.length)}${state.cat ? `, ${LABEL[state.cat].toLowerCase()} only` : ''}${state.query.trim() ? ` matching “${state.query.trim()}”` : ''}`
       : '';
     const opened = list.querySelector('details.leaderboard-entry[open]');
     if (opened) fillTweets(opened);
@@ -208,6 +217,23 @@
     if (button) goTo(Number(button.dataset.page));
   });
   sizeSelect.addEventListener('change', () => { state.size = Number(sizeSelect.value) || 100; state.page = 1; render(); });
+
+  // The legend: a click shows only that type of account, a second click shows them all again.
+  legend?.addEventListener('click', (event) => {
+    const item = event.target.closest('[data-cat]');
+    if (!item) return;
+    state.cat = state.cat === item.dataset.cat ? null : item.dataset.cat;
+    for (const b of legend.querySelectorAll('[data-cat]')) b.setAttribute('aria-pressed', String(b.dataset.cat === state.cat));
+    legend.classList.toggle('filtering', Boolean(state.cat));
+    state.page = 1;
+    render();
+  });
+  function showLegend() {
+    const has = state.accounts.some((a) => typeOf(a));
+    if (!legend) return;
+    legend.hidden = !has;
+    legend.closest('.ranking-layout')?.classList.toggle('has-legend', has);
+  }
   search.addEventListener('input', () => { state.query = search.value; state.page = 1; render(); });
 
   // The chosen window ranks the accounts and filters the tweets under the opened account; an opened account
@@ -247,6 +273,7 @@
     .then((data) => {
       state.accounts = (data.accounts || []).map((a) => ({ ...a, name: a.name || a.username }));
       rankAccounts();
+      showLegend();
       render();
     })
     .catch(() => {

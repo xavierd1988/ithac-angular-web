@@ -9,6 +9,7 @@
   .leaderboard-head .label-long { display: none; }
   .leaderboard-head .label-short { display: inline; }
   .leaderboard-score.new-last, .leaderboard-calls.new-count { font-size: 12px; }
+  .leaderboard-score.new-last { padding-left: 8px; }
 }
 
 .new-detail {
@@ -34,6 +35,75 @@
 }
 .new-profile:hover { background: var(--accent); }
 .new-profile:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* Account types: dark tiles with a coloured dot, fixed beside the ranking (in a row above it on narrow screens);
+   the same dot sits before each name in the list. A tile shows only that type; a second click shows them all. */
+.ranking-layout.ranking-layout-solo.has-legend {
+  grid-template-columns: 96px minmax(0, 1fr);
+  width: min(1300px, calc(100% - 2 * clamp(16px, 2vw, 34px)));
+  gap: clamp(14px, 1.6vw, 24px);
+}
+.cat-legend { position: sticky; top: 16px; display: grid; gap: 14px; }
+.cat-legend[hidden] { display: none; }
+.cat-item {
+  display: grid;
+  justify-items: center;
+  gap: 7px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #8b9099;
+  font: inherit;
+  cursor: pointer;
+}
+.cat-tile {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 60px;
+  border: 1px solid rgba(255, 255, 255, .06);
+  border-radius: 14px;
+  background: #1f1f20;
+  transition: background .15s, box-shadow .15s, opacity .15s;
+}
+.cat-item:hover .cat-tile { background: #2b2b2d; }
+.cat-item:focus-visible { outline: none; }
+.cat-item:focus-visible .cat-tile { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent); }
+.cat-item[aria-pressed="true"] .cat-tile { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px #1f1f20; }
+.cat-legend.filtering .cat-item[aria-pressed="false"] .cat-tile { opacity: .4; }
+.cat-label { font-size: 10.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+.cat-dot {
+  display: inline-block;
+  flex: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  vertical-align: middle;
+}
+.cat-independent { background: #62ce60; }
+.cat-promoter { background: #f8d64a; }
+.cat-institution { background: #4a90f0; }
+.cat-bot { background: #ea544c; }
+.leaderboard-name .cat-dot {
+  width: 10px;
+  height: 10px;
+  margin: -2px 8px 0 0;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .12);
+}
+@media (max-width: 900px) {
+  .ranking-layout.ranking-layout-solo.has-legend { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .cat-legend {
+    top: 0;
+    z-index: 5;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+    padding: 10px 0 12px;
+    background: var(--bg);
+  }
+  .cat-tile { height: 40px; border-radius: 11px; }
+  .cat-legend .cat-dot { width: 14px; height: 14px; }
+  .cat-label { font-size: 9.5px; letter-spacing: .08em; }
+}
 
 /* Tweets under an opened account, newest first, for the chosen window; each one opens on X. */
 .new-tweets { flex: 1 1 100%; min-width: 0; }
