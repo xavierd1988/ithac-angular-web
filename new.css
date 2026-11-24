@@ -144,3 +144,20 @@
 @media (prefers-reduced-motion: reduce) {
   .page-intro h1::before { animation: none; }
 }
+
+/* The title sits in the middle of the page, on the same axis as the three windows below it.
+   The gold mark stays level with the title, on the right; on a phone it goes above the title. */
+.page-intro .cover-inner {
+  --mark-space: clamp(104px, 14vw, 184px);
+  grid-template-columns: minmax(var(--mark-space), 1fr) minmax(0, auto) minmax(var(--mark-space), 1fr);
+  gap: clamp(12px, 2vw, 28px);
+  padding-inline: 0;
+}
+.page-intro h1 { grid-column: 2; grid-row: 1; justify-self: center; text-align: center; }
+.page-intro .cover-art { grid-column: 3; grid-row: 1; justify-self: end; }
+@media (max-width: 720px) {
+  .page-intro .cover-inner { grid-template-columns: minmax(0, 1fr); justify-items: center; gap: 8px; padding-top: 20px; }
+  .page-intro .cover-art { grid-column: 1; grid-row: 1; justify-self: center; }
+  .page-intro .cover-mark { width: 54px; }
+  .page-intro h1 { grid-column: 1; grid-row: 2; }
+}
