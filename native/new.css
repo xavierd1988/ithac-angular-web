@@ -42,24 +42,24 @@
    of the mark, the royal blue of the banner, plus red). The legend sits beside the ranking in the same small
    capitals as the column headers, in a row above it on narrow screens. A type shows only those accounts;
    a second click shows them all again. */
-.cat-independent { --diode: #3fcf7f; --glow: rgba(63, 207, 127, .5); }
-.cat-promoter { --diode: #e8b931; --glow: rgba(232, 185, 49, .5); }
-.cat-institution { --diode: #3b6cf6; --glow: rgba(59, 108, 246, .45); }
-.cat-bot { --diode: #e5484d; --glow: rgba(229, 72, 77, .45); }
+.cat-all { --diode: #16181d; }
+.cat-independent { --diode: #3fcf7f; }
+.cat-promoter { --diode: #e8b931; }
+.cat-institution { --diode: #3b6cf6; }
+.cat-bot { --diode: #e5484d; }
 .cat-dot {
   display: inline-block;
   flex: none;
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, .85), rgba(255, 255, 255, 0) 45%), var(--diode);
-  box-shadow: 0 0 0 1px rgba(27, 38, 59, .08), 0 0 6px var(--glow);
+  background: var(--diode);
   vertical-align: middle;
 }
 .leaderboard-name .cat-dot { margin: -2px 9px 0 1px; }
 
 .ranking-layout.ranking-layout-solo.has-legend {
-  grid-template-columns: 118px minmax(0, 1fr);
+  grid-template-columns: 126px minmax(0, 1fr);
   width: min(1300px, calc(100% - 2 * clamp(16px, 2vw, 34px)));
   gap: clamp(10px, 1.4vw, 20px);
 }
@@ -100,7 +100,7 @@
     background: var(--bg);
     scrollbar-width: none;
   }
-  .cat-item { gap: 6px; padding: 6px 5px; font-size: 10px; letter-spacing: .03em; white-space: nowrap; }
+  .cat-item { gap: 5px; padding: 6px 4px; font-size: 10px; letter-spacing: .03em; white-space: nowrap; }
 }
 
 /* Sortable column headers: the sorted one is darker, with a small arrow that says which way. */
