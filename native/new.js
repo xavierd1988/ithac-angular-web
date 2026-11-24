@@ -4,13 +4,15 @@
   'use strict';
 
   const SOURCE = new URLSearchParams(location.search).get('src') || 'https://api.ithacapp.com/new/accounts.json';
-  const STEP = 100;
-  const state = { accounts: [], query: '', shown: STEP, open: null };
+  const state = { accounts: [], query: '', page: 1, size: 100, open: null };
 
   const list = document.getElementById('list');
-  const note = document.getElementById('rankingQuality');
   const stats = document.getElementById('rankingStats');
-  const more = document.getElementById('incrementalRanking');
+  const pager = document.getElementById('pager');
+  const numbers = document.getElementById('pageNumbers');
+  const prev = document.getElementById('prevPage');
+  const next = document.getElementById('nextPage');
+  const sizeSelect = document.getElementById('pageSize');
   const search = document.getElementById('rankingSearch');
 
   const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -52,12 +54,25 @@
       </details>`;
   }
 
+  // Page numbers: the first, the last and the two around the current one, with gaps shown as "…".
+  function pageList(current, total) {
+    const keep = new Set([1, total, current - 2, current - 1, current, current + 1, current + 2]);
+    const pages = [...keep].filter((p) => p >= 1 && p <= total).sort((a, b) => a - b);
+    const out = [];
+    pages.forEach((p, i) => { if (i && p - pages[i - 1] > 1) out.push('…'); out.push(p); });
+    return out;
+  }
+
   function render() {
     const rows = visible();
+    const total = Math.max(1, Math.ceil(rows.length / state.size));
+    state.page = Math.min(Math.max(1, state.page), total);
+    const start = (state.page - 1) * state.size;
+    const pageRows = rows.slice(start, start + state.size);
     if (!rows.length) {
       list.innerHTML = `<p class="empty">${state.accounts.length ? 'No account matches this search.' : 'No account yet.'}</p>`;
     } else {
-      list.innerHTML = rows.slice(0, state.shown).map(row).join('');
+      list.innerHTML = pageRows.map(row).join('');
       for (const img of list.querySelectorAll('img.avatar')) {
         img.addEventListener('error', () => {
           const entry = img.closest('[data-username]');
@@ -69,10 +84,21 @@
         }, { once: true });
       }
     }
-    more.hidden = rows.length <= state.shown;
-    stats.textContent = state.query
-      ? `${count(rows.length)} of ${count(state.accounts.length)} accounts match`
-      : `${count(state.accounts.length)} accounts followed · showing ${count(Math.min(state.shown, rows.length))}`;
+    pager.hidden = rows.length <= 25;
+    prev.disabled = state.page <= 1;
+    next.disabled = state.page >= total;
+    numbers.innerHTML = pageList(state.page, total).map((p) => p === '…'
+      ? '<span class="page-gap" aria-hidden="true">…</span>'
+      : `<button type="button" data-page="${p}"${p === state.page ? ' class="active" aria-current="page"' : ''}>${p}</button>`).join('');
+    stats.textContent = rows.length
+      ? `Accounts ${count(start + 1)}–${count(start + pageRows.length)} of ${count(rows.length)}${state.query.trim() ? ` matching “${state.query.trim()}”` : ''}`
+      : '';
+  }
+
+  function goTo(page) {
+    state.page = page;
+    render();
+    list.closest('.list-card')?.scrollIntoView({ block: 'start', behavior: 'smooth' });
   }
 
   list.addEventListener('toggle', (event) => {
@@ -86,8 +112,14 @@
     }
   }, true);
 
-  document.getElementById('showMore').addEventListener('click', () => { state.shown += STEP; render(); });
-  search.addEventListener('input', () => { state.query = search.value; state.shown = STEP; render(); });
+  prev.addEventListener('click', () => goTo(state.page - 1));
+  next.addEventListener('click', () => goTo(state.page + 1));
+  numbers.addEventListener('click', (event) => {
+    const button = event.target.closest('[data-page]');
+    if (button) goTo(Number(button.dataset.page));
+  });
+  sizeSelect.addEventListener('change', () => { state.size = Number(sizeSelect.value) || 100; state.page = 1; render(); });
+  search.addEventListener('input', () => { state.query = search.value; state.page = 1; render(); });
 
   // The three windows stay in place for the scores to come; for now they only change which button is active.
   for (const button of document.querySelectorAll('[data-window]')) {
@@ -104,11 +136,9 @@
     .then((response) => { if (!response.ok) throw new Error(`HTTP ${response.status}`); return response.json(); })
     .then((data) => {
       state.accounts = (data.accounts || []).map((a, i) => ({ ...a, rank: i + 1, name: a.name || a.username }));
-      note.textContent = `New base: ${count(state.accounts.length)} accounts followed. Scores and calls will appear here as the new collection fills in.`;
       render();
     })
     .catch(() => {
-      note.textContent = 'The list of accounts could not be loaded. Try again in a moment.';
-      list.innerHTML = '<p class="empty">The list of accounts could not be loaded.</p>';
+      list.innerHTML = '<p class="empty">The list of accounts could not be loaded. Try again in a moment.</p>';
     });
 })();

@@ -11,13 +11,20 @@
   <link rel="stylesheet" href="./styles.css?v=20260714-call-compact">
   <link rel="stylesheet" href="./ranking.css?v=20261122-rank4">
   <link rel="stylesheet" href="./garage.css?v=20261122-v4g">
-  <link rel="stylesheet" href="./new.css?v=20261124-new1">
+  <link rel="stylesheet" href="./new.css?v=20261124-new2">
 </head>
 <body>
   <main class="app-shell">
     <div class="page-intro">
       <div class="cover-inner">
-        <h1 id="pageTitle"><span class="live-word"><span class="live-diode" aria-hidden="true"></span>Live</span> Crypto Influencer Ranking</h1>
+        <div class="cover-text">
+          <h1 id="pageTitle"><span class="live-word"><span class="live-diode" aria-hidden="true"></span>Live</span> Crypto Influencer Ranking</h1>
+          <div class="ranking-period" role="group" aria-label="Result measured after each call">
+            <button class="period-button active" type="button" data-window="day" aria-pressed="true">24 hours</button>
+            <button class="period-button" type="button" data-window="week" aria-pressed="false">7 days</button>
+            <button class="period-button" type="button" data-window="month" aria-pressed="false">1 month</button>
+          </div>
+        </div>
         <div class="cover-art" aria-hidden="true">
           <span class="cover-mark"></span>
         </div>
@@ -26,16 +33,6 @@
 
     <div class="ranking-layout ranking-layout-solo">
       <section class="list-card" aria-labelledby="pageTitle">
-        <div class="ranking-tools ranking-tools-primary">
-          <div class="ranking-period" role="group" aria-label="Result measured after each call">
-            <button class="period-button active" type="button" data-window="day" aria-pressed="true">24 hours</button>
-            <button class="period-button" type="button" data-window="week" aria-pressed="false">7 days</button>
-            <button class="period-button" type="button" data-window="month" aria-pressed="false">1 month</button>
-          </div>
-        </div>
-        <p class="grading-quality-note" id="rankingQuality" role="status">Loading the accounts…</p>
-
-        <h2 class="full-ranking-title">Full ranking</h2>
         <div class="leaderboard-head" aria-hidden="true">
           <span>Rank</span><span>Name</span><span>Followers</span><span>Score</span><span>Calls</span><span></span>
         </div>
@@ -43,17 +40,29 @@
           <p class="empty">Loading the accounts…</p>
         </div>
 
-        <div class="incremental-ranking" id="incrementalRanking" hidden>
-          <button type="button" id="showMore" aria-controls="list">Show more</button>
-        </div>
+        <nav class="pager new-pager" id="pager" aria-label="Ranking pages" hidden>
+          <button id="prevPage" type="button">Previous</button>
+          <div class="page-numbers" id="pageNumbers"></div>
+          <button id="nextPage" type="button">Next</button>
+          <label>Rows
+            <select id="pageSize">
+              <option value="25">25</option>
+              <option value="50">50</option>
+              <option value="100" selected>100</option>
+              <option value="250">250</option>
+              <option value="500">500</option>
+              <option value="1000">1000</option>
+            </select>
+          </label>
+        </nav>
         <div class="ranking-footer">
           <div class="ranking-footer-row">
             <label class="ranking-footer-search">
               <span class="visually-hidden">Search an account</span>
               <input id="rankingSearch" type="search" placeholder="Search an account" autocomplete="off">
             </label>
+            <p id="rankingStats" class="ranking-footer-stats" role="status"></p>
           </div>
-          <p id="rankingStats" class="ranking-footer-stats"></p>
         </div>
       </section>
     </div>
@@ -68,6 +77,6 @@
       </a>
     </div>
   </main>
-  <script src="./new.js?v=20261124-new1" defer></script>
+  <script src="./new.js?v=20261124-new2" defer></script>
 </body>
 </html>
