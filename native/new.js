@@ -14,6 +14,10 @@
   const GROUP = { independent: 'independent', promoter: 'promoter', institution: 'institution', news: 'institution', bot: 'bot', offtopic: 'offtopic', inactive: 'inactive' };
   const LABEL = { independent: 'Independent', promoter: 'Promoter', institution: 'Institution', bot: 'Bot', offtopic: 'Off topic', inactive: 'Inactive' };
   const typeOf = (a) => GROUP[a.category] || null;
+  // Wolf Simple: each account's result after its calls, per window, read from wolf_simple.json; its calls from calls/<account>.json.
+  const callCache = new Map();
+  const pct = (v) => `${v > 0 ? '+' : v < 0 ? '−' : ''}${Math.abs(v).toFixed(1)}%`;
+  const wsOf = (a) => a.ws?.[state.window] || null;
 
   const list = document.getElementById('list');
   const stats = document.getElementById('rankingStats');
@@ -29,6 +33,7 @@
     followers: { desc: 'most followers first', asc: 'fewest followers first' },
     last: { desc: 'most recent tweet first', asc: 'oldest tweet first' },
     tweets: { desc: 'most tweets first', asc: 'fewest tweets first' },
+    score: { desc: 'best result after the calls first', asc: 'worst result after the calls first' },
   };
 
   const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -66,6 +71,7 @@
   // last tweet or number of tweets; a second click on it reverses the order. Ties: more tweets, then the
   // more recent last tweet, then more followers. Accounts without the value (not read yet) always go last.
   function sortValue(a, key) {
+    if (key === 'score') { const s = wsOf(a); return s && s.ranked ? s.score : null; }
     if (key === 'followers') return Number.isFinite(a.followers) ? a.followers : null;
     if (key === 'last') { const t = Date.parse(a.lastTweetAt || ''); return Number.isFinite(t) ? t : null; }
     const n = a.tweets?.[state.window];
@@ -159,13 +165,69 @@
           <span class="leaderboard-last new-followers"><span class="last-label">Followers</span><b>${count(a.followers)}</b></span>
           <span class="leaderboard-score new-last"${a.lastTweetAt ? ` title="${esc(fullDate(a.lastTweetAt))}"` : ''}><span class="visually-hidden">Last tweet </span>${esc(lastTweet(a))}</span>
           <span class="leaderboard-calls new-count"><span class="visually-hidden">Number of tweets </span>${esc(tweetCount(a))}</span>
+          ${scoreCell(a)}
           <span class="leaderboard-chevron" aria-hidden="true"></span>
         </summary>
         <div class="new-detail">
+          <div class="new-calls"></div>
           <div class="new-tweets"></div>
           <a class="new-profile" href="https://x.com/${encodeURIComponent(a.username)}" target="_blank" rel="noopener noreferrer">Open on X</a>
         </div>
       </details>`;
+  }
+
+  // Score: the average result of the account's calls for the chosen window (the asset's move minus Bitcoin's, or SPY's
+  // for a stock; a bearish call counts the other way), with the number of calls. Fewer than 5 calls: shown in grey, not ranked.
+  function scoreCell(a) {
+    const s = wsOf(a);
+    if (!s) return '<span class="new-score none"><span class="visually-hidden">Score </span>–</span>';
+    const cls = !s.ranked ? 'few' : s.avg >= 0 ? 'up' : 'down';
+    return `<span class="new-score ${cls}" title="${s.n} call${s.n > 1 ? 's' : ''}, ${s.win}% won${s.ranked ? '' : ': too few to be ranked'}">`
+      + `<span class="visually-hidden">Score </span><b>${pct(s.avg)}</b><small>${s.n} call${s.n > 1 ? 's' : ''}</small></span>`;
+  }
+
+  function loadCalls(username) {
+    const key = username.toLowerCase();
+    if (!callCache.has(key)) {
+      callCache.set(key, fetch(`${BASE}calls/${encodeURIComponent(key)}.json`)
+        .then((response) => (response.ok ? response.json() : { calls: [] }))
+        .then((data) => data.calls || [])
+        .catch(() => []));
+    }
+    return callCache.get(key);
+  }
+
+  function callItem(c) {
+    const v = c[state.window];
+    return `<li><a class="new-call" href="${esc(c.url || '#')}" target="_blank" rel="noopener noreferrer">
+        <span class="new-tweet-meta"><time datetime="${esc(c.at)}" title="${esc(fullDate(c.at))}">${esc(ago(Date.parse(c.at)))}</time></span>
+        <span class="new-call-asset"><i class="call-arrow ${c.stance === 'bullish' ? 'up' : 'down'}" aria-hidden="true"></i>${esc(c.asset.startsWith('0x') || c.asset.length > 14 ? c.asset : '$' + c.asset)}<span class="visually-hidden"> ${esc(c.stance)}</span></span>
+        <span class="new-call-result ${v >= 0 ? 'up' : 'down'}">${pct(v)}</span>
+      </a></li>`;
+  }
+
+  function fillCalls(entry) {
+    const box = entry.querySelector('.new-calls');
+    if (!box) return;
+    const account = state.accounts.find((a) => a.username === entry.dataset.username);
+    const win = state.window;
+    if (!account?.ws) { box.innerHTML = ''; return; }
+    loadCalls(entry.dataset.username).then((calls) => {
+      if (!entry.isConnected || state.window !== win) return;
+      const scored = calls.filter((c) => Number.isFinite(c[win]));
+      const s = wsOf(account);
+      if (!scored.length || !s) {
+        box.innerHTML = `<p class="new-tweets-note">No call scored after ${{ day: '24 hours', week: '7 days', month: '1 month' }[win]} yet.</p>`;
+        return;
+      }
+      box.innerHTML = `<p class="new-calls-head">${s.n} call${s.n > 1 ? 's' : ''}, ${pct(s.avg)} on average against the market, ${s.win}% won</p>`
+        + `<ol class="new-call-list">${scored.slice(0, 10).map(callItem).join('')}</ol>`
+        + (scored.length > 10 ? `<button class="new-more" type="button">Show ${scored.length - 10} more calls</button>` : '');
+      box.querySelector('.new-more')?.addEventListener('click', (event) => {
+        event.currentTarget.remove();
+        box.querySelector('.new-call-list').insertAdjacentHTML('beforeend', scored.slice(10).map(callItem).join(''));
+      });
+    });
   }
 
   // Page numbers: the first, the last and the two around the current one, with gaps shown as "…".
@@ -208,7 +270,7 @@
       ? `Accounts ${count(start + 1)}–${count(start + pageRows.length)} of ${count(rows.length)}${state.cat ? `, ${LABEL[state.cat].toLowerCase()} only` : ''}${state.query.trim() ? ` matching “${state.query.trim()}”` : ''}`
       : '';
     const opened = list.querySelector('details.leaderboard-entry[open]');
-    if (opened) fillTweets(opened);
+    if (opened) { fillTweets(opened); fillCalls(opened); }
   }
 
   function goTo(page) {
@@ -224,6 +286,7 @@
       state.open = entry.dataset.username;
       for (const other of list.querySelectorAll('details.leaderboard-entry[open]')) if (other !== entry) other.open = false;
       fillTweets(entry);
+      fillCalls(entry);
     } else if (state.open === entry.dataset.username) {
       state.open = null;
     }
@@ -322,6 +385,15 @@
       rankAccounts();
       showLegend();
       render();
+      fetch(`${BASE}wolf_simple.json`, { cache: 'no-store' })
+        .then((response) => (response.ok ? response.json() : null))
+        .then((ws) => {
+          if (!ws?.accounts) return;
+          for (const a of state.accounts) a.ws = ws.accounts[a.username.toLowerCase()] || null;
+          rankAccounts();
+          render();
+        })
+        .catch(() => {});
     })
     .catch(() => {
       list.innerHTML = '<p class="empty">The list of accounts could not be loaded. Try again in a moment.</p>';

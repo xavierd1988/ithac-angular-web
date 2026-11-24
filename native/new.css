@@ -10,8 +10,19 @@
   .leaderboard-head .label-short { display: inline; }
   .leaderboard-score.new-last, .leaderboard-calls.new-count { font-size: 12px; }
   .leaderboard-score.new-last { padding-left: 4px; }
-  /* Room for "55 min ago" and for the sorted "Tweets" header with its arrow. */
-  :root { --ranking-columns: 28px minmax(0, 1fr) 64px 46px 12px; }
+  /* Phones: rank, name, score, tweets; the followers and the last tweet go on the second line. */
+  .leaderboard-summary > .new-score { grid-column: 3; grid-row: 1; }
+  .leaderboard-summary > .leaderboard-calls { grid-column: 4; }
+  .leaderboard-summary > .leaderboard-last { grid-column: 2 / 3; }
+  .leaderboard-summary > .leaderboard-score.new-last { grid-column: 3 / 5; grid-row: 2; justify-self: end; padding-left: 0;
+    color: var(--muted); font-size: 11.5px; font-weight: 500; }
+  .leaderboard-head > * { grid-row: 1; }
+  .leaderboard-head > .sort-head[data-sort="last"] { display: none; }
+  .leaderboard-head > .sort-head[data-sort="score"] { grid-column: 3; }
+  .leaderboard-head > .sort-head[data-sort="tweets"] { grid-column: 4; }
+  .leaderboard-head > :last-child { grid-column: 5; }
+  .new-call { grid-template-columns: minmax(0, 1fr) auto; padding: 7px 4px; }
+  .new-call .new-tweet-meta { grid-column: 1 / -1; }
 }
 
 .new-detail {
@@ -305,3 +316,35 @@
   .page-intro .cover-mark { width: 54px; }
   .page-intro h1 { grid-column: 1; grid-row: 2; }
 }
+
+/* Wolf Simple score: the average result of the account's calls for the chosen window, with the number of calls under it.
+   Green above the market, red below; grey when there are fewer than 5 calls (not ranked). */
+:root { --ranking-columns: 64px minmax(0, 1fr) 124px 100px 100px 96px 24px; }
+@media (max-width: 1000px) { :root { --ranking-columns: 52px minmax(0, 1fr) 104px 76px 60px 84px 20px; } }
+.new-score { display: grid; justify-items: end; gap: 1px; font-variant-numeric: tabular-nums; }
+.new-score b { font-size: 13px; font-weight: 700; }
+.new-score small { color: var(--muted); font-size: 11px; }
+.new-score.up b { color: #16a05a; }
+.new-score.down b { color: #d43c41; }
+.new-score.few b { color: var(--muted); font-weight: 600; }
+.new-score.none { justify-self: end; color: var(--muted); }
+.leaderboard-head > .sort-head[data-sort="score"] { justify-self: end; text-align: right; }
+
+/* The account's scored calls, above its tweets: when, which asset, which way, and the result for the window. */
+.new-calls { flex: 1 1 100%; min-width: 0; }
+.new-calls:empty { display: none; }
+.new-calls-head { margin: 0 0 4px; padding: 0 10px; color: var(--ink); font-size: 13px; font-weight: 600; }
+.new-call-list { margin: 0 0 12px; padding: 0; list-style: none; }
+.new-call-list > li + li { border-top: 1px solid var(--line); }
+.new-call { display: grid; grid-template-columns: 8em minmax(0, 1fr) auto; gap: 2px 14px; align-items: baseline;
+  padding: 7px 10px; border-radius: 8px; color: var(--ink); font-size: 13px; text-decoration: none; }
+.new-call:hover { background: #fff; }
+.new-call:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.new-call-asset { display: inline-flex; align-items: center; gap: 7px; min-width: 0; font-weight: 600; overflow-wrap: anywhere; }
+.call-arrow { flex: none; width: 0; height: 0; border-inline: 4px solid transparent; }
+.call-arrow.up { border-bottom: 6px solid #16a05a; }
+.call-arrow.down { border-top: 6px solid #d43c41; }
+.new-call-result { font-weight: 700; font-variant-numeric: tabular-nums; }
+.new-call-result.up { color: #16a05a; }
+.new-call-result.down { color: #d43c41; }
+@media (max-width: 720px) { :root { --ranking-columns: 28px minmax(0, 1fr) 64px 46px 12px; } }
