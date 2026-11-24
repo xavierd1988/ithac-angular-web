@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="./styles.css?v=20260714-call-compact">
   <link rel="stylesheet" href="./ranking.css?v=20261122-rank4">
   <link rel="stylesheet" href="./garage.css?v=20261122-v4g">
-  <link rel="stylesheet" href="./new.css?v=20261124-new8">
+  <link rel="stylesheet" href="./new.css?v=20261124-new9">
 </head>
 <body>
   <main class="app-shell">
@@ -34,22 +34,18 @@
 
     <div class="ranking-layout ranking-layout-solo">
       <aside class="cat-legend" id="catLegend" aria-label="Account types: choose one to show only those accounts" hidden>
-        <button class="cat-item" type="button" data-cat="independent" aria-pressed="false" title="A person sharing their own trades and analysis">
-          <span class="cat-tile"><span class="cat-dot cat-independent"></span></span><span class="cat-label">Independent</span>
-        </button>
-        <button class="cat-item" type="button" data-cat="promoter" aria-pressed="false" title="Mostly paid promotion, airdrops or referral links">
-          <span class="cat-tile"><span class="cat-dot cat-promoter"></span></span><span class="cat-label">Promoter</span>
-        </button>
-        <button class="cat-item" type="button" data-cat="institution" aria-pressed="false" title="A company, project, exchange or news outlet">
-          <span class="cat-tile"><span class="cat-dot cat-institution"></span></span><span class="cat-label">Institution</span>
-        </button>
-        <button class="cat-item" type="button" data-cat="bot" aria-pressed="false" title="Automated posting">
-          <span class="cat-tile"><span class="cat-dot cat-bot"></span></span><span class="cat-label">Bot</span>
-        </button>
+        <button class="cat-item" type="button" data-cat="independent" aria-pressed="false" title="A person sharing their own trades and analysis"><span class="cat-dot cat-independent"></span>Independent</button>
+        <button class="cat-item" type="button" data-cat="promoter" aria-pressed="false" title="Mostly paid promotion, airdrops or referral links"><span class="cat-dot cat-promoter"></span>Promoter</button>
+        <button class="cat-item" type="button" data-cat="institution" aria-pressed="false" title="A company, project, exchange or news outlet"><span class="cat-dot cat-institution"></span>Institution</button>
+        <button class="cat-item" type="button" data-cat="bot" aria-pressed="false" title="Automated posting"><span class="cat-dot cat-bot"></span>Bot</button>
       </aside>
       <section class="list-card" aria-labelledby="pageTitle">
-        <div class="leaderboard-head" aria-hidden="true">
-          <span>Rank</span><span>Name</span><span>Followers</span><span>Last tweet</span><span><span class="label-long">Number of tweets</span><span class="label-short">Tweets</span></span><span></span>
+        <div class="leaderboard-head" id="listHead">
+          <span>Rank</span><span>Name</span>
+          <button class="sort-head" type="button" data-sort="followers">Followers</button>
+          <button class="sort-head" type="button" data-sort="last"><span class="label-long">Last tweet</span><span class="label-short">Last</span></button>
+          <button class="sort-head" type="button" data-sort="tweets"><span class="label-long">Number of tweets</span><span class="label-short">Tweets</span></button>
+          <span></span>
         </div>
         <div id="list" class="list">
           <p class="empty">Loading the accounts…</p>
@@ -92,6 +88,6 @@
       </a>
     </div>
   </main>
-  <script src="./new.js?v=20261124-new8" defer></script>
+  <script src="./new.js?v=20261124-new9" defer></script>
 </body>
 </html>

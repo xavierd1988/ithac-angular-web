@@ -6,7 +6,7 @@
 
   const SOURCE = new URLSearchParams(location.search).get('src') || 'https://api.ithacapp.com/new/accounts.json';
   const BASE = SOURCE.replace(/[^/]*$/, '');
-  const state = { accounts: [], query: '', page: 1, size: 100, open: null, window: 'day', cat: null };
+  const state = { accounts: [], query: '', page: 1, size: 100, open: null, window: 'day', cat: null, sort: { key: 'tweets', dir: 'desc' } };
   const WINDOW_MS = { day: 864e5, week: 7 * 864e5, month: 30 * 864e5 };
   const WINDOW_WORDS = { day: 'in the last 24 hours', week: 'in the last 7 days', month: 'in the last month' };
   const tweetCache = new Map();
@@ -24,6 +24,12 @@
   const sizeSelect = document.getElementById('pageSize');
   const search = document.getElementById('rankingSearch');
   const legend = document.getElementById('catLegend');
+  const head = document.getElementById('listHead');
+  const SORT_WORDS = {
+    followers: { desc: 'most followers first', asc: 'fewest followers first' },
+    last: { desc: 'most recent tweet first', asc: 'oldest tweet first' },
+    tweets: { desc: 'most tweets first', asc: 'fewest tweets first' },
+  };
 
   const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const count = (value) => Number(value || 0).toLocaleString('en-US');
@@ -56,13 +62,26 @@
     return Number.isFinite(n) ? count(n) : '–';
   }
 
-  // The ranking: most tweets in the chosen window first, then the most recent last tweet, then followers.
-  // Accounts not read yet go last.
+  // The ranking. By default: most tweets in the chosen window first. A column header sorts by followers,
+  // last tweet or number of tweets; a second click on it reverses the order. Ties: more tweets, then the
+  // more recent last tweet, then more followers. Accounts without the value (not read yet) always go last.
+  function sortValue(a, key) {
+    if (key === 'followers') return Number.isFinite(a.followers) ? a.followers : null;
+    if (key === 'last') { const t = Date.parse(a.lastTweetAt || ''); return Number.isFinite(t) ? t : null; }
+    const n = a.tweets?.[state.window];
+    return Number.isFinite(n) ? n : null;
+  }
   function rankAccounts() {
-    const n = (a) => (Number.isFinite(a.tweets?.[state.window]) ? a.tweets[state.window] : -1);
-    const t = (a) => Date.parse(a.lastTweetAt || '') || 0;
-    state.accounts.sort((a, b) => n(b) - n(a) || t(b) - t(a) || (b.followers || 0) - (a.followers || 0));
-    state.accounts.forEach((a, i) => { a.rank = i + 1; });
+    const { key, dir } = state.sort;
+    const sign = dir === 'asc' ? 1 : -1;
+    const ties = (a, b) => (sortValue(b, 'tweets') ?? -1) - (sortValue(a, 'tweets') ?? -1)
+      || (sortValue(b, 'last') ?? 0) - (sortValue(a, 'last') ?? 0) || (b.followers || 0) - (a.followers || 0);
+    state.accounts.sort((a, b) => {
+      const x = sortValue(a, key);
+      const y = sortValue(b, key);
+      if (x === null || y === null) return x === y ? ties(a, b) : x === null ? 1 : -1;
+      return (x - y) * sign || ties(a, b);
+    });
   }
 
   // Tweets of one account: one small file per account, loaded when its row is opened.
@@ -217,6 +236,27 @@
     if (button) goTo(Number(button.dataset.page));
   });
   sizeSelect.addEventListener('change', () => { state.size = Number(sizeSelect.value) || 100; state.page = 1; render(); });
+
+  // Column headers: a click sorts by that column (largest or most recent first), a second click reverses it.
+  function markSort() {
+    for (const b of head?.querySelectorAll('[data-sort]') || []) {
+      const on = b.dataset.sort === state.sort.key;
+      b.classList.toggle('active', on);
+      b.dataset.dir = on ? state.sort.dir : '';
+      b.title = on ? `Sorted: ${SORT_WORDS[b.dataset.sort][state.sort.dir]}. Click to reverse.` : `Sort: ${SORT_WORDS[b.dataset.sort].desc}`;
+    }
+  }
+  head?.addEventListener('click', (event) => {
+    const button = event.target.closest('[data-sort]');
+    if (!button) return;
+    const key = button.dataset.sort;
+    state.sort = state.sort.key === key ? { key, dir: state.sort.dir === 'desc' ? 'asc' : 'desc' } : { key, dir: 'desc' };
+    markSort();
+    rankAccounts();
+    state.page = 1;
+    render();
+  });
+  markSort();
 
   // The legend: a click shows only that type of account, a second click shows them all again.
   legend?.addEventListener('click', (event) => {

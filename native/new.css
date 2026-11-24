@@ -9,7 +9,9 @@
   .leaderboard-head .label-long { display: none; }
   .leaderboard-head .label-short { display: inline; }
   .leaderboard-score.new-last, .leaderboard-calls.new-count { font-size: 12px; }
-  .leaderboard-score.new-last { padding-left: 8px; }
+  .leaderboard-score.new-last { padding-left: 4px; }
+  /* Room for "55 min ago" and for the sorted "Tweets" header with its arrow. */
+  :root { --ranking-columns: 28px minmax(0, 1fr) 64px 46px 12px; }
 }
 
 .new-detail {
@@ -36,73 +38,103 @@
 .new-profile:hover { background: var(--accent); }
 .new-profile:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-/* Account types: dark tiles with a coloured dot, fixed beside the ranking (in a row above it on narrow screens);
-   the same dot sits before each name in the list. A tile shows only that type; a second click shows them all. */
-.ranking-layout.ranking-layout-solo.has-legend {
-  grid-template-columns: 96px minmax(0, 1fr);
-  width: min(1300px, calc(100% - 2 * clamp(16px, 2vw, 34px)));
-  gap: clamp(14px, 1.6vw, 24px);
-}
-.cat-legend { position: sticky; top: 16px; display: grid; gap: 14px; }
-.cat-legend[hidden] { display: none; }
-.cat-item {
-  display: grid;
-  justify-items: center;
-  gap: 7px;
-  padding: 0;
-  border: 0;
-  background: none;
-  color: #8b9099;
-  font: inherit;
-  cursor: pointer;
-}
-.cat-tile {
-  display: grid;
-  place-items: center;
-  width: 100%;
-  height: 60px;
-  border: 1px solid rgba(255, 255, 255, .06);
-  border-radius: 14px;
-  background: #1f1f20;
-  transition: background .15s, box-shadow .15s, opacity .15s;
-}
-.cat-item:hover .cat-tile { background: #2b2b2d; }
-.cat-item:focus-visible { outline: none; }
-.cat-item:focus-visible .cat-tile { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent); }
-.cat-item[aria-pressed="true"] .cat-tile { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px #1f1f20; }
-.cat-legend.filtering .cat-item[aria-pressed="false"] .cat-tile { opacity: .4; }
-.cat-label { font-size: 10.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+/* Account types: small diodes in the colours the page already uses (the green of the "Live" diode, the gold
+   of the mark, the royal blue of the banner, plus red). The legend sits beside the ranking in the same small
+   capitals as the column headers, in a row above it on narrow screens. A type shows only those accounts;
+   a second click shows them all again. */
+.cat-independent { --diode: #3fcf7f; --glow: rgba(63, 207, 127, .5); }
+.cat-promoter { --diode: #e8b931; --glow: rgba(232, 185, 49, .5); }
+.cat-institution { --diode: #3b6cf6; --glow: rgba(59, 108, 246, .45); }
+.cat-bot { --diode: #e5484d; --glow: rgba(229, 72, 77, .45); }
 .cat-dot {
   display: inline-block;
   flex: none;
-  width: 18px;
-  height: 18px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, .85), rgba(255, 255, 255, 0) 45%), var(--diode);
+  box-shadow: 0 0 0 1px rgba(27, 38, 59, .08), 0 0 6px var(--glow);
   vertical-align: middle;
 }
-.cat-independent { background: #62ce60; }
-.cat-promoter { background: #f8d64a; }
-.cat-institution { background: #4a90f0; }
-.cat-bot { background: #ea544c; }
-.leaderboard-name .cat-dot {
-  width: 10px;
-  height: 10px;
-  margin: -2px 8px 0 0;
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .12);
+.leaderboard-name .cat-dot { margin: -2px 9px 0 1px; }
+
+.ranking-layout.ranking-layout-solo.has-legend {
+  grid-template-columns: 118px minmax(0, 1fr);
+  width: min(1300px, calc(100% - 2 * clamp(16px, 2vw, 34px)));
+  gap: clamp(10px, 1.4vw, 20px);
 }
+.cat-legend { position: sticky; top: 16px; display: grid; gap: 2px; padding-top: 6px; }
+.cat-legend[hidden] { display: none; }
+.cat-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .05em;
+  text-align: left;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color .15s, background .15s, opacity .15s;
+}
+.cat-item:hover { color: var(--ink); background: rgba(27, 38, 59, .05); }
+.cat-item:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.cat-item[aria-pressed="true"] { color: var(--ink); background: rgba(27, 38, 59, .07); }
+.cat-legend.filtering .cat-item[aria-pressed="false"] { opacity: .45; }
 @media (max-width: 900px) {
   .ranking-layout.ranking-layout-solo.has-legend { grid-template-columns: minmax(0, 1fr); gap: 0; }
   .cat-legend {
     top: 0;
     z-index: 5;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 8px;
-    padding: 10px 0 12px;
+    display: flex;
+    justify-content: space-between;
+    gap: 2px;
+    padding: 8px 0;
+    overflow-x: auto;
     background: var(--bg);
+    scrollbar-width: none;
   }
-  .cat-tile { height: 40px; border-radius: 11px; }
-  .cat-legend .cat-dot { width: 14px; height: 14px; }
-  .cat-label { font-size: 9.5px; letter-spacing: .08em; }
+  .cat-item { gap: 6px; padding: 6px 5px; font-size: 10px; letter-spacing: .03em; white-space: nowrap; }
+}
+
+/* Sortable column headers: the sorted one is darker, with a small arrow that says which way. */
+.sort-head {
+  justify-self: start;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  cursor: pointer;
+}
+.leaderboard-head > .sort-head:nth-child(4),
+.leaderboard-head > .sort-head:nth-child(5) { justify-self: end; text-align: right; }
+.sort-head:hover, .sort-head.active { color: var(--ink); }
+.sort-head:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px; }
+.sort-head.active::after {
+  content: "";
+  display: inline-block;
+  margin-left: 5px;
+  border-inline: 3.5px solid transparent;
+  border-top: 4px solid currentColor;
+  vertical-align: 1px;
+}
+.sort-head.active[data-dir="asc"]::after { border-top: 0; border-bottom: 4px solid currentColor; }
+@media (max-width: 720px) {
+  /* On phones the followers sit under each name: their header takes the name's place. */
+  .leaderboard-head { font-size: 9.5px; letter-spacing: 0; }
+  .sort-head { white-space: nowrap; }
+  .sort-head.active::after { margin-left: 3px; }
+  .leaderboard-head > :nth-child(2) { display: none; }
+  .leaderboard-head > .sort-head:nth-child(3) { display: inline-block; grid-column: 2; }
 }
 
 /* Tweets under an opened account, newest first, for the chosen window; each one opens on X. */
