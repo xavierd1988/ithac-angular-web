@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#02093E">
+  <meta name="robots" content="noindex">
+  <title>Monitoring · Live Crypto Influencer Ranking</title>
+  <link rel="icon" type="image/png" sizes="64x64" href="./favicon-royal-blue.png">
+  <style>
+    :root {
+      --bg: #f7f7f4; --surface: #fff; --panel: #f2f4f7; --line: #dde2ea; --ink: #1b263b; --muted: #4f5e72; --accent: #294882;
+      --done: #3fcf7f; --run: #3b6cf6; --wait: #c3cad6;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--ink); font-family: "Avenir Next", Avenir, system-ui, -apple-system, "Segoe UI", sans-serif; }
+    main { width: min(720px, calc(100% - 32px)); margin: 0 auto; padding: 22px 0 48px; }
+    .back { color: var(--muted); font-size: 13px; text-decoration: none; }
+    .back:hover { color: var(--ink); text-decoration: underline; }
+    h1 { display: flex; align-items: center; gap: 10px; margin: 14px 0 4px; font-size: 26px; font-weight: 600; letter-spacing: -.02em; }
+    .pulse { width: 9px; height: 9px; border-radius: 50%; background: #50e58c; animation: pulse 1.9s ease-in-out infinite; }
+    .updated { margin: 0 0 22px; color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
+    .updated.stale { color: #b4232a; }
+    section { margin-bottom: 18px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); overflow: hidden; }
+    h2 { margin: 0; padding: 10px 16px; border-bottom: 1px solid var(--line); background: var(--panel); color: var(--muted);
+         font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; }
+    ol, dl { margin: 0; padding: 0; list-style: none; }
+    .step { display: grid; grid-template-columns: 12px minmax(0, 1fr) auto; gap: 4px 12px; align-items: baseline; padding: 12px 16px; }
+    .step + .step, .row + .row { border-top: 1px solid var(--line); }
+    .diode { width: 8px; height: 8px; border-radius: 50%; background: var(--wait); transform: translateY(-1px); }
+    .done .diode, .on .diode { background: var(--done); }
+    .running .diode { background: var(--run); animation: pulse 1.4s ease-in-out infinite; }
+    .name { font-size: 15px; font-weight: 600; }
+    .waiting .name { color: var(--muted); font-weight: 500; }
+    .count { color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
+    .detail { grid-column: 2 / -1; color: var(--muted); font-size: 13px; line-height: 1.4; }
+    .bar { grid-column: 2 / -1; height: 4px; margin-top: 4px; border-radius: 2px; background: var(--panel); overflow: hidden; }
+    .bar span { display: block; height: 100%; background: var(--run); transition: width .6s ease; }
+    .row { display: flex; justify-content: space-between; gap: 16px; padding: 11px 16px; font-size: 14px; }
+    .row dt { color: var(--muted); }
+    .row dd { margin: 0; font-weight: 600; font-variant-numeric: tabular-nums; text-align: right; }
+    .types { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px 12px; font-weight: 600; }
+    .types span { display: inline-flex; align-items: center; gap: 5px; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; }
+    .empty { padding: 14px 16px; color: var(--muted); font-size: 14px; }
+    .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    @keyframes pulse { 50% { opacity: .45; } }
+    @media (prefers-reduced-motion: reduce) { .pulse, .running .diode { animation: none; } .bar span { transition: none; } }
+  </style>
+</head>
+<body>
+  <main>
+    <a class="back" href="./">‹ Ranking</a>
+    <h1><span class="pulse" aria-hidden="true"></span>Monitoring</h1>
+    <p class="updated" id="updated" role="status">Loading…</p>
+
+    <section aria-labelledby="stepsTitle">
+      <h2 id="stepsTitle">Tonight</h2>
+      <ol id="steps"><li class="empty">Loading…</li></ol>
+    </section>
+
+    <section aria-labelledby="numbersTitle">
+      <h2 id="numbersTitle">Numbers</h2>
+      <dl id="numbers"></dl>
+    </section>
+  </main>
+
+  <script>
+    // Reads the server's status file every 30 seconds; the server rewrites it every minute.
+    (() => {
+      'use strict';
+      const SOURCE = 'https://api.ithacapp.com/new/status.json';
+      const COLORS = { independent: '#3fcf7f', promoter: '#e8b931', institution: '#3b6cf6', news: '#3b6cf6', bot: '#e5484d' };
+      const LABELS = { independent: 'Independent', promoter: 'Promoter', institution: 'Institution', news: 'News', bot: 'Bot', offtopic: 'Off topic', inactive: 'Inactive' };
+      const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+      const num = (v) => Number(v || 0).toLocaleString('en-US');
+      let generatedAt = null;
+
+      function ago(iso) {
+        const s = Math.max(0, Math.round((Date.now() - Date.parse(iso)) / 1000));
+        return s < 90 ? `${s} s ago` : s < 5400 ? `${Math.round(s / 60)} min ago` : `${Math.round(s / 3600)} h ago`;
+      }
+      function tick() {
+        const el = document.getElementById('updated');
+        if (!generatedAt) return;
+        const old = Date.now() - Date.parse(generatedAt) > 3 * 60000;
+        el.textContent = old ? `Last update ${ago(generatedAt)}: the server has not written a new status since` : `Updated ${ago(generatedAt)}`;
+        el.classList.toggle('stale', old);
+      }
+
+      function step(s) {
+        const p = Array.isArray(s.progress) && s.progress[1] ? s.progress : null;
+        const pct = p ? Math.min(100, Math.round(p[0] / p[1] * 100)) : 0;
+        return `<li class="step ${esc(s.state)}">
+          <span class="diode" aria-hidden="true"></span>
+          <span class="name">${esc(s.name)}<span class="visually-hidden">: ${esc(s.state)}</span></span>
+          <span class="count">${p ? `${num(p[0])} / ${num(p[1])}` : esc({ done: 'Done', running: 'Running', waiting: 'Waiting', on: 'On' }[s.state] || '')}</span>
+          ${s.detail ? `<span class="detail">${esc(s.detail)}</span>` : ''}
+          ${p && s.state === 'running' ? `<span class="bar" aria-hidden="true"><span style="width:${pct}%"></span></span>` : ''}
+        </li>`;
+      }
+
+      function render(d) {
+        generatedAt = d.generatedAt;
+        tick();
+        document.getElementById('steps').innerHTML = (d.steps || []).map(step).join('');
+        const n = d.numbers || {};
+        const types = Object.entries(n.types || {})
+          .filter(([k]) => LABELS[k])
+          .sort((a, b) => b[1] - a[1])
+          .map(([k, v]) => `<span>${COLORS[k] ? `<i class="dot" style="background:${COLORS[k]}"></i>` : ''}${esc(LABELS[k])} ${num(v)}</span>`).join('');
+        const rows = [
+          ['Tweets in the base', num(n.tweets)],
+          ['Accounts that tweeted in 30 days', num(n.accountsWithTweets)],
+          ['Tweets in the last 24 hours', num(n.tweets24h)],
+          ['Newest tweet', n.newestTweet ? ago(n.newestTweet) : '–'],
+          ['TwitterAPI.io credit left', n.apiCredit == null ? '–' : `$${Number(n.apiCredit).toFixed(2)}`],
+          ['Account types', `<span class="types">${types || '–'}</span>`],
+          ['Server load', d.server ? `${d.server.load}, disk ${d.server.diskUsedPercent}% used` : '–'],
+        ];
+        document.getElementById('numbers').innerHTML = rows.map(([k, v]) => `<div class="row"><dt>${k}</dt><dd>${v}</dd></div>`).join('');
+      }
+
+      function load() {
+        fetch(`${SOURCE}?t=${Date.now()}`, { cache: 'no-store' })
+          .then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
+          .then(render)
+          .catch(() => { document.getElementById('updated').textContent = 'The server could not be reached. Trying again in 30 seconds.'; });
+      }
+      load();
+      setInterval(load, 30000);
+      setInterval(tick, 5000);
+    })();
+  </script>
+</body>
+</html>
