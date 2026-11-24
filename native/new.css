@@ -1,0 +1,29 @@
+/* New home page: the followers cell reuses the "last call" column, without its click effects. */
+.leaderboard-last.new-followers { cursor: inherit; }
+.leaderboard-last.new-followers:hover { background: none; }
+.leaderboard-last.new-followers:hover b { color: inherit; text-decoration: none; }
+.leaderboard-score, .leaderboard-calls { color: var(--dim); }
+
+.new-detail {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 18px;
+  padding: 12px var(--row-padding) 16px;
+  border-top: 1px solid var(--line);
+  background: #f3f5f8;
+  color: var(--muted);
+  font-size: 13px;
+}
+.new-detail p { margin: 0; }
+.new-profile {
+  display: inline-block;
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: #fff;
+  font-weight: 600;
+  text-decoration: none;
+}
+.new-profile:hover { background: var(--accent); }
+.new-profile:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
