@@ -6,7 +6,7 @@
 
   const SOURCE = new URLSearchParams(location.search).get('src') || 'https://api.ithacapp.com/new/accounts.json';
   const BASE = SOURCE.replace(/[^/]*$/, '');
-  const state = { accounts: [], query: '', page: 1, size: 100, open: null, tweetsOpen: false, window: 'day', cat: 'independent', sort: { key: 'score', dir: 'desc' }, wsAt: null, hasPrevious: false };
+  const state = { accounts: [], query: '', page: 1, size: 100, open: null, pendingOpen: false, tweetsOpen: false, window: 'day', cat: 'independent', sort: { key: 'score', dir: 'desc' }, wsAt: null, hasPrevious: false };
   const WINDOW_MS = { day: 864e5, week: 7 * 864e5, month: 30 * 864e5 };
   const WINDOW_WORDS = { day: 'in the last 24 hours', week: 'in the last 7 days', month: 'in the last month' };
   const tweetCache = new Map();
@@ -114,12 +114,11 @@
       </a></li>`;
   }
 
-  // The tweets are folded under the calls: they load only when their list is unfolded. Retweets are left out,
+  // The tweets are folded under the calls: they load only when their button unfolds them. Retweets are left out,
   // as in the number of tweets: only the account's own posts and quotes.
   function fillTweets(entry) {
-    const drop = entry.querySelector('.new-tweets-drop');
-    const box = drop?.querySelector('.new-tweets');
-    if (!box || !drop.open) return;
+    const box = entry.querySelector('.new-tweets');
+    if (!box || box.hidden) return;
     const username = entry.dataset.username;
     const win = state.window;
     const account = state.accounts.find((a) => a.username === username);
@@ -176,20 +175,37 @@
         </summary>
         <div class="new-detail">
           <div class="new-calls"></div>
-          ${tweetsDrop(a, open)}
+          ${actions(a, open)}
         </div>
       </details>`;
   }
 
-  // Under the calls, the account's tweets for the chosen window, folded: a click unfolds them.
-  function tweetsDrop(a, open) {
+  // Under the calls, two buttons, each unfolding its list below them: the new calls still in process (their result
+  // for the chosen window is not known yet) and the tweets of the chosen window. Both start folded.
+  function actions(a, open) {
     const n = a.tweets?.[state.window];
-    if (n === 0) return `<p class="new-tweets-none">No tweet ${WINDOW_WORDS[state.window]}</p>`;
-    const label = Number.isFinite(n) ? `${count(n)} tweet${n > 1 ? 's' : ''} ${WINDOW_WORDS[state.window]}` : 'Tweets';
-    return `<details class="new-tweets-drop"${open && state.tweetsOpen ? ' open' : ''}>
-            <summary>${label}</summary>
-            <div class="new-tweets"></div>
-          </details>`;
+    const pendingOpen = open && state.pendingOpen;
+    const tweetsOpen = open && state.tweetsOpen && n !== 0;
+    const pending = a.ws
+      ? `<button class="new-toggle" type="button" data-show="pending" aria-expanded="${pendingOpen}" aria-controls="pending-${esc(a.username)}">New in process <span class="new-toggle-n"></span></button>`
+      : '';
+    return `<div class="new-actions">
+            ${pending}
+            <button class="new-toggle" type="button" data-show="tweets" aria-expanded="${tweetsOpen}" aria-controls="tweets-${esc(a.username)}"${n === 0 ? ' disabled' : ''}>Tweets${Number.isFinite(n) ? ` <span class="new-toggle-n">${count(n)}</span>` : ''}</button>
+          </div>
+          ${a.ws ? `<div class="new-pending" id="pending-${esc(a.username)}"${pendingOpen ? '' : ' hidden'}></div>` : ''}
+          <div class="new-tweets" id="tweets-${esc(a.username)}"${tweetsOpen ? '' : ' hidden'}></div>`;
+  }
+
+  // A button of an opened account shows or hides its list; the choice holds while the account stays open.
+  function showPart(entry, which, show) {
+    const button = entry.querySelector(`.new-toggle[data-show="${which}"]`);
+    const box = entry.querySelector(which === 'pending' ? '.new-pending' : '.new-tweets');
+    if (!button || !box) return;
+    button.setAttribute('aria-expanded', String(show));
+    box.hidden = !show;
+    if (state.open === entry.dataset.username) state[which === 'pending' ? 'pendingOpen' : 'tweetsOpen'] = show;
+    if (show) (which === 'pending' ? fillPending : fillTweets)(entry);
   }
 
   // Score: the average result of the account's calls for the chosen window (the asset's move minus Bitcoin's, or SPY's
@@ -213,13 +229,58 @@
     return callCache.get(key);
   }
 
-  function callItem(c) {
+  // One call: when, the asset with an arrow for its direction, and its result (or, still in process, when it comes).
+  function callItem(c, end) {
     const v = c[state.window];
     return `<li><a class="new-call" href="${esc(c.url || '#')}" target="_blank" rel="noopener noreferrer">
         <span class="new-tweet-meta"><time datetime="${esc(c.at)}" title="${esc(fullDate(c.at))}">${esc(ago(Date.parse(c.at)))}</time></span>
         <span class="new-call-asset"><i class="call-arrow ${c.stance === 'bullish' ? 'up' : 'down'}" aria-hidden="true"></i>${esc(c.asset.startsWith('0x') || c.asset.length > 14 ? c.asset : '$' + c.asset)}<span class="visually-hidden"> ${esc(c.stance)}</span></span>
-        <span class="new-call-result ${v >= 0 ? 'up' : 'down'}">${pct(v)}</span>
+        ${end || `<span class="new-call-result ${v >= 0 ? 'up' : 'down'}">${pct(v)}</span>`}
       </a></li>`;
+  }
+
+  // New calls still in process: their result for the chosen window is not known yet, so they are not in the score.
+  // It comes at the first update after the window has passed (24 hours after the call for the 24-hour window). A call
+  // still without a result 2 hours after that lacks a price, and is left out.
+  const SPAN = { day: '24 hours', week: '7 days', month: '1 month' };
+  function inProcess(calls, win) {
+    const now = Date.now();
+    return calls.filter((c) => !Number.isFinite(c[win]) && now - Date.parse(c.at) < WINDOW_MS[win] + 2 * 36e5);
+  }
+  function resultIn(c) {
+    const minutes = Math.ceil((Date.parse(c.at) + WINDOW_MS[state.window] - Date.now()) / 60000);
+    const when = minutes <= 0 ? 'Result at the next update'
+      : minutes < 60 ? `Result in ${minutes} min`
+      : minutes < 48 * 60 ? `Result in ${Math.round(minutes / 60)} h` : `Result in ${Math.round(minutes / 1440)} d`;
+    return `<span class="new-call-wait">${when}</span>`;
+  }
+
+  function fillPending(entry) {
+    const button = entry.querySelector('.new-toggle[data-show="pending"]');
+    const box = entry.querySelector('.new-pending');
+    if (!button || !box) return;
+    const win = state.window;
+    loadCalls(entry.dataset.username).then((calls) => {
+      if (!entry.isConnected || state.window !== win) return;
+      const pending = inProcess(calls, win);
+      button.querySelector('.new-toggle-n').textContent = count(pending.length);
+      button.disabled = !pending.length;
+      if (!pending.length) {
+        // Nothing in process for this window: the list folds, and unfolds again in a window that has some.
+        button.setAttribute('aria-expanded', 'false');
+        box.hidden = true;
+        return;
+      }
+      if (box.hidden) return;
+      const item = (c) => callItem(c, resultIn(c));
+      box.innerHTML = `<p class="new-tweets-note">Each call counts in the score ${SPAN[win]} after it was made.</p>`
+        + `<ol class="new-call-list">${pending.slice(0, 10).map(item).join('')}</ol>`
+        + (pending.length > 10 ? `<button class="new-more" type="button">Show ${pending.length - 10} more</button>` : '');
+      box.querySelector('.new-more')?.addEventListener('click', (event) => {
+        event.currentTarget.remove();
+        box.querySelector('.new-call-list').insertAdjacentHTML('beforeend', pending.slice(10).map(item).join(''));
+      });
+    });
   }
 
   function fillCalls(entry) {
@@ -235,20 +296,21 @@
       box.innerHTML = `<p class="new-tweets-note">${note}</p>`;
       return;
     }
+    fillPending(entry);
     loadCalls(entry.dataset.username).then((calls) => {
       if (!entry.isConnected || state.window !== win) return;
       const scored = calls.filter((c) => Number.isFinite(c[win]));
       const s = wsOf(account);
       if (!scored.length || !s) {
-        box.innerHTML = `<p class="new-tweets-note">No call scored after ${{ day: '24 hours', week: '7 days', month: '1 month' }[win]} yet.</p>`;
+        box.innerHTML = `<p class="new-tweets-note">No call scored after ${SPAN[win]} yet.</p>`;
         return;
       }
       box.innerHTML = `<p class="new-calls-head">${s.n} call${s.n > 1 ? 's' : ''}, ${pct(s.avg)} on average against the market, ${s.win}% won</p>`
-        + `<ol class="new-call-list">${scored.slice(0, 10).map(callItem).join('')}</ol>`
+        + `<ol class="new-call-list">${scored.slice(0, 10).map((c) => callItem(c)).join('')}</ol>`
         + (scored.length > 10 ? `<button class="new-more" type="button">Show ${scored.length - 10} more calls</button>` : '');
       box.querySelector('.new-more')?.addEventListener('click', (event) => {
         event.currentTarget.remove();
-        box.querySelector('.new-call-list').insertAdjacentHTML('beforeend', scored.slice(10).map(callItem).join(''));
+        box.querySelector('.new-call-list').insertAdjacentHTML('beforeend', scored.slice(10).map((c) => callItem(c)).join(''));
       });
     });
   }
@@ -380,23 +442,17 @@
     list.closest('.list-card')?.scrollIntoView({ block: 'start', behavior: 'smooth' });
   }
 
-  // One account open at a time. A newly opened account shows its calls, with its tweets folded; its tweets stay
-  // unfolded through a new window or an update once unfolded.
+  // One account open at a time. A newly opened account shows its calls, with its new calls in process and its tweets
+  // folded; what was unfolded stays so through a new window or an update.
   list.addEventListener('toggle', (event) => {
     const el = event.target;
-    if (el.matches?.('details.new-tweets-drop')) {
-      const entry = el.closest('details.leaderboard-entry');
-      if (!entry || state.open !== entry.dataset.username) return;
-      state.tweetsOpen = el.open;
-      fillTweets(entry);
-      return;
-    }
     if (!el.matches?.('details.leaderboard-entry')) return;
     if (el.open) {
       if (state.open !== el.dataset.username) {
+        state.pendingOpen = false;
         state.tweetsOpen = false;
-        const drop = el.querySelector('.new-tweets-drop');
-        if (drop?.open) drop.open = false;
+        showPart(el, 'pending', false);
+        showPart(el, 'tweets', false);
       }
       state.open = el.dataset.username;
       for (const other of list.querySelectorAll('details.leaderboard-entry[open]')) if (other !== el) other.open = false;
@@ -404,9 +460,17 @@
       fillTweets(el);
     } else if (state.open === el.dataset.username) {
       state.open = null;
+      state.pendingOpen = false;
       state.tweetsOpen = false;
     }
   }, true);
+
+  list.addEventListener('click', (event) => {
+    const button = event.target.closest('.new-toggle');
+    const entry = button?.closest('details.leaderboard-entry');
+    if (!entry || button.disabled) return;
+    showPart(entry, button.dataset.show, button.getAttribute('aria-expanded') !== 'true');
+  });
 
   prev.addEventListener('click', () => goTo(state.page - 1));
   next.addEventListener('click', () => goTo(state.page + 1));

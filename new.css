@@ -53,22 +53,26 @@
 .account-link:hover strong { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
 .account-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 
-/* Under the calls, the tweets folded in a list that unfolds on a click, with a small arrow that turns down. */
-.new-tweets-drop { flex: 1 1 100%; min-width: 0; }
-.new-tweets-drop > summary {
+/* Under the calls, two buttons: "New in process" (the calls whose result is not known yet) and "Tweets". Each one
+   unfolds its list below them, and its small arrow turns down while the list is open. */
+.new-actions { display: flex; flex: 1 1 100%; flex-wrap: wrap; gap: 8px; padding: 2px var(--detail-inset) 0; }
+.new-toggle {
   display: inline-flex;
   align-items: center;
-  gap: 9px;
-  padding: 6px var(--detail-inset);
-  border-radius: 8px;
-  color: var(--accent);
+  gap: 8px;
+  min-height: 32px;
+  padding: 0 13px 0 12px;
+  border: 1px solid #cfd6e1;
+  border-radius: 999px;
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
   font-size: 13px;
   font-weight: 600;
-  list-style: none;
   cursor: pointer;
+  transition: border-color .15s, color .15s;
 }
-.new-tweets-drop > summary::-webkit-details-marker { display: none; }
-.new-tweets-drop > summary::before {
+.new-toggle::before {
   width: 6px;
   height: 6px;
   border: solid currentColor;
@@ -77,16 +81,22 @@
   transition: transform .15s ease;
   content: "";
 }
-.new-tweets-drop[open] > summary::before { transform: translateY(-2px) rotate(45deg); }
-.new-tweets-drop > summary:hover { background: #fff; }
-.new-tweets-drop > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
-.new-tweets-drop[open] > summary { margin-bottom: 2px; }
-.new-tweets-none { flex: 1 1 100%; padding: 0 var(--detail-inset); }
+.new-toggle[aria-expanded="true"]::before { transform: translateY(-2px) rotate(45deg); }
+.new-toggle:hover, .new-toggle[aria-expanded="true"] { border-color: var(--accent); color: var(--accent); }
+.new-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.new-toggle:disabled { border-color: var(--line); background: transparent; color: var(--muted); cursor: default; }
+.new-toggle:disabled::before { opacity: .4; }
+.new-toggle-n { color: var(--muted); font-variant-numeric: tabular-nums; }
+.new-toggle-n:empty { display: none; }
+.new-pending, .new-tweets { flex: 1 1 100%; min-width: 0; }
+.new-pending[hidden], .new-tweets[hidden] { display: none; }
+.new-pending > .new-tweets-note { margin-bottom: 4px; }
+.new-call-wait { color: var(--muted); font-size: 12px; font-weight: 500; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .new-tweets-note { padding: 0 var(--detail-inset); }
 .new-all { display: block; width: fit-content; margin: 10px var(--detail-inset) 0; color: var(--accent); font-weight: 600; text-decoration: none; }
 .new-all:hover { text-decoration: underline; }
 .new-all:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-@media (prefers-reduced-motion: reduce) { .new-tweets-drop > summary::before { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .new-toggle, .new-toggle::before { transition: none; } }
 
 /* Account types: small diodes in the colours the page already uses (the green of the "Live" diode, the gold
    of the mark, the royal blue of the banner, plus red). The legend sits beside the ranking in the same small
