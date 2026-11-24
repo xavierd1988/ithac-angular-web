@@ -1,10 +1,10 @@
 // New ITHAC home page: the list of followed accounts, read from the new base on the server.
-// Scores and calls come later, with the new collection; the 24 hours / 7 days / 1 month buttons are ready for them.
+// The last tweet and the number of tweets (for the chosen window) come from the new collection.
 (() => {
   'use strict';
 
   const SOURCE = new URLSearchParams(location.search).get('src') || 'https://api.ithacapp.com/new/accounts.json';
-  const state = { accounts: [], query: '', page: 1, size: 100, open: null };
+  const state = { accounts: [], query: '', page: 1, size: 100, open: null, window: 'day' };
 
   const list = document.getElementById('list');
   const stats = document.getElementById('rankingStats');
@@ -22,6 +22,25 @@
     const q = state.query.trim().toLowerCase().replace(/^@/, '');
     if (!q) return state.accounts;
     return state.accounts.filter((a) => a.username.toLowerCase().includes(q) || a.name.toLowerCase().includes(q));
+  }
+
+  // Last tweet and number of tweets come from the new collection; until it fills the new base they show "–".
+  // The number of tweets follows the chosen window: 24 hours, 7 days or 1 month.
+  function lastTweet(a) {
+    const t = Date.parse(a.lastTweetAt || '');
+    if (!Number.isFinite(t)) return '–';
+    const minutes = Math.max(0, Math.round((Date.now() - t) / 60000));
+    if (minutes < 60) return `${minutes} min ago`;
+    if (minutes < 48 * 60) return `${Math.round(minutes / 60)} h ago`;
+    return `${Math.round(minutes / 1440)} d ago`;
+  }
+  function fullDate(value) {
+    const d = new Date(value);
+    return Number.isNaN(d.getTime()) ? '' : d.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+  }
+  function tweetCount(a) {
+    const n = a.tweets?.[state.window];
+    return Number.isFinite(n) ? count(n) : '–';
   }
 
   function avatar(a) {
@@ -43,13 +62,13 @@
             </span>
           </span>
           <span class="leaderboard-last new-followers"><span class="last-label">Followers</span><b>${count(a.followers)}</b></span>
-          <span class="leaderboard-score"><span class="visually-hidden">Score </span>–</span>
-          <span class="leaderboard-calls"><span class="visually-hidden">Calls </span>–</span>
+          <span class="leaderboard-score new-last"${a.lastTweetAt ? ` title="${esc(fullDate(a.lastTweetAt))}"` : ''}><span class="visually-hidden">Last tweet </span>${esc(lastTweet(a))}</span>
+          <span class="leaderboard-calls new-count"><span class="visually-hidden">Number of tweets </span>${esc(tweetCount(a))}</span>
           <span class="leaderboard-chevron" aria-hidden="true"></span>
         </summary>
         <div class="new-detail">
           <a class="new-profile" href="https://x.com/${encodeURIComponent(a.username)}" target="_blank" rel="noopener noreferrer">Open @${esc(a.username)} on X</a>
-          <p>Calls and scores will appear here with the new collection.</p>
+          <p>Tweets will appear here with the new collection.</p>
         </div>
       </details>`;
   }
@@ -139,7 +158,9 @@
         b.classList.toggle('active', active);
         b.setAttribute('aria-pressed', String(active));
       }
+      state.window = button.dataset.window;
       placeGlider();
+      if (state.accounts.length) render();
     });
   }
   placeGlider();
