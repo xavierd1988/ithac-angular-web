@@ -121,7 +121,17 @@
   sizeSelect.addEventListener('change', () => { state.size = Number(sizeSelect.value) || 100; state.page = 1; render(); });
   search.addEventListener('input', () => { state.query = search.value; state.page = 1; render(); });
 
-  // The three windows stay in place for the scores to come; for now they only change which button is active.
+  // The three windows stay in place for the scores to come; for now they only change which one is chosen.
+  // A glossy pill slides under the chosen window.
+  const group = document.querySelector('.page-intro .ranking-period');
+  const glider = group?.querySelector('.period-glider');
+  function placeGlider() {
+    const active = group?.querySelector('.period-button.active');
+    if (!glider || !active) return;
+    glider.style.width = `${active.offsetWidth}px`;
+    glider.style.transform = `translateX(${active.offsetLeft}px)`;
+    group.classList.add('has-glider');
+  }
   for (const button of document.querySelectorAll('[data-window]')) {
     button.addEventListener('click', () => {
       for (const b of document.querySelectorAll('[data-window]')) {
@@ -129,8 +139,13 @@
         b.classList.toggle('active', active);
         b.setAttribute('aria-pressed', String(active));
       }
+      placeGlider();
     });
   }
+  placeGlider();
+  requestAnimationFrame(() => glider?.classList.add('ready'));
+  document.fonts?.ready.then(placeGlider);
+  window.addEventListener('resize', placeGlider);
 
   fetch(SOURCE, { cache: 'no-store' })
     .then((response) => { if (!response.ok) throw new Error(`HTTP ${response.status}`); return response.json(); })
