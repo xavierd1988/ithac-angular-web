@@ -1,12 +1,12 @@
-// New ITHAC home page: the ranking of the most active followed accounts, read from the new base on the server.
-// The chosen window (24 hours, 7 days, 1 month) orders the list by number of tweets, then by last tweet,
-// and filters the tweets shown under an opened account.
+// New ITHAC home page: the ranking of the followed accounts, read from the new base on the server.
+// The name and the photo of an account open it on X; the rest of its row opens its calls, with its tweets folded
+// in a list under them. The chosen window (24 hours, 7 days, 1 month) sets the scores and filters the calls and tweets.
 (() => {
   'use strict';
 
   const SOURCE = new URLSearchParams(location.search).get('src') || 'https://api.ithacapp.com/new/accounts.json';
   const BASE = SOURCE.replace(/[^/]*$/, '');
-  const state = { accounts: [], query: '', page: 1, size: 100, open: null, window: 'day', cat: 'independent', sort: { key: 'score', dir: 'desc' }, wsAt: null, hasPrevious: false };
+  const state = { accounts: [], query: '', page: 1, size: 100, open: null, tweetsOpen: false, window: 'day', cat: 'independent', sort: { key: 'score', dir: 'desc' }, wsAt: null, hasPrevious: false };
   const WINDOW_MS = { day: 864e5, week: 7 * 864e5, month: 30 * 864e5 };
   const WINDOW_WORDS = { day: 'in the last 24 hours', week: 'in the last 7 days', month: 'in the last month' };
   const tweetCache = new Map();
@@ -114,25 +114,29 @@
       </a></li>`;
   }
 
+  // The tweets are folded under the calls: they load only when their list is unfolded. Retweets are left out,
+  // as in the number of tweets: only the account's own posts and quotes.
   function fillTweets(entry) {
-    const box = entry.querySelector('.new-tweets');
-    if (!box) return;
+    const drop = entry.querySelector('.new-tweets-drop');
+    const box = drop?.querySelector('.new-tweets');
+    if (!box || !drop.open) return;
     const username = entry.dataset.username;
     const win = state.window;
     const account = state.accounts.find((a) => a.username === username);
+    const all = `<a class="new-all" href="https://x.com/${encodeURIComponent(username)}" target="_blank" rel="noopener noreferrer">All tweets on X</a>`;
     box.innerHTML = '<p class="new-tweets-note">Loading tweets…</p>';
     loadTweets(username).then((tweets) => {
       if (!entry.isConnected || state.window !== win) return;
       const cutoff = Date.now() - WINDOW_MS[win];
-      const inWindow = tweets.filter((t) => Date.parse(t.at) >= cutoff);
+      const inWindow = tweets.filter((t) => t.kind !== 'retweet' && Date.parse(t.at) >= cutoff);
       if (!inWindow.length) {
-        box.innerHTML = `<p class="new-tweets-note">No tweet ${WINDOW_WORDS[win]}.</p>`;
+        box.innerHTML = `<p class="new-tweets-note">No tweet ${WINDOW_WORDS[win]}.</p>${all}`;
         return;
       }
       const capped = (account?.tweets?.[win] || 0) > inWindow.length
         ? `<p class="new-tweets-note">The latest ${inWindow.length} are shown here.</p>` : '';
       box.innerHTML = `<ol class="new-tweet-list">${inWindow.slice(0, 10).map((t) => tweetItem(t, username)).join('')}</ol>`
-        + (inWindow.length > 10 ? `<button class="new-more" type="button">Show ${inWindow.length - 10} more</button>` : capped);
+        + (inWindow.length > 10 ? `<button class="new-more" type="button">Show ${inWindow.length - 10} more</button>` : capped) + all;
       box.querySelector('.new-more')?.addEventListener('click', (event) => {
         event.currentTarget.insertAdjacentHTML('afterend', capped);
         event.currentTarget.remove();
@@ -157,10 +161,12 @@
         <summary class="leaderboard-summary">
           <span class="leaderboard-rank"><span class="visually-hidden">Rank </span>${a.shownRank}${moveBadge(a)}</span>
           <span class="leaderboard-account">
-            ${avatar(a)}
-            <span class="leaderboard-name">
-              <strong>${dot}${esc(a.name)}</strong>
-            </span>
+            <a class="account-link" href="https://x.com/${encodeURIComponent(a.username)}" target="_blank" rel="noopener noreferrer" title="Open on X">
+              ${avatar(a)}
+              <span class="leaderboard-name">
+                <strong>${dot}${esc(a.name)}</strong>
+              </span>
+            </a>
           </span>
           <span class="leaderboard-last new-followers"><span class="last-label">Followers</span><b>${count(a.followers)}</b></span>
           <span class="leaderboard-score new-last"${a.lastTweetAt ? ` title="${esc(fullDate(a.lastTweetAt))}"` : ''}><span class="visually-hidden">Last tweet </span>${esc(lastTweet(a))}</span>
@@ -170,10 +176,20 @@
         </summary>
         <div class="new-detail">
           <div class="new-calls"></div>
-          <div class="new-tweets"></div>
-          <a class="new-profile" href="https://x.com/${encodeURIComponent(a.username)}" target="_blank" rel="noopener noreferrer">Open on X</a>
+          ${tweetsDrop(a, open)}
         </div>
       </details>`;
+  }
+
+  // Under the calls, the account's tweets for the chosen window, folded: a click unfolds them.
+  function tweetsDrop(a, open) {
+    const n = a.tweets?.[state.window];
+    if (n === 0) return `<p class="new-tweets-none">No tweet ${WINDOW_WORDS[state.window]}</p>`;
+    const label = Number.isFinite(n) ? `${count(n)} tweet${n > 1 ? 's' : ''} ${WINDOW_WORDS[state.window]}` : 'Tweets';
+    return `<details class="new-tweets-drop"${open && state.tweetsOpen ? ' open' : ''}>
+            <summary>${label}</summary>
+            <div class="new-tweets"></div>
+          </details>`;
   }
 
   // Score: the average result of the account's calls for the chosen window (the asset's move minus Bitcoin's, or SPY's
@@ -211,7 +227,14 @@
     if (!box) return;
     const account = state.accounts.find((a) => a.username === entry.dataset.username);
     const win = state.window;
-    if (!account?.ws) { box.innerHTML = ''; return; }
+    if (!account?.ws) {
+      // Calls are scored for independent accounts only.
+      const note = typeOf(account || {}) !== 'independent' ? 'Calls are scored for independent accounts only.'
+        : state.wsAt ? 'No call found.'
+        : state.wsFailed ? 'The calls could not be loaded. Try again in a moment.' : 'Loading the calls…';
+      box.innerHTML = `<p class="new-tweets-note">${note}</p>`;
+      return;
+    }
     loadCalls(entry.dataset.username).then((calls) => {
       if (!entry.isConnected || state.window !== win) return;
       const scored = calls.filter((c) => Number.isFinite(c[win]));
@@ -348,7 +371,7 @@
       ? `Accounts ${count(start + 1)}–${count(start + pageRows.length)} of ${count(rows.length)}${state.cat ? `, ${LABEL[state.cat].toLowerCase()} only` : ''}${state.query.trim() ? ` matching “${state.query.trim()}”` : ''}`
       : '';
     const opened = list.querySelector('details.leaderboard-entry[open]');
-    if (opened) { fillTweets(opened); fillCalls(opened); }
+    if (opened) { fillCalls(opened); fillTweets(opened); }
   }
 
   function goTo(page) {
@@ -357,16 +380,31 @@
     list.closest('.list-card')?.scrollIntoView({ block: 'start', behavior: 'smooth' });
   }
 
+  // One account open at a time. A newly opened account shows its calls, with its tweets folded; its tweets stay
+  // unfolded through a new window or an update once unfolded.
   list.addEventListener('toggle', (event) => {
-    const entry = event.target;
-    if (!entry.matches?.('details.leaderboard-entry')) return;
-    if (entry.open) {
-      state.open = entry.dataset.username;
-      for (const other of list.querySelectorAll('details.leaderboard-entry[open]')) if (other !== entry) other.open = false;
+    const el = event.target;
+    if (el.matches?.('details.new-tweets-drop')) {
+      const entry = el.closest('details.leaderboard-entry');
+      if (!entry || state.open !== entry.dataset.username) return;
+      state.tweetsOpen = el.open;
       fillTweets(entry);
-      fillCalls(entry);
-    } else if (state.open === entry.dataset.username) {
+      return;
+    }
+    if (!el.matches?.('details.leaderboard-entry')) return;
+    if (el.open) {
+      if (state.open !== el.dataset.username) {
+        state.tweetsOpen = false;
+        const drop = el.querySelector('.new-tweets-drop');
+        if (drop?.open) drop.open = false;
+      }
+      state.open = el.dataset.username;
+      for (const other of list.querySelectorAll('details.leaderboard-entry[open]')) if (other !== el) other.open = false;
+      fillCalls(el);
+      fillTweets(el);
+    } else if (state.open === el.dataset.username) {
       state.open = null;
+      state.tweetsOpen = false;
     }
   }, true);
 
@@ -470,9 +508,9 @@
       render();
       markLegend();
       fetch(`${BASE}wolf_simple.json?t=${Date.now()}`, { cache: 'no-store' })
-        .then((response) => (response.ok ? response.json() : null))
+        .then((response) => { if (!response.ok) throw new Error(`HTTP ${response.status}`); return response.json(); })
         .then(applyWs)
-        .catch(() => {});
+        .catch(() => { state.wsFailed = true; render(); });
     })
     .catch(() => {
       list.innerHTML = '<p class="empty">The list of accounts could not be loaded. Try again in a moment.</p>';
