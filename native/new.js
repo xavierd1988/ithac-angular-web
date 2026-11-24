@@ -6,7 +6,7 @@
 
   const SOURCE = new URLSearchParams(location.search).get('src') || 'https://api.ithacapp.com/new/accounts.json';
   const BASE = SOURCE.replace(/[^/]*$/, '');
-  const state = { accounts: [], query: '', page: 1, size: 100, open: null, window: 'day', cat: null, sort: { key: 'tweets', dir: 'desc' } };
+  const state = { accounts: [], query: '', page: 1, size: 100, open: null, window: 'day', cat: 'independent', sort: { key: 'score', dir: 'desc' }, wsAt: null, hasPrevious: false };
   const WINDOW_MS = { day: 864e5, week: 7 * 864e5, month: 30 * 864e5 };
   const WINDOW_WORDS = { day: 'in the last 24 hours', week: 'in the last 7 days', month: 'in the last month' };
   const tweetCache = new Map();
@@ -155,7 +155,7 @@
     return `
       <details class="leaderboard-entry" data-username="${esc(a.username)}"${open ? ' open' : ''}>
         <summary class="leaderboard-summary">
-          <span class="leaderboard-rank"><span class="visually-hidden">Rank </span>${a.shownRank}</span>
+          <span class="leaderboard-rank"><span class="visually-hidden">Rank </span>${a.shownRank}${moveBadge(a)}</span>
           <span class="leaderboard-account">
             ${avatar(a)}
             <span class="leaderboard-name">
@@ -229,6 +229,84 @@
       });
     });
   }
+
+  // Movement since the previous update (every 30 minutes), shown under the rank when the list is ranked by score.
+  function moveBadge(a) {
+    if (state.sort.key !== 'score' || state.sort.dir !== 'desc' || !state.hasPrevious) return '';
+    const s = wsOf(a);
+    if (!s || !s.rank) return '';
+    if (!s.prevRank) return '<span class="rank-move new" title="New in the ranking since the last update">new</span>';
+    const d = s.prevRank - s.rank;
+    if (!d) return '<span class="rank-move same" title="Same place as at the last update">=</span>';
+    const n = Math.abs(d);
+    return `<span class="rank-move ${d > 0 ? 'up' : 'down'}" title="${n} place${n > 1 ? 's' : ''} ${d > 0 ? 'up' : 'down'} since the last update">${d > 0 ? '▲' : '▼'}${n}</span>`;
+  }
+
+  function applyWs(ws) {
+    if (!ws?.accounts) return;
+    state.wsAt = ws.generatedAt;
+    state.hasPrevious = Boolean(ws.hasPrevious);
+    for (const a of state.accounts) a.ws = ws.accounts[a.username.toLowerCase()] || null;
+    callCache.clear();
+    rankAccounts();
+    render();
+  }
+
+  // After an update: the accounts' activity again (tweets, last tweet, type), keeping their scores.
+  function reloadAccounts() {
+    return fetch(`${SOURCE}${SOURCE.includes('?') ? '&' : '?'}t=${Date.now()}`, { cache: 'no-store' })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((data) => {
+        if (!data?.accounts) return;
+        const old = new Map(state.accounts.map((a) => [a.username.toLowerCase(), a]));
+        state.accounts = data.accounts.map((a) => ({ ...a, name: a.name || a.username, ws: old.get(a.username.toLowerCase())?.ws || null }));
+        tweetCache.clear();
+      })
+      .catch(() => {});
+  }
+
+  // Countdown to the next update: the scores are recomputed at 10 and 40 minutes past each hour (UTC). When it runs out,
+  // the page asks for the new scores every 20 seconds until they arrive, then shows them with each account's movement.
+  const countdown = document.getElementById('nextUpdate');
+  let target = 0;
+  let waiting = false;
+  function nextSlot() {
+    const d = new Date();
+    const m = d.getUTCMinutes();
+    d.setUTCSeconds(0, 0);
+    if (m < 10) d.setUTCMinutes(10);
+    else if (m < 40) d.setUTCMinutes(40);
+    else d.setUTCHours(d.getUTCHours() + 1, 10);
+    return d.getTime();
+  }
+  function poll(tries) {
+    fetch(`${BASE}wolf_simple.json?t=${Date.now()}`, { cache: 'no-store' })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((ws) => {
+        if (ws && ws.generatedAt !== state.wsAt) {
+          return reloadAccounts().then(() => { applyWs(ws); waiting = false; target = nextSlot(); });
+        }
+        throw new Error('not yet');
+      })
+      .catch(() => {
+        if (tries < 18) setTimeout(() => poll(tries + 1), 20000);
+        else { waiting = false; target = nextSlot(); }
+      });
+  }
+  function tick() {
+    if (!countdown) return;
+    if (!target) target = nextSlot();
+    const left = target - Date.now();
+    if (left > 0) {
+      const sec = Math.ceil(left / 1000);
+      countdown.textContent = `Next update in ${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`;
+    } else {
+      countdown.textContent = 'Updating…';
+      if (!waiting) { waiting = true; poll(0); }
+    }
+  }
+  tick();
+  setInterval(tick, 1000);
 
   // Page numbers: the first, the last and the two around the current one, with gaps shown as "…".
   function pageList(current, total) {
@@ -327,14 +405,19 @@
     if (!item) return;
     const cat = item.dataset.cat === 'all' ? null : item.dataset.cat;
     state.cat = state.cat === cat ? null : cat;
-    for (const b of legend.querySelectorAll('[data-cat]')) {
-      b.setAttribute('aria-pressed', String((b.dataset.cat === 'all' ? null : b.dataset.cat) === state.cat));
-    }
-    legend.classList.toggle('filtering', Boolean(state.cat));
+    markLegend();
     state.page = 1;
     render();
   });
   // The legend shows only the types that some account has (off-topic and inactive accounts now live in the Garage).
+  function markLegend() {
+    if (!legend) return;
+    for (const b of legend.querySelectorAll('[data-cat]')) {
+      b.setAttribute('aria-pressed', String((b.dataset.cat === 'all' ? null : b.dataset.cat) === state.cat));
+    }
+    legend.classList.toggle('filtering', Boolean(state.cat));
+  }
+
   function showLegend() {
     const has = state.accounts.some((a) => typeOf(a));
     if (!legend) return;
@@ -385,14 +468,10 @@
       rankAccounts();
       showLegend();
       render();
-      fetch(`${BASE}wolf_simple.json`, { cache: 'no-store' })
+      markLegend();
+      fetch(`${BASE}wolf_simple.json?t=${Date.now()}`, { cache: 'no-store' })
         .then((response) => (response.ok ? response.json() : null))
-        .then((ws) => {
-          if (!ws?.accounts) return;
-          for (const a of state.accounts) a.ws = ws.accounts[a.username.toLowerCase()] || null;
-          rankAccounts();
-          render();
-        })
+        .then(applyWs)
         .catch(() => {});
     })
     .catch(() => {
