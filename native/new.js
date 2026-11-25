@@ -311,13 +311,14 @@
         box.innerHTML = `<p class="new-tweets-note">No call scored after ${SPAN[win]} yet.</p>`;
         return;
       }
-      // How many calls bet on the coin rising (bullish) and on it falling (bearish): a bearish call wins when its coin falls.
+      // How many calls bet on the coin rising (bullish) and on it falling (bearish): a bearish call wins when its coin falls
+      // against the market (it does worse than Bitcoin, or SPY for a stock).
       const bear = Number.isFinite(s.bear) ? s.bear : scored.filter((c) => c.stance === 'bearish').length;
       const split = s.n === 1 ? `1 call, ${bear ? 'bearish' : 'bullish'}`
         : !bear ? `${s.n} calls, all bullish`
         : bear === s.n ? `${s.n} calls, all bearish` : `${s.n} calls: ${s.n - bear} bullish, ${bear} bearish`;
       box.innerHTML = `<p class="new-calls-head">${split}</p>`
-        + `<p class="new-calls-sub">${pct(s.avg)} on average against the market, ${s.win}% won.${bear ? ' A bearish call wins when its coin falls.' : ''}</p>`
+        + `<p class="new-calls-sub">${pct(s.avg)} on average against the market, ${s.win}% won.${bear ? ' A bearish call wins when its coin falls against the market.' : ''}</p>`
         + `<ol class="new-call-list">${scored.slice(0, 10).map((c) => callItem(c)).join('')}</ol>`
         + (scored.length > 10 ? `<button class="new-more" type="button">Show ${scored.length - 10} more calls</button>` : '');
       box.querySelector('.new-more')?.addEventListener('click', (event) => {
