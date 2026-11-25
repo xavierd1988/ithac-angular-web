@@ -229,12 +229,18 @@
     return callCache.get(key);
   }
 
+  // The asset by its ticker ($HYPE). A token called by its contract address comes with its ticker too (read on the
+  // server from the pool it trades in); one still without a ticker shows its shortened address, without a $ sign.
+  function assetName(c) {
+    return c.asset.includes('…') || /^0x[0-9a-f]{8}/i.test(c.asset) ? c.asset : '$' + c.asset;
+  }
+
   // One call: when, the asset with an arrow for its direction, and its result (or, still in process, when it comes).
   function callItem(c, end) {
     const v = c[state.window];
     return `<li><a class="new-call" href="${esc(c.url || '#')}" target="_blank" rel="noopener noreferrer">
         <span class="new-tweet-meta"><time datetime="${esc(c.at)}" title="${esc(fullDate(c.at))}">${esc(ago(Date.parse(c.at)))}</time></span>
-        <span class="new-call-asset"><i class="call-arrow ${c.stance === 'bullish' ? 'up' : 'down'}" aria-hidden="true"></i>${esc(c.asset.startsWith('0x') || c.asset.length > 14 ? c.asset : '$' + c.asset)}<span class="visually-hidden"> ${esc(c.stance)}</span></span>
+        <span class="new-call-asset"><i class="call-arrow ${c.stance === 'bullish' ? 'up' : 'down'}" aria-hidden="true"></i>${esc(assetName(c))}<span class="visually-hidden"> ${esc(c.stance)}</span></span>
         ${end || `<span class="new-call-result ${v >= 0 ? 'up' : 'down'}">${pct(v)}</span>`}
       </a></li>`;
   }
