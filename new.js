@@ -16,7 +16,11 @@
   const typeOf = (a) => GROUP[a.category] || null;
   // Wolf Simple: each account's result after its calls, per window, read from wolf_simple.json; its calls from calls/<account>.json.
   const callCache = new Map();
-  const pct = (v) => `${v > 0 ? '+' : v < 0 ? '−' : ''}${Math.abs(v).toFixed(1)}%`;
+  // A call's result is in points: what its coin did against the market, counted the other way for a bearish call, at
+  // most 50. A percentage is only ever a real price move, said in words ("down 53.3%") rather than with a minus sign.
+  const pts = (v) => `${v > 0 ? '+' : v < 0 ? '−' : ''}${Math.abs(v).toFixed(1)}`;
+  const moved = (v) => (Math.abs(v) < 0.05 ? 'flat' : `${v > 0 ? 'up' : 'down'} ${Math.abs(v).toFixed(1)}%`);
+  const when = (ts) => new Date(ts * 1000).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
   const wsOf = (a) => a.ws?.[state.window] || null;
 
   const list = document.getElementById('list');
@@ -214,8 +218,8 @@
     const s = wsOf(a);
     if (!s) return '<span class="new-score none"><span class="visually-hidden">Score </span>–</span>';
     const cls = !s.ranked ? 'few' : s.avg >= 0 ? 'up' : 'down';
-    return `<span class="new-score ${cls}" title="${s.n} call${s.n > 1 ? 's' : ''}, ${s.win}% won${s.ranked ? '' : ': too few to be ranked'}">`
-      + `<span class="visually-hidden">Score </span><b>${pct(s.avg)}</b><small>${s.n} call${s.n > 1 ? 's' : ''}</small></span>`;
+    return `<span class="new-score ${cls}" title="${pts(s.avg)} points per call on average, ${s.n} call${s.n > 1 ? 's' : ''}, ${s.win}% won${s.ranked ? '' : ': too few to be ranked'}">`
+      + `<span class="visually-hidden">Score </span><b>${pts(s.avg)}</b><small>${s.n} call${s.n > 1 ? 's' : ''}</small></span>`;
   }
 
   function loadCalls(username) {
@@ -235,14 +239,33 @@
     return c.asset.includes('…') || /^0x[0-9a-f]{8}/i.test(c.asset) ? c.asset : '$' + c.asset;
   }
 
-  // One call: when, the asset with an arrow for its direction, and its result (or, still in process, when it comes).
+  // One call: when, its direction and asset, and the points it brings (or, still in process, when its result comes).
+  // Under it, what really happened: the coin's move and the market's over the same hours, from the entry price to the
+  // exit price, and who measured the prices.
   function callItem(c, end) {
     const v = c[state.window];
+    const capped = Math.abs(v) >= 50 ? '<small title="A call counts for at most 50 points"> max</small>' : '';
     return `<li><a class="new-call" href="${esc(c.url || '#')}" target="_blank" rel="noopener noreferrer">
         <span class="new-tweet-meta"><time datetime="${esc(c.at)}" title="${esc(fullDate(c.at))}">${esc(ago(Date.parse(c.at)))}</time></span>
         <span class="new-call-asset"><span class="call-dir ${c.stance === 'bearish' ? 'bear' : 'bull'}">${c.stance === 'bearish' ? 'Bearish' : 'Bullish'}</span>${esc(assetName(c))}</span>
-        ${end || `<span class="new-call-result ${v >= 0 ? 'up' : 'down'}">${pct(v)}</span>`}
+        ${end || `<span class="new-call-result ${v >= 0 ? 'up' : 'down'}">${pts(v)} pts${capped}</span>`}
+        ${callDetail(c)}
       </a></li>`;
+  }
+
+  function callDetail(c) {
+    const w = state.window;
+    const source = c.type === 'dex' ? 'GeckoTerminal' : 'CoinGecko';
+    if (!Number.isFinite(c[w])) {
+      return c.entryTs ? `<span class="new-call-detail">Since ${esc(when(c.entryTs))} · prices from ${source}</span>` : '';
+    }
+    const raw = c[`${w}Raw`];
+    if (!Number.isFinite(raw)) return '';
+    const yard = c[`${w}Yard`];
+    const market = Number.isFinite(yard) ? ` (${c.type === 'stock' ? 'S&P 500' : 'Bitcoin'} ${moved(yard)})` : '';
+    const span = c.entryTs && c[`${w}Ts`] ? ` from ${when(c.entryTs)} to ${when(c[`${w}Ts`])}` : '';
+    const text = moved(raw);
+    return `<span class="new-call-detail">${esc(text.charAt(0).toUpperCase() + text.slice(1) + market + span)} · prices from ${source}</span>`;
   }
 
   // New calls still in process: their result for the chosen window is not known yet, so they are not in the score.
@@ -318,7 +341,7 @@
         : !bear ? `${s.n} calls, all bullish`
         : bear === s.n ? `${s.n} calls, all bearish` : `${s.n} calls: ${s.n - bear} bullish, ${bear} bearish`;
       box.innerHTML = `<p class="new-calls-head">${split}</p>`
-        + `<p class="new-calls-sub">${pct(s.avg)} on average against the market, ${s.win}% won.${bear ? ' A bearish call wins when its coin falls against the market.' : ''}</p>`
+        + `<p class="new-calls-sub">${pts(s.avg)} points per call on average against the market, ${s.win}% won.${bear ? ' A bearish call wins when its coin falls against the market.' : ''}</p>`
         + `<ol class="new-call-list">${scored.slice(0, 10).map((c) => callItem(c)).join('')}</ol>`
         + (scored.length > 10 ? `<button class="new-more" type="button">Show ${scored.length - 10} more calls</button>` : '');
       box.querySelector('.new-more')?.addEventListener('click', (event) => {

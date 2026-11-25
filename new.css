@@ -397,6 +397,9 @@
 .call-dir.bull { background: #e3f3ea; color: #126450; }
 .call-dir.bear { background: #fbe9e9; color: #aa3337; }
 .new-call-result { font-weight: 700; font-variant-numeric: tabular-nums; }
+.new-call-result small { font-size: 11px; font-weight: 600; opacity: .75; }
+/* Under each call, what its coin and the market really did, between which hours, and from whose prices. */
+.new-call-detail { grid-column: 2 / -1; color: var(--muted); font-size: 12px; font-weight: 400; line-height: 1.45; }
 .new-call-result.up { color: #16a05a; }
 .new-call-result.down { color: #d43c41; }
 @media (max-width: 720px) { :root { --ranking-columns: 28px minmax(0, 1fr) 64px 46px 12px; } }
@@ -419,4 +422,5 @@
   .new-detail { --detail-inset: 6px; }
   .new-call { grid-template-columns: minmax(0, 1fr) auto; }
   .new-call .new-tweet-meta { grid-column: 1 / -1; }
+  .new-call-detail { grid-column: 1 / -1; }
 }
