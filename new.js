@@ -240,7 +240,7 @@
     const v = c[state.window];
     return `<li><a class="new-call" href="${esc(c.url || '#')}" target="_blank" rel="noopener noreferrer">
         <span class="new-tweet-meta"><time datetime="${esc(c.at)}" title="${esc(fullDate(c.at))}">${esc(ago(Date.parse(c.at)))}</time></span>
-        <span class="new-call-asset"><i class="call-arrow ${c.stance === 'bullish' ? 'up' : 'down'}" aria-hidden="true"></i>${esc(assetName(c))}<span class="visually-hidden"> ${esc(c.stance)}</span></span>
+        <span class="new-call-asset"><span class="call-dir ${c.stance === 'bearish' ? 'bear' : 'bull'}">${c.stance === 'bearish' ? 'Bearish' : 'Bullish'}</span>${esc(assetName(c))}</span>
         ${end || `<span class="new-call-result ${v >= 0 ? 'up' : 'down'}">${pct(v)}</span>`}
       </a></li>`;
   }
@@ -311,7 +311,13 @@
         box.innerHTML = `<p class="new-tweets-note">No call scored after ${SPAN[win]} yet.</p>`;
         return;
       }
-      box.innerHTML = `<p class="new-calls-head">${s.n} call${s.n > 1 ? 's' : ''}, ${pct(s.avg)} on average against the market, ${s.win}% won</p>`
+      // How many calls bet on the coin rising (bullish) and on it falling (bearish): a bearish call wins when its coin falls.
+      const bear = Number.isFinite(s.bear) ? s.bear : scored.filter((c) => c.stance === 'bearish').length;
+      const split = s.n === 1 ? `1 call, ${bear ? 'bearish' : 'bullish'}`
+        : !bear ? `${s.n} calls, all bullish`
+        : bear === s.n ? `${s.n} calls, all bearish` : `${s.n} calls: ${s.n - bear} bullish, ${bear} bearish`;
+      box.innerHTML = `<p class="new-calls-head">${split}</p>`
+        + `<p class="new-calls-sub">${pct(s.avg)} on average against the market, ${s.win}% won.${bear ? ' A bearish call wins when its coin falls.' : ''}</p>`
         + `<ol class="new-call-list">${scored.slice(0, 10).map((c) => callItem(c)).join('')}</ol>`
         + (scored.length > 10 ? `<button class="new-more" type="button">Show ${scored.length - 10} more calls</button>` : '');
       box.querySelector('.new-more')?.addEventListener('click', (event) => {
