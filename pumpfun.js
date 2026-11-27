@@ -1,7 +1,9 @@
-// Pump.fun investigation page: reads the data rebuilt on the server every 10 minutes (trends watched, tokens found with their paper
-// test, wallets seen buying early on several tokens) and shows it plainly. Refreshes itself every 5 minutes.
+// Pump.fun investigation page: reads the trend robot's data (rebuilt every 5 minutes) and the hourly search's data (rebuilt
+// every 10 minutes: trends watched, tokens found with their paper test, wallets seen buying early on several tokens) and
+// shows them plainly. Refreshes itself every 5 minutes.
 (() => {
   const SOURCE = 'https://api.ithacapp.com/new/pumpfun.json';
+  const ROBOT = 'https://api.ithacapp.com/new/trendbot.json';
   const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const signed = (v, unit = '%') => `${v > 0 ? '+' : v < 0 ? '−' : ''}${Math.abs(v).toFixed(Math.abs(v) >= 100 ? 0 : 1)}${unit}`;
@@ -14,6 +16,8 @@
     return `${Math.round(m / 1440)} d ago`;
   }
   const day = (iso) => new Date(iso).toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
+  const clock = (iso) => new Date(iso).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  const EXIT = { x2: 'sold at twice the price', '-50%': 'stopped at half', '24 hours': 'sold after 24 hours', 'liquidity gone': 'pool emptied, all lost' };
 
   function stats(d) {
     const t = d.totals;
@@ -43,7 +47,7 @@
       $('tokens').innerHTML = '<p class="lab-empty">No token named after today\'s trends yet. The search runs every hour.</p>';
       return;
     }
-    const exit = { x2: 'sold at twice the price', '-50%': 'stopped at half', '24 hours': 'sold after 24 hours', 'liquidity gone': 'pool emptied, all lost' };
+    const exit = EXIT;
     $('tokens').innerHTML = `<div class="lab-row tok head"><span>Token</span><span>Trend</span><span class="num">Since found</span><span class="num">Best</span><span>Test</span></div>`
       + d.tokens.map((t) => `<div class="lab-row tok">
         <span class="name"><a href="https://www.geckoterminal.com/solana/pools/${esc(t.pool)}" target="_blank" rel="noopener noreferrer">${esc(t.name)}</a>
@@ -72,16 +76,79 @@
       </div>`).join('');
   }
 
+  // The trend robot: a token's line says when it was bought after the trend began, and when the token was created.
+  function born(t) {
+    if (!t.launchedAt) return '';
+    const m = (Date.parse(t.launchedAt) - Date.parse(t.trendStartedAt || t.foundAt)) / 60000;
+    if (m >= 0) return `token created ${Math.round(m)} min after it`;
+    if (-m < 120) return `token created ${Math.round(-m)} min before`;
+    if (-m < 72 * 60) return `token created ${Math.round(-m / 60)} h before`;
+    const d = new Date(t.launchedAt);
+    const opts = { month: 'short', day: 'numeric' };
+    if (d.getFullYear() !== new Date().getFullYear()) opts.year = 'numeric';
+    return `token created ${d.toLocaleDateString('en-US', opts)}`;
+  }
+  function bought(t) {
+    const what = t.source === 'cafe' ? "the Café edition came out" : 'the trend began';
+    const when = t.minAfterTrend == null ? `bought ${ago(t.foundAt)}` : `bought ${t.minAfterTrend} min after ${what}`;
+    return [when, born(t)].filter(Boolean).join(' · ');
+  }
+
+  function robot(d) {
+    const t = d.totals;
+    const avg = t.avg60 == null
+      ? '<b>—</b><span>Average move 1 hour after buying: first figure an hour after the first buy</span>'
+      : `<b class="${tone(t.avg60)}">${signed(t.avg60)}</b><span>Average move 1 hour after buying (${t.n60} token${t.n60 > 1 ? 's' : ''})</span>`;
+    const test = t.closed
+      ? `<b class="${tone(t.result)}">${money(t.result)}</b><span>Test result, $100 each: ${t.closed} sold, ${t.won} won</span>`
+      : '<b>—</b><span>Test result: first sales within 24 hours of the first buy</span>';
+    $('robotStats').innerHTML = `
+      <div class="lab-stat"><b>${t.trends}</b><span>Trends caught as they started</span></div>
+      <div class="lab-stat"><b>${t.tokens}</b><span>Tokens bought on paper (${t.open} still in the test)</span></div>
+      <div class="lab-stat">${avg}</div>
+      <div class="lab-stat">${test}</div>
+      <p class="lab-since">Running since ${esc(day(d.startedAt))}, ${esc(clock(d.startedAt))}. ${t.withTokens} of the ${t.trends} trends caught had a token carrying their name.</p>`;
+    const caught = (d.trends || []).slice(0, 14);
+    $('robotTrends').innerHTML = caught.length ? `<h3 class="lab-mini">Latest trends caught</h3><ul class="chips">${caught.map((x) =>
+      `<li class="chip ${esc(x.source)}" title="${esc(x.label)}">${esc(x.key)}${x.tokens ? ` <b>· ${x.tokens} token${x.tokens > 1 ? 's' : ''}</b>` : ''}</li>`).join('')}</ul>` : '';
+    $('robotTokens').innerHTML = !d.tokens.length
+      ? '<p class="lab-empty">No token yet. The robot buys on paper as soon as a new trend has one.</p>'
+      : `<div class="lab-row tok head"><span>Token</span><span>Trend</span><span class="num">After 1 hour</span><span class="num">Best</span><span>Test</span></div>`
+        + d.tokens.slice(0, 60).map((x) => `<div class="lab-row tok">
+        <span class="name"><a href="https://www.geckoterminal.com/solana/pools/${esc(x.pool)}" target="_blank" rel="noopener noreferrer">${esc(x.name)}</a>
+          <span class="sub">${esc(x.symbol)} · ${esc(bought(x))}</span></span>
+        <span class="trend"><span class="chip ${esc(x.source)}">${esc(x.trend)}</span></span>
+        <span class="num ${x.after60 == null ? 'flat' : tone(x.after60)}"><span class="lab-label">After 1 hour </span>${x.after60 == null ? '—' : signed(x.after60)}</span>
+        <span class="num ${tone(x.best || 0)}"><span class="lab-label">Best </span>${signed(x.best || 0)}</span>
+        <span class="test">${x.status === 'closed'
+          ? `<b class="${tone(x.result)}">${money(x.result)}</b> ${esc(EXIT[x.exitReason] || '')}`
+          : `in the test${x.change == null ? '' : `, ${signed(x.change)} now`}`}</span>
+      </div>`).join('');
+  }
+
+  async function getJSON(url) {
+    const r = await fetch(`${url}?t=${Date.now()}`, { cache: 'no-store' });
+    if (!r.ok) throw new Error(r.status);
+    return r.json();
+  }
+
   async function load() {
+    const [lab, bot] = await Promise.allSettled([getJSON(SOURCE), getJSON(ROBOT)]);
     try {
-      const r = await fetch(`${SOURCE}?t=${Date.now()}`, { cache: 'no-store' });
-      if (!r.ok) throw new Error(r.status);
-      const d = await r.json();
-      $('liveLine').textContent = `Live test, no real money · prices read every 10 minutes · last update ${ago(d.generatedAt)}`;
+      if (bot.status !== 'fulfilled') throw bot.reason;
+      robot(bot.value);
+    } catch {
+      $('robotStats').innerHTML = '<p class="lab-empty">The robot\'s data could not be loaded. It is rebuilt every 5 minutes; try again in a moment.</p>';
+    }
+    try {
+      if (lab.status !== 'fulfilled') throw lab.reason;
+      const d = lab.value;
       stats(d); trends(d); tokens(d); wallets(d);
     } catch {
       $('stats').innerHTML = '<p class="lab-empty">The investigation data could not be loaded. It is rebuilt every 10 minutes; try again in a moment.</p>';
     }
+    const times = [lab, bot].filter((x) => x.status === 'fulfilled').map((x) => Date.parse(x.value.generatedAt)).filter(Boolean);
+    if (times.length) $('liveLine').textContent = `Live test, no real money · the robot runs every 5 minutes · last update ${ago(new Date(Math.max(...times)).toISOString())}`;
   }
   load();
   setInterval(load, 5 * 60 * 1000);
