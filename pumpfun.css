@@ -1,0 +1,118 @@
+/* Pump.fun investigation page: the ITHAC look (royal blue band, white cards on warm paper, Avenir), kept to one column
+   so the story reads from top to bottom: the question, the method, the numbers, then the live lists. */
+:root {
+  color-scheme: light;
+  --bg: #f7f7f4;
+  --card: #fff;
+  --line: #dde2ea;
+  --ink: #1b263b;
+  --muted: #4f5e72;
+  --accent: #294882;
+  --up: #12804f;
+  --down: #c2373c;
+  --cafe: #8a5a2b;
+  --cafe-bg: #f6eee5;
+  --goo: #1f5fd6;
+  --goo-bg: #e9f0ff;
+  --radius: 10px;
+  font-family: "Avenir Next", Avenir, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+* { box-sizing: border-box; }
+body { margin: 0; color: var(--ink); background: var(--bg); line-height: 1.5; }
+a { color: var(--accent); }
+:where(a, button):focus-visible { outline: 2px solid #f5c542; outline-offset: 3px; border-radius: 4px; }
+.lab-wrap { width: min(980px, calc(100% - 2 * clamp(16px, 4vw, 40px))); margin-inline: auto; }
+
+/* The blue band */
+.lab-top { color: #fff; background: linear-gradient(112deg, #02093e 5%, #061055 45%, #002af1 86%); }
+.lab-top .lab-wrap { padding: clamp(18px, 3vw, 30px) 0 clamp(26px, 4vw, 42px); }
+.lab-back { display: inline-block; margin-bottom: clamp(14px, 3vw, 26px); color: rgba(255, 255, 255, .82); font-size: 14px; font-weight: 600; text-decoration: none; }
+.lab-back:hover { color: #fff; text-decoration: underline; }
+.lab-top h1 { margin: 0; font-size: clamp(34px, 6vw, 58px); font-weight: 600; line-height: 1.05; letter-spacing: -.01em; }
+.lab-lead { max-width: 640px; margin: 14px 0 0; color: rgba(255, 255, 255, .88); font-size: clamp(16px, 2vw, 19px); }
+.lab-live { display: flex; align-items: center; gap: 9px; margin: 18px 0 0; color: rgba(255, 255, 255, .78); font-size: 13px; }
+.lab-diode { width: 9px; height: 9px; border-radius: 50%; background: #3fcf7f; box-shadow: 0 0 0 4px rgba(63, 207, 127, .18); animation: lab-pulse 1.9s ease-in-out infinite; }
+@keyframes lab-pulse { 50% { box-shadow: 0 0 0 7px rgba(63, 207, 127, 0); } }
+@media (prefers-reduced-motion: reduce) { .lab-diode { animation: none; } }
+
+/* Cards and headings */
+.lab-main { display: grid; gap: clamp(22px, 3vw, 30px); padding: clamp(22px, 3.5vw, 36px) 0 10px; }
+.lab-card { padding: clamp(18px, 2.6vw, 26px); border: 1px solid var(--line); border-radius: var(--radius); background: var(--card); }
+.lab-card h2, .lab-h2 { margin: 0 0 12px; font-size: 20px; font-weight: 600; line-height: 1.25; }
+.lab-h2 { margin-bottom: 14px; }
+.lab-card p { margin: 0; }
+.lab-note { margin: -4px 0 14px !important; color: var(--muted); font-size: 14px; }
+.lab-question { border-left: 4px solid var(--accent); }
+.lab-question p { max-width: 760px; font-size: 16px; }
+.lab-source { display: inline-block; margin-top: 10px; font-size: 14px; font-weight: 600; }
+
+/* The four steps: a real sequence, so numbered */
+.lab-steps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 0; padding: 0; list-style: none; counter-reset: step; }
+.lab-steps li { position: relative; padding: 16px 16px 16px 52px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--card); counter-increment: step; }
+.lab-steps li::before { position: absolute; top: 14px; left: 14px; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%;
+  color: #fff; background: var(--accent); font-size: 14px; font-weight: 700; content: counter(step); }
+.lab-steps strong { display: block; margin-bottom: 4px; font-size: 15px; line-height: 1.3; }
+.lab-steps span { display: block; color: var(--muted); font-size: 13.5px; }
+@media (max-width: 860px) { .lab-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 520px) { .lab-steps { grid-template-columns: minmax(0, 1fr); } }
+
+/* So far: four numbers */
+.lab-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.lab-stat { padding: 16px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--card); }
+.lab-stat b { display: block; font-size: 30px; font-weight: 600; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.lab-stat span { display: block; margin-top: 4px; color: var(--muted); font-size: 13.5px; }
+.lab-stat .up { color: var(--up); }
+.lab-stat .down { color: var(--down); }
+.lab-since { grid-column: 1 / -1; margin: 0; color: var(--muted); font-size: 13px; }
+@media (max-width: 760px) { .lab-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* Trends: two groups of chips, coloured by where the trend comes from */
+.lab-group + .lab-group { margin-top: 16px; }
+.lab-group h3 { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; font-size: 14px; font-weight: 600; }
+.lab-dot { width: 9px; height: 9px; border-radius: 50%; }
+.lab-dot.cafe, .chip.cafe { background: var(--cafe-bg); }
+.lab-dot.cafe { background: var(--cafe); }
+.lab-dot.google { background: var(--goo); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.chip { padding: 3px 10px; border-radius: 999px; font-size: 13px; }
+.chip.cafe { color: var(--cafe); }
+.chip.google { color: var(--goo); background: var(--goo-bg); }
+
+/* Lists of tokens and wallets: a grid row each, two lines on a phone */
+.lab-list { border-top: 1px solid var(--line); }
+.lab-row { display: grid; align-items: center; gap: 4px 16px; padding: 12px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+.lab-row.tok { grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) 92px 92px minmax(0, 1.1fr); }
+.lab-row.wal { grid-template-columns: minmax(0, 1.2fr) 120px 110px minmax(0, 2fr); }
+.lab-row.head { padding: 8px 0; color: var(--muted); font-size: 12px; font-weight: 600; }
+.lab-row .name { min-width: 0; font-weight: 600; overflow-wrap: anywhere; }
+.lab-row .name a { color: var(--ink); text-decoration: none; }
+.lab-row .name a:hover { text-decoration: underline; }
+.lab-row .sub { display: block; color: var(--muted); font-size: 12.5px; font-weight: 400; white-space: normal; }
+.lab-row .num { font-variant-numeric: tabular-nums; text-align: right; }
+.lab-row .up { color: var(--up); font-weight: 600; }
+.lab-row .down { color: var(--down); font-weight: 600; }
+.lab-row .flat { color: var(--muted); }
+.lab-row .test { color: var(--muted); }
+.lab-row .test b { color: var(--ink); }
+.lab-row .mono { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 13px; }
+.lab-empty { margin: 0; padding: 14px 0 2px; color: var(--muted); }
+.lab-label { display: none; color: var(--muted); font-size: 12px; font-weight: 400; }
+@media (max-width: 760px) {
+  .lab-row.head { display: none; }
+  .lab-row.tok { grid-template-columns: minmax(0, 1fr) auto auto; }
+  .lab-row.tok .name { grid-column: 1 / -1; }
+  .lab-row.tok .trend { grid-column: 1 / -1; }
+  .lab-row.tok .num { text-align: left; }
+  .lab-row.tok .test { grid-column: 3; text-align: right; }
+  .lab-row.wal { grid-template-columns: minmax(0, 1fr) auto auto; }
+  .lab-row.wal .names { grid-column: 1 / -1; }
+  .lab-label { display: inline; }
+}
+
+/* What we already know */
+.lab-known ul { display: grid; gap: 10px; margin: 0; padding-left: 20px; }
+.lab-known li { padding-left: 2px; }
+
+.lab-foot { padding: 18px 0 40px; color: var(--muted); font-size: 13px; }
+.lab-foot p { margin: 0; }
+.chip.more { color: var(--muted); background: transparent; }
