@@ -100,14 +100,24 @@
       ? '<b>—</b><span>Average move 1 hour after buying: first figure an hour after the first buy</span>'
       : `<b class="${tone(t.avg60)}">${signed(t.avg60)}</b><span>Average move 1 hour after buying (${t.n60} token${t.n60 > 1 ? 's' : ''})</span>`;
     const test = t.closed
-      ? `<b class="${tone(t.result)}">${money(t.result)}</b><span>Test result, $100 each: ${t.closed} sold, ${t.won} won</span>`
-      : '<b>—</b><span>Test result: first sales within 24 hours of the first buy</span>';
+      ? `<b class="${tone(t.result)}">${money(t.result)}</b><span>Result at x2 or −50%, $100 each: ${t.closed} sold, ${t.won} won</span>`
+      : '<b>—</b><span>Result at x2 or −50%: first sales within 24 hours of the first buy</span>';
     $('robotStats').innerHTML = `
       <div class="lab-stat"><b>${t.trends}</b><span>Trends caught as they started</span></div>
       <div class="lab-stat"><b>${t.tokens}</b><span>Tokens bought on paper (${t.open} still in the test)</span></div>
       <div class="lab-stat">${avg}</div>
       <div class="lab-stat">${test}</div>
       <p class="lab-since">Running since ${esc(day(d.startedAt))}, ${esc(clock(d.startedAt))}. ${t.withTokens} of the ${t.trends} trends caught had a token carrying their name.</p>`;
+    // The four ways of selling, replayed on the same buys
+    const rules = d.rules || [];
+    $('robotRules').innerHTML = !rules.length ? '' : `<h3 class="lab-mini">Four ways of selling, tested on the same buys</h3>
+      <div class="lab-list"><div class="lab-row rule head"><span>Way of selling</span><span class="num">Sold</span><span class="num">Won</span><span class="num">Result, $100 each</span></div>`
+      + rules.map((r) => `<div class="lab-row rule">
+        <span class="name">${esc(r.label).replace(/-(\d)/g, '−$1')}</span>
+        <span class="num"><span class="lab-label">Sold </span>${r.sold}</span>
+        <span class="num"><span class="lab-label">Won </span>${r.sold ? r.won : '—'}</span>
+        <span class="num ${r.sold ? tone(r.result) : 'flat'}"><span class="lab-label">Result </span>${r.sold ? money(r.result) : '—'}</span>
+      </div>`).join('') + '</div>';
     const caught = (d.trends || []).slice(0, 14);
     $('robotTrends').innerHTML = caught.length ? `<h3 class="lab-mini">Latest trends caught</h3><ul class="chips">${caught.map((x) =>
       `<li class="chip ${esc(x.source)}" title="${esc(x.label)}">${esc(x.key)}${x.tokens ? ` <b>· ${x.tokens} token${x.tokens > 1 ? 's' : ''}</b>` : ''}</li>`).join('')}</ul>` : '';
