@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#02093E">
+  <title>Pump.fun investigation · ITHAC</title>
+  <meta name="description" content="Who are the few traders who win on Pump.fun, and can they be found? A live test without real money.">
+  <link rel="icon" type="image/png" sizes="64x64" href="./favicon-royal-blue.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=20261120-royal-blue">
+  <link rel="stylesheet" href="./pumpfun.css?v=20261127-lab1">
+</head>
+<body>
+  <header class="lab-top">
+    <div class="lab-wrap">
+      <a class="lab-back" href="./index.html">← Live ranking</a>
+      <h1>Pump.fun investigation</h1>
+      <p class="lab-lead">Most traders lose on Pump.fun. A few win. We want to know who they are, how they do it, and whether anyone could follow them.</p>
+      <p class="lab-live"><span class="lab-diode" aria-hidden="true"></span><span id="liveLine">Live test, no real money · updated every hour</span></p>
+    </div>
+  </header>
+
+  <main class="lab-wrap lab-main">
+    <section class="lab-card lab-question" aria-labelledby="qTitle">
+      <h2 id="qTitle">Who are the 26% that win?</h2>
+      <p>A Bitquery study of 3,170 winning positions on Pump.fun (gains of $100,000 or more, October 2025 to August 2026) found that 74% of those gains came from transactions a copy trader cannot repeat. That leaves about 26%, made in the open market, where someone watching could in principle have followed. Those are the winners we are looking for.</p>
+      <a class="lab-source" href="https://www.kucoin.com/news/flash/bitquery-study-reveals-74-of-pump-fun-gains-cannot-be-replicated-by-copy-traders" target="_blank" rel="noopener noreferrer">About the study</a>
+    </section>
+
+    <section aria-labelledby="howTitle">
+      <h2 id="howTitle" class="lab-h2">How we look for them</h2>
+      <ol class="lab-steps">
+        <li><strong>Read the day's trends</strong><span>From the <a href="https://www.dinelliscafe.com" target="_blank" rel="noopener noreferrer">Dinelli's Café</a> morning edition (Google, X, TikTok, YouTube) and Google Trends live.</span></li>
+        <li><strong>Find the tokens named after them</strong><span>Solana tokens launched in the past 24 hours whose name matches a trend.</span></li>
+        <li><strong>Test them without money</strong><span>Bought on paper as soon as we see one, sold at twice the price, at half, or after 24 hours. 3% costs taken off.</span></li>
+        <li><strong>Note who bought first</strong><span>A wallet that keeps getting in early on the tokens that double is a lead.</span></li>
+      </ol>
+    </section>
+
+    <section aria-labelledby="farTitle">
+      <h2 id="farTitle" class="lab-h2">So far</h2>
+      <div class="lab-stats" id="stats">
+        <p class="lab-empty">Loading the investigation…</p>
+      </div>
+    </section>
+
+    <section class="lab-card" aria-labelledby="trendsTitle">
+      <h2 id="trendsTitle">Trends watched today</h2>
+      <div id="trends"></div>
+    </section>
+
+    <section class="lab-card" aria-labelledby="tokTitle">
+      <h2 id="tokTitle">Tokens found</h2>
+      <p class="lab-note">Each token is bought on paper at its price when we first see it, then sold at twice that price, at half, or after 24 hours, whichever comes first.</p>
+      <div id="tokens" class="lab-list"></div>
+    </section>
+
+    <section class="lab-card" aria-labelledby="walTitle">
+      <h2 id="walTitle">Wallets that keep getting in early</h2>
+      <p class="lab-note">A wallet shows here once it bought early on at least two of the tokens we follow. The more of those tokens doubled, the higher it is.</p>
+      <div id="wallets" class="lab-list"></div>
+    </section>
+
+    <section class="lab-card lab-known" aria-labelledby="knownTitle">
+      <h2 id="knownTitle">What we already know</h2>
+      <ul>
+        <li><strong>Following influencers' calls lost money in our tests.</strong> Following each day's top 10 of the ITHAC ranking lost $1,019 over 257 calls (October 30 to November 25, $100 per call, costs included).</li>
+        <li><strong>The big winners were moving before anyone called them.</strong> The coins that rose the most after a first call had already gained 14% in the 3 days before it, against 0% for the others.</li>
+        <li><strong>Some influencers get in before their own tweet.</strong> In a case shown by Bubblemaps in October 2026, five hidden wallets bought about 20 seconds before a recommendation and sold about four minutes after it.</li>
+      </ul>
+    </section>
+  </main>
+
+  <footer class="lab-wrap lab-foot">
+    <p>A test with no real money. Nothing here is investment advice. Trends: Dinelli's Café and Google Trends. Prices and trades: CoinGecko (GeckoTerminal).</p>
+  </footer>
+  <script src="./pumpfun.js?v=20261127-lab1" defer></script>
+</body>
+</html>
