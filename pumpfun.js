@@ -1,4 +1,4 @@
-// Pump.fun investigation page: reads the hourly data built on the server (trends watched, tokens found with their paper
+// Pump.fun investigation page: reads the data rebuilt on the server every 10 minutes (trends watched, tokens found with their paper
 // test, wallets seen buying early on several tokens) and shows it plainly. Refreshes itself every 5 minutes.
 (() => {
   const SOURCE = 'https://api.ithacapp.com/new/pumpfun.json';
@@ -43,7 +43,7 @@
       $('tokens').innerHTML = '<p class="lab-empty">No token named after today\'s trends yet. The search runs every hour.</p>';
       return;
     }
-    const exit = { x2: 'sold at twice the price', '-50%': 'stopped at half', '24 hours': 'sold after 24 hours' };
+    const exit = { x2: 'sold at twice the price', '-50%': 'stopped at half', '24 hours': 'sold after 24 hours', 'liquidity gone': 'pool emptied, all lost' };
     $('tokens').innerHTML = `<div class="lab-row tok head"><span>Token</span><span>Trend</span><span class="num">Since found</span><span class="num">Best</span><span>Test</span></div>`
       + d.tokens.map((t) => `<div class="lab-row tok">
         <span class="name"><a href="https://www.geckoterminal.com/solana/pools/${esc(t.pool)}" target="_blank" rel="noopener noreferrer">${esc(t.name)}</a>
@@ -77,10 +77,10 @@
       const r = await fetch(`${SOURCE}?t=${Date.now()}`, { cache: 'no-store' });
       if (!r.ok) throw new Error(r.status);
       const d = await r.json();
-      $('liveLine').textContent = `Live test, no real money · updated every hour · last update ${ago(d.generatedAt)}`;
+      $('liveLine').textContent = `Live test, no real money · prices read every 10 minutes · last update ${ago(d.generatedAt)}`;
       stats(d); trends(d); tokens(d); wallets(d);
     } catch {
-      $('stats').innerHTML = '<p class="lab-empty">The investigation data could not be loaded. It is rebuilt every hour; try again in a moment.</p>';
+      $('stats').innerHTML = '<p class="lab-empty">The investigation data could not be loaded. It is rebuilt every 10 minutes; try again in a moment.</p>';
     }
   }
   load();
