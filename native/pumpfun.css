@@ -116,3 +116,12 @@ a { color: var(--accent); }
 .lab-foot { padding: 18px 0 40px; color: var(--muted); font-size: 13px; }
 .lab-foot p { margin: 0; }
 .chip.more { color: var(--muted); background: transparent; }
+
+/* The trend robot: the live test at the top, its numbers on the paper colour so they don't stack cards on a card */
+.lab-robot { border-top: 4px solid var(--accent); }
+.lab-robot .lab-stats { margin: 4px 0 16px; }
+.lab-robot .lab-stat { background: var(--bg); border-color: transparent; }
+#robotTrends { margin-bottom: 16px; }
+#robotTrends:empty { display: none; }
+.lab-mini { margin: 0 0 8px; font-size: 14px; font-weight: 600; }
+.chip b { font-weight: 700; }
