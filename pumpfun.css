@@ -125,3 +125,12 @@ a { color: var(--accent); }
 #robotTrends:empty { display: none; }
 .lab-mini { margin: 0 0 8px; font-size: 14px; font-weight: 600; }
 .chip b { font-weight: 700; }
+#robotRules { margin-bottom: 16px; }
+#robotRules:empty { display: none; }
+.lab-row.rule { grid-template-columns: minmax(0, 1fr) 70px 70px 130px; }
+.lab-row.rule .name { font-weight: 500; }
+@media (max-width: 760px) {
+  .lab-row.rule { grid-template-columns: minmax(0, 1fr) auto auto; }
+  .lab-row.rule .name { grid-column: 1 / -1; }
+  .lab-row.rule .num { text-align: left; }
+}
